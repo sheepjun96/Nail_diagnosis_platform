@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Patient Viewer</title>
+    <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}?v={{ timestamp }}">
+</head>
+<body>
+    <div class="tabs">
+        <a class="tab {% if request.url.path.startswith('/viewer') %}selected{% endif %}" href="/viewer/{{ patient.pid }}/{{ appt_date }}">Viewer</a>
+        <a class="tab" href="/progression/{{ patient.pid }}/{{ appt_date }}">Progression</a>
+        <a class="tab" href="/graph/{{ patient.pid }}/{{ appt_date }}">Graph</a>
+    </div>
+    <div class="mainbox">
+        <div class="section-title">1. Patient Information</div>
+        <table>
+            <tr>
+                <th>ID</th><td>{{ patient.pid }}</td>
+                <th>Name</th><td>{{ patient.patient_name }}</td>
+            </tr>
+            <tr>
+                <th>Birth</th><td>{{ patient.DOB }}</td>
+                <th>Gender</th><td>{{ patient.sex }}</td>
+            </tr>
+            <tr>
+                <th>Acquisition Date</th><td colspan="3">{{ appt_date }}</td>
+            </tr>
+        </table>
+        <div class="section-title">2. Hand Images</div>
+        <table class="hand-images-table">
+            <tr>
+                {% set hand_types = ["left_thumb", "left_four", "right_thumb", "right_four"] %}
+                {% set labels = ["Left Thumb", "Left Four Fingers", "Right Thumb", "Right Four Fingers"] %}
+                {% for i in range(hand_types|length) %}
+                    <th>{{ labels[i] }}</th>
+                {% endfor %}
+            </tr>
+            <tr>
+                {% for i in range(hand_types|length) %}
+                    <td onclick="document.getElementById('file-{{ hand_types[i] }}').click();">
+                        <input type="file" id="file-{{ hand_types[i] }}" onchange="uploadHand('{{ hand_types[i] }}', this)" />
+                        <div class="imgbox">
+                            {% if hand_images[i] %}
+                                <img id="img-preview-{{ hand_types[i] }}" src="/{{ hand_images[i] }}" alt="{{ labels[i] }}">
+                            {% else %}
+                                <span class="upload-label" id="img-preview-{{ hand_types[i] }}">Image Upload</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                {% endfor %}
+            </tr>
+        </table>
+        <div class="section-title">3. Cropped Nail</div>
+        <table class="cropped-nail-table">
+            <tr>
+                <th>Left Thumb</th><th>Left Index</th><th>Left Middle</th><th>Left Ring</th><th>Left Pinky</th>
+            </tr>
+            <tr>
+                {% for i in range(5) %}
+                    {% set key = 'left_' ~ ['thumb', 'index', 'middle', 'ring', 'pinky'][i] %}
+                    <td>
+                        <div class="imgbox">
+                        {% if cropped_nail_images.left[i] %}
+                            <img src="/{{ cropped_nail_images.left[i] }}" alt="{{ hand }}_{{ name}}">
+                        {% else %}
+                            <span class="noimg-label">No Image</span>
+                        {% endif %}
+                        </div>
+                    </td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <th>Right Thumb</th><th>Right Index</th><th>Right Middle</th><th>Right Ring</th><th>Right Pinky</th>
+            </tr>
+            <tr>
+                {% for i in range(5) %}
+                    {% set key = 'right_' ~ ['thumb', 'index', 'middle', 'ring', 'pinky'][i] %}
+                    <td>
+                        <div class="imgbox">
+                        {% if cropped_nail_images.right[i] %}
+                            <img src="/{{ cropped_nail_images.right[i] }}" alt="{{ hand }}_{{ name}}">
+                        {% else %}
+                            <span class="noimg-label">No Image</span>
+                        {% endif %}
+                        </div>
+                    </td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+<script>
+async function uploadHand(imgtype, inputElement) {
+    if (!inputElement.files.length) return;
+    var formData = new FormData();
+    formData.append("file", inputElement.files[0]);
+    formData.append("image_type", imgtype);
+    try {
+        const res = await fetch(`/upload-hand-image/{{ patient.pid }}/{{ appt_date }}`, {
+            method: "POST",
+            body: formData
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+            const preview = document.getElementById(`img-preview-${imgtype}`);
+            if (preview && preview.tagName === "IMG") {
+                preview.src = data.image_url + "?t=" + new Date().getTime();
+            } else {
+                const img = document.createElement("img");
+                img.id = `img-preview-${imgtype}`;
+                img.src = data.image_url + "?t=" + new Date().getTime();
+                img.alt = imgtype;
+                img.style.maxWidth = "100%";
+                img.style.maxHeight = "100%";
+                preview.replaceWith(img);
+            }
+        } else {
+            alert("File upload failed");
+        }
+    } catch (err) {
+        alert("Error: " + err);
+    }
+}
+</script>
+</body>
+</html>

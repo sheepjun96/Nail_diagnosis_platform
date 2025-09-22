@@ -1,13 +1,19 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from json import JSONDecodeError
 from pydantic import BaseModel
 from typing import Optional
-import json
-from json import JSONDecodeError
-import pymysql
-import os
+import json, os, shutil, pymysql
+
+from detection import NailDetector
 
 app = FastAPI(title="OpenEMR Dermatology AI Integration")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+nail_detector = NailDetector()
 
 # CORS 설정 (OpenEMR에서 로컬 테스트를 위해 허용)
 app.add_middleware(
@@ -26,10 +32,9 @@ class PatientData(BaseModel):
 
 # 환자 JSON 파일 경로
 JSON_path = "./patient_data.json"
-
 if not os.path.isfile(JSON_path):
     with open(JSON_path, 'w', encoding='utf-8') as f:
-        json.dump([], f, ensure_ascii=False, indent=2)
+        json.dump({}, f, ensure_ascii=False, indent=2)
 
 def load_data():
     try:
@@ -42,6 +47,7 @@ def save_data(data):
     with open(JSON_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+# OpenEMR에서 환자 정보 수신 및 처리
 @app.post("/send_patient_data")
 async def receive_patient_data(request: Request):
     # 1) 요청 바디를 JSON으로 파싱
@@ -60,14 +66,7 @@ async def receive_patient_data(request: Request):
     data = load_data()
     pid_str = str(patient.pid)
 
-    if pid_str in data:
-        dates = data[pid_str].get("appt_date", [])
-        if patient.appt_date and patient.appt_date in dates:
-            # 중복된 날짜가 있으면 코드 스킵, 기존 정보 유지
-            return {"status": "duplicate",
-                    "message": "Appointment date already exists",
-                    "patinet": data}
-    else:
+    if pid_str not in data:
         data[pid_str] = {
             "pid": patient.pid,
             "patient_name": patient.patient_name,
@@ -75,6 +74,10 @@ async def receive_patient_data(request: Request):
             "sex": "",
             "appt_date": []
         }
+    else:
+        dates = data[pid_str].get("appt_date", [])
+        if patient.appt_date and patient.appt_date in dates:
+            return {"status": "success", "redirect_url": f"https://127.0.0.1:8000/viewer/{pid_str}/{patient.appt_date}"}
     
     # 4) MySQL 데이터베이스 연결 및 DOB, sex 조회
     conn = None
@@ -114,17 +117,72 @@ async def receive_patient_data(request: Request):
     
     save_data(data)
 
-    return {
-        "status": "success", 
-        "patient": data
+    return {"status": "success", "redirect_url": f"https://127.0.0.1:8000/viewer/{pid_str}/{patient.appt_date}"}
+
+# 진료 시간별 뷰어 시스템
+@app.get("/viewer/{pid}/{appt_date}")
+async def viewer(request: Request, pid: int, appt_date: str):
+    data = load_data()
+    patient_data = data.get(str(pid))
+    if not patient_data or appt_date not in patient_data.get("appt_date", []):
+        raise HTTPException(status_code=404, detail="Patient or appointment not found")
+
+    # 손 이미지
+    hand_img_dir = f"static/patient_images/{pid}/{appt_date}/hand"
+    hand_types = ["left_thumb", "left_four", "right_thumb", "right_four"]
+    hand_images = []
+    for t in hand_types:
+        jpg_path = f"{hand_img_dir}/{t}.jpg"
+        png_path = f"{hand_img_dir}/{t}.png"
+        if os.path.isfile(jpg_path):
+            hand_images.append(jpg_path)
+        elif os.path.isfile(png_path):
+            hand_images.append(png_path)
+        else:
+            hand_images.append(None)
+
+    # 손톱 이미지: cropped_nail
+    nail_dir = f"static/patient_images/{pid}/{appt_date}/cropped_nail"
+    os.makedirs(nail_dir, exist_ok=True)
+    nail_names = ["thumb", "index", "middle", "ring", "pinky"]
+
+    cropped_nail_images = {"left":[], "right":[]}
+    for hand in ["left", "right"]:
+        for name in nail_names:
+            path = f"{nail_dir}/{hand}_{name}.png"
+            cropped_nail_images[hand].append(path if os.path.isfile(path) else None)
+            
+    return templates.TemplateResponse(
+        "viewer.html", {
+            "request": request,
+            "patient": patient_data,
+            "appt_date": appt_date,
+            "hand_images": hand_images,
+            "cropped_nail_images": cropped_nail_images
         }
+    )
+
+@app.post("/upload-hand-image/{pid}/{appt_date}")
+async def upload_hand_image(pid: int, appt_date: str, image_type: str = Form(...), file: UploadFile = File(...)):
+    save_dir = f"static/patient_images/{pid}/{appt_date}/hand"
+    os.makedirs(save_dir, exist_ok=True)
+    filepath = f"{save_dir}/{image_type}.jpg"
+    with open(filepath, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # 손톱 크롭 수행
+    nail_detector.crop_nail(filepath, pid, appt_date)
+
+    return {"status": "success", "image_url": f"/{filepath}"}
 
 @app.get("/")
 async def get_status():
-    return load_data()
+    data = load_data()
+
+    return data
+
 
 if __name__ == "__main__":
-    # python -m uvicorn main:app --reload
-    import uvicorn
+    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000 --ssl-keyfile=https/127.0.0.1-key.pem --ssl-certfile=https/127.0.0.1.pem  
 
-    uvicorn.run(app, host="127.0.0.1", port=8000, reload=True)
+    pass

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Viewer</title>
+    <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
+</head>
+<body>
+    <h2>환자 정보</h2>
+    <table>
+        <tr><th>PID</th><td>{{ patient.pid }}</td></tr>
+        <tr><th>이름</th><td>{{ patient.patient_name }}</td></tr>
+        <tr><th>생년월일</th><td>{{ patient.DOB }}</td></tr>
+        <tr><th>성별</th><td>{{ patient.sex }}</td></tr>
+        <tr><th>예약 일자</th>
+            <td>
+                {% if patient.appt_date %}
+                    {{ patient.appt_date|join(', ') }}
+                {% else %}
+                    없음
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <script src="scripts.js"></script>
+    <script>
+    function register() {
+        const payload = {
+            pid: Number(document.getElementById('pid').value),
+            patient_name: document.getElementById('name').value,
+            appt_date: document.getElementById('appt_date').value
+        };
+        sendPatientData(payload);
+    }
+    </script>
+</body>
+</html>
