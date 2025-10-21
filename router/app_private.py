@@ -6,6 +6,16 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter(prefix="/app", tags=["app-private"])
 templates = Jinja2Templates(directory="templates")
 
+#20251021 update
+@router.get("/add", response_class=HTMLResponse)
+def utilities_other_page(request: Request):
+    return templates.TemplateResponse("bootstrap/addWork.html", {"request": request})
+
+#20251021 update
+@router.get("/viewer", response_class=HTMLResponse)
+def utilities_other_page(request: Request):
+    return templates.TemplateResponse("bootstrap/viewer.html", {"request": request})
+
 @router.get("/", response_class=HTMLResponse)
 def worklist_page(request: Request):
     return templates.TemplateResponse("bootstrap/index.html", {"request": request})
