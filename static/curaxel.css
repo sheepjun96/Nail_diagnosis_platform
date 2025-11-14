@@ -1,0 +1,106 @@
+/*
+bg1 :#2a2a2a
+bg2 : #303030
+bg3 : #454545
+accent : #00c09d
+*/
+
+.bg-accent{
+    background: #00c09d !important;
+}
+
+body{
+    background: #2a2a2a !important ;
+}
+
+.btn-accent{
+    background: #00c09d !important;
+    color: white;
+}
+
+#wrapper #content-wrapper{
+    background: #2a2a2a !important ;
+}
+
+#accordionSidebar{
+    background: #454545 ;
+}
+
+#main_top_bar{
+    background: #303030 ;
+    color : white;
+}
+.table th,
+.table td{
+    border: 0px;
+}
+.table thead th{
+    border-bottom : 1px solid #656565
+}
+
+.bg-bg2{
+    background: #454545 !important;
+}
+
+.bg-bg3{
+    background: #656565 !important;
+}
+
+.project-title{
+    border-left: 4px solid #00c09d;
+    padding-left: 8px;
+}
+
+.search-div{
+    padding: 8px;
+    border: 0px;
+}
+
+.preview-div{
+    margin: 8px 12px;
+}
+
+.sub-title{
+    color : #fff;
+    font-size: 14px;
+}
+
+.table-select-file th{
+    height: 30px;
+}
+
+.table-select-file td{
+    height: 24px;
+}
+
+.fit-image-hight{
+    height: 100%;
+    object-fit: contain;
+}
+
+.fit-image-width{
+    width: 100%;
+}
+
+.fit-image{
+    object-fit: contain;
+}
+
+.font-sm-force{
+    font-size: 12px !important;
+}
+
+#patient_info_table{
+}
+
+#patient_info_table td{
+    vertical-align : middle !important;
+}
+
+.vertical-item-middle td{
+    vertical-align : middle !important;
+}
+
+.table-bottom-line td{
+    border-bottom: 1px solid #656565;
+}
