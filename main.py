@@ -7,11 +7,24 @@ from pydantic import BaseModel
 from typing import Optional
 import json, os, shutil, pymysql
 from pathlib import Path
+from config import CONFIG_DIR, ensure_directories
 
+from contextlib import asynccontextmanager
 from detection import NailDetector
 
+## 시스템 실행 시 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- 앱 시작 시 실행 (startup 대체) ---
+    ensure_directories()
+
+    yield  # 👈 여기서 앱이 동작합니다.
+
+    # --- 앱 종료 시 실행 (shutdown 대체) ---
+    print("[SHUTDOWN] FastAPI 서버 종료 중...")
+
 BASE_DIR = Path(__file__).resolve().parent
-app = FastAPI(title="OpenEMR Dermatology AI Integration")
+app = FastAPI(title="OpenEMR Dermatology AI Integration", lifespan=lifespan, docs_url="/docs",)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -24,22 +37,18 @@ nail_detector = NailDetector()
 from router.app_private import router as app_private
 from router.app_public import router as app_public
 
+from router.api_public import router as api_public
+
 def require_login():
     # 로그인 쿠키/세션 검사 로직
     # if not ok: raise HTTPException(status_code=401)
     return True
 
+app.include_router(api_public)
+
 app.include_router(app_private, dependencies=[Depends(require_login)])
 app.include_router(app_public)
 
-# CORS 설정 (OpenEMR에서 로컬 테스트를 위해 허용)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["https://127.0.0.1"],
-#     allow_credentials=True,
-#     allow_methods=["GET", "POST"],
-#     allow_headers=["*"],
-# )
 
 # 환자 정보 데이터 모델 정의
 class PatientData(BaseModel):
