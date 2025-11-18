@@ -3,11 +3,9 @@ import os
 from datetime import datetime
 from fastapi import APIRouter, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
 from config import CONFIG_DIR
 
 router = APIRouter(prefix="/api", tags=["api-public"])
-templates = Jinja2Templates(directory="templates")
 SAVE_NAIL_DIR = CONFIG_DIR["nail"]
 
 @router.get("/health", response_class=JSONResponse)
@@ -16,6 +14,7 @@ def health_check(
 ):
     return {"code" : 200, "state": "ok", "msg" : "api router OK"}
 
+# Upload Resberry or canon, etc..
 @router.post("/upload", response_class=JSONResponse)
 async def upload_form(
     request: Request,

@@ -104,3 +104,8 @@ body{
 .table-bottom-line td{
     border-bottom: 1px solid #656565;
 }
+
+.page-item.active .page-link{
+    background-color: #00c09d;
+    border-color: #00c09d;
+}

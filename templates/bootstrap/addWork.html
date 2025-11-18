@@ -32,7 +32,7 @@
                     <div class="row container-fluid h-100">
                         <div class="col-8 h-100" >
                             <div class="row h-100">
-                                <div class="container-fluid col-lg-12 mb-4 bg-bg2 card search-div " style="height: calc(50% - 25px);">
+                                <div class="container-fluid col-lg-12 mb-4 bg-bg2 card search-div " style="height: 360px;">
                                     <form
                                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 w-100 navbar-search">
                                         <table class="text-white mw-100" style="width:80%">
@@ -66,36 +66,13 @@
                                                 <th class="bg-bg3">Recent visit</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr class="bg-accent">
-                                                <td>1</td>
-                                                <th>ANO_123456</th>
-                                                <td>Tiger Nixon</td>
-                                                <td>M</td>
-                                                <td>1996/04/25(29)</td>
-                                                <td>2025/06/24</td>
-                                                <td>2025/10/21</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <th>ANO_123457</th>
-                                                <td>Tiger Nixon</td>
-                                                <td>M</td>
-                                                <td>1996/04/25(29)</td>
-                                                <td>2025/06/24</td>
-                                                <td>2025/10/21</td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <th>ANO_123456</th>
-                                                <td>Tiger Nixon</td>
-                                                <td>M</td>
-                                                <td>1996/04/25(29)</td>
-                                                <td>2025/06/24</td>
-                                                <td>2025/10/21</td>
-                                            </tr>
+                                        <tbody id="member_resource_list">
                                         </tbody>
                                     </table>
+                                    <nav aria-label="Study list pagination">
+                                        <ul class="pagination pagination-sm justify-content-center" id="member_pagination">
+                                        </ul>
+                                    </nav>
                                 </div>
 
                                 <div class="col-lg-12 mb-4 " style="height: calc(50% - 25px);">
@@ -112,89 +89,13 @@
                                                         <td>create</td>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
-                                                     <tr class="bg-accent">
-                                                        <td>1</td>
-                                                        <td>IMG_0016.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>2</td>
-                                                        <td>IMG_0015.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>3</td>
-                                                        <td>IMG_0014.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>4</td>
-                                                        <td>IMG_0013.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>5</td>
-                                                        <td>IMG_0012.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>6</td>
-                                                        <td>IMG_0011.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>7</td>
-                                                        <td>IMG_0010.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>8</td>
-                                                        <td>IMG_0009.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>9</td>
-                                                        <td>IMG_0008.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>10</td>
-                                                        <td>IMG_0007.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>11</td>
-                                                        <td>IMG_0006.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>12</td>
-                                                        <td>IMG_0005.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>13</td>
-                                                        <td>IMG_0004.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>14</td>
-                                                        <td>IMG_0003.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>15</td>
-                                                        <td>IMG_0002.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
-                                                     <tr>
-                                                        <td>16</td>
-                                                        <td>IMG_0001.JPG</td>
-                                                        <td>2025-10-09</td>
-                                                    </tr>
+                                                <tbody id="origin_resource_list">
                                                 </tbody>
                                             </table>
+                                            <nav aria-label="origin image list pagination">
+                                                <ul class="pagination pagination-sm justify-content-center" id="origin_resource_pagination">
+                                                </ul>
+                                            </nav>
                                         </div>
                                         <div class="card col-8 bg-bg2 search-div h-100">
                                             <h4 class="sub-title">Image Detail</h4>
@@ -260,7 +161,7 @@
                                             <tbody>
                                                 <tr >
                                                     <td class="bg-bg3">Type</td>
-                                                    <td class="m-0 p-1 font-sm-force"><select id="add_patient_type" class="form-control  m-0 p-0 font-sm-force text-center"><option>New</option><option selected>Exist</option></select></td>
+                                                    <td class="m-0 p-1 font-sm-force"><select id="add_patient_type" class="form-control  m-0 p-0 font-sm-force text-center"><option>New</option><option>Exist</option></select></td>
                                                     <td class="bg-bg3">ID</td>
                                                     <td class="m-0 p-1 font-sm-force"><input id="add_patient_id" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="ANO_123456"/></td>
                                                 </tr>
@@ -268,13 +169,13 @@
                                                     <td class="bg-bg3">Name</td>
                                                     <td class="m-0 p-1"><input id="add_patient_name" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="Tiger Nixon"/></td>
                                                     <td class="bg-bg3">Gender</td>
-                                                    <td class="m-0 p-1"><select class="form-control m-0 p-0 font-sm-force text-center"><option selected>M</option><option>F</option></select></td>
+                                                    <td class="m-0 p-1"><select id="add_patient_gender"  class="form-control m-0 p-0 font-sm-force text-center"><option>M</option><option>F</option></select></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="bg-bg3">Birthday</td>
                                                     <td class="m-0 p-1"><input id="add_patient_birth" type="date" class="form-control m-0 p-0 font-sm-force text-center" value="1996-04-25"/></td>
                                                     <td class="bg-bg3">Recent</td>
-                                                    <td class="m-0 p-1">2025/10/21</td>
+                                                    <td class="m-0 p-1" id="add_patient_recent" >2025/10/21</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -367,6 +268,338 @@
 
     </div>
     <!-- End of Page Wrapper -->
+
+    <script>
+        // 기본 상태
+        let currentPage = 1;
+        const defaultRows = 5;
+        let originCurrentPage = 1;
+        const originDefaultRows = 10;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadStudyList(currentPage, defaultRows);
+
+             // 검색 버튼 클릭 시 1페이지부터 다시 조회 (옵션)
+            const searchInput = document.getElementById("main_search_input");
+            const searchBtn = document.querySelector(".navbar-search button");
+            if (searchBtn && searchInput) {
+                searchBtn.addEventListener("click", () => {
+                    currentPage = 1;
+                    loadStudyList(currentPage, defaultRows);
+                });
+
+                // 엔터 키로도 검색
+                searchInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        currentPage = 1;
+                        loadStudyList(currentPage, defaultRows);
+                    }
+                });
+            }
+
+            loadOriginImageList(originCurrentPage, originDefaultRows);
+        });
+        
+        async function loadStudyList(page = 1, rows = defaultRows) {
+            try {
+                const searchInput = document.getElementById("main_search_input");
+                const searchText = searchInput ? searchInput.value.trim() : "";
+
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    rows: rows.toString()
+                });
+
+                if (searchText) {
+                    params.append("search", searchText);
+                }
+
+                const res = await fetch(`/api/resource/study/list?${params.toString()}`, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!res.ok) {
+                    console.error("API 응답 오류:", res.status, res.statusText);
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.code !== 200) {
+                    console.error("API 응답 코드 에러:", data);
+                    return;
+                }
+
+                const tbody = document.getElementById("member_resource_list");
+                if (!tbody) {
+                    console.error("tbody#member_resource_list 를 찾을 수 없습니다.");
+                    return;
+                }
+
+                // 기존 목록 초기화
+                tbody.innerHTML = "";
+
+                const items = data.context || [];
+                const total = data.total || 0;
+                const current = data.page || page;
+                const size = data.rows || rows;
+
+                 items.forEach((row, index) => {
+                    const tr = document.createElement("tr");
+
+                    const birth = row.stl_patient_birthdate
+                        ? row.stl_patient_birthdate.substring(0, 10)
+                        : "";
+                    const studyDate = row.stl_patient_studydate
+                        ? row.stl_patient_studydate.replace("T", " ").substring(0, 19)
+                        : "";
+                    const recentDate = row.stl_patient_recentdate
+                        ? row.stl_patient_recentdate.replace("T", " ").substring(0, 19)
+                        : "";
+
+                    tr.innerHTML = `
+                        <td>${(current - 1) * size + index + 1}</td>
+                        <td>${row.stl_patient_id ?? ""}</td>
+                        <td>${row.stl_patient_name ?? ""}</td>
+                        <td>${row.stl_patient_gender ?? ""}</td>
+                        <td>${birth}</td>
+                        <td>${studyDate}</td>
+                        <td>${recentDate}</td>
+                    `;
+
+                    tr.addEventListener("click", () => {
+                        fillPatientInfoFromWorklist(row);
+                    });
+
+                    tbody.appendChild(tr);
+                });
+
+                 // ✅ 페이지네이션 렌더링
+                renderPagination(total, current, size);
+
+                // 현재 페이지 전역 업데이트
+                currentPage = current;
+
+            } catch (err) {
+                console.error("study list 로딩 중 에러:", err);
+            }
+        }
+
+        function renderPagination(total, page, rows) {
+            const totalPages = Math.max(1, Math.ceil(total / rows));
+            const pagination = document.getElementById("member_pagination");
+            if (!pagination) return;
+
+            pagination.innerHTML = "";
+
+            // 페이지가 1개 뿐이면 페이지네이션 안 그려도 됨
+            // if (totalPages <= 1) return;
+
+            const createPageItem = (label, targetPage, disabled = false, active = false) => {
+                const li = document.createElement("li");
+                li.classList.add("page-item");
+                if (disabled) li.classList.add("disabled");
+                if (active) li.classList.add("active");
+
+                const a = document.createElement("a");
+                a.classList.add("page-link");
+                a.href = "#";
+                a.textContent = label;
+
+                if (!disabled && !active) {
+                    a.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        loadStudyList(targetPage, rows);
+                    });
+                }
+
+                li.appendChild(a);
+                return li;
+            };
+
+            // « 이전
+            pagination.appendChild(
+                createPageItem("«", page - 1, page <= 1)
+            );
+
+            // 페이지 번호 (필요하면 window 범위 조절 가능)
+            const windowSize = 5; // 한 번에 보여줄 최대 페이지 수
+            let start = Math.max(1, page - Math.floor(windowSize / 2));
+            let end = Math.min(totalPages, start + windowSize - 1);
+            if (end - start + 1 < windowSize) {
+                start = Math.max(1, end - windowSize + 1);
+            }
+
+            for (let p = start; p <= end; p++) {
+                pagination.appendChild(
+                    createPageItem(p.toString(), p, false, p === page)
+                );
+            }
+
+            // » 다음
+            pagination.appendChild(
+                createPageItem("»", page + 1, page >= totalPages)
+            );
+        }
+
+        async function loadOriginImageList(page = 1, rows = originDefaultRows) {
+            try {
+                const params = new URLSearchParams({
+                    page: page.toString(),
+                    rows: rows.toString(),
+                    image_type: 0          // 0 = origin 타입
+                });
+
+                const res = await fetch(`/api/resource/image/origin/list?${params.toString()}`, {
+                    method: "GET",
+                    headers: { "Accept": "application/json" }
+                });
+
+                if (!res.ok) {
+                    console.error("API 응답 오류:", res.status, res.statusText);
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (data.code !== 200) {
+                    console.error("API 코드 오류:", data);
+                    return;
+                }
+
+                const tbody = document.getElementById("origin_resource_list");
+                if (!tbody) return;
+
+                tbody.innerHTML = "";
+
+                const items = data.context || [];
+                const total = data.total || 0;
+                const current = data.page || page;
+                const size = data.rows || rows;
+
+                items.forEach((row, index) => {
+                    const tr = document.createElement("tr");
+
+                    const createDate = row.up_upload_date
+                        ? row.up_upload_date.replace("T", " ").substring(0, 19)
+                        : "";
+
+                    const filename = row.uf_uri ? row.uf_uri.split("/").pop() : "";
+
+                    tr.innerHTML = `
+                        <td>${(current - 1) * size + index + 1}</td>
+                        <td>${filename}</td>
+                        <td>${createDate}</td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+
+                renderOriginPagination(total, current, size);
+                originCurrentPage = current;
+
+            } catch (error) {
+                console.error("origin image list 로딩 오류:", error);
+            }
+        }
+
+        // === Pagination Renderer === //
+        function renderOriginPagination(total, page, rows) {
+            const totalPages = Math.max(1, Math.ceil(total / rows));
+            const pagination = document.getElementById("origin_resource_pagination");
+            if (!pagination) return;
+
+            pagination.innerHTML = "";
+
+            if (totalPages <= 1) return;
+
+            const createPageItem = (label, targetPage, disabled = false, active = false) => {
+                const li = document.createElement("li");
+                li.classList.add("page-item");
+
+                if (disabled) li.classList.add("disabled");
+                if (active) li.classList.add("active");
+
+                const a = document.createElement("a");
+                a.classList.add("page-link");
+                a.href = "#";
+                a.textContent = label;
+
+                if (!disabled && !active) {
+                    a.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        loadOriginImageList(targetPage, rows);
+                    });
+                }
+
+                li.appendChild(a);
+                return li;
+            };
+
+            // « 이전
+            pagination.appendChild(createPageItem("«", page - 1, page <= 1));
+
+            // 페이지 번호 세트 (5개 window)
+            const windowSize = 5;
+            let start = Math.max(1, page - Math.floor(windowSize / 2));
+            let end = Math.min(totalPages, start + windowSize - 1);
+
+            if (end - start + 1 < windowSize) {
+                start = Math.max(1, end - windowSize + 1);
+            }
+
+            for (let p = start; p <= end; p++) {
+                pagination.appendChild(createPageItem(p, p, false, p === page));
+            }
+
+            // » 다음
+            pagination.appendChild(createPageItem("»", page + 1, page >= totalPages));
+        }
+
+        function fillPatientInfoFromWorklist(row) {
+            const typeEl = document.getElementById("add_patient_type");
+            if (typeEl) typeEl.value = "Exist";
+
+            // ID
+            const idEl = document.getElementById("add_patient_id");
+            if (idEl) idEl.value = row.stl_patient_id || "";
+
+            // Name
+            const nameEl = document.getElementById("add_patient_name");
+            if (nameEl) nameEl.value = row.stl_patient_name || "";
+
+            // Gender
+            const genderEl = document.querySelector("#patient_info_table select");
+            if (genderEl) {
+                const gender = row.stl_patient_gender || "M";
+                genderEl.value = gender;
+            }
+
+            // Birthday (date input은 'YYYY-MM-DD' 만 가능)
+            const birthEl = document.getElementById("add_patient_birth");
+            if (birthEl) {
+                const birth = row.stl_patient_birthdate
+                    ? row.stl_patient_birthdate.substring(0, 10)
+                    : "";
+                birthEl.value = birth;
+            }
+
+            // Recent study date
+            const recentEl = document.getElementById("add_patient_recent");
+            if (recentEl) {
+                const recent = row.stl_patient_recentdate
+                    ? row.stl_patient_recentdate.replace("T", " ").substring(0, 19)
+                    : "";
+                recentEl.textContent = recent;
+            }           
+
+            console.log("Selected Image → Patient Info Updated:", row);
+        }
+    </script>
 
     {% include "includes/scrollbutton.html" %}
 
