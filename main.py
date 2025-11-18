@@ -47,6 +47,7 @@ nail_detector = NailDetector()
 from router.app_private import router as app_private
 from router.app_public import router as app_public
 
+from router.api_ai import router as api_ai
 from router.api_public import router as api_public
 from router.api_private import router as api_private
 
@@ -60,7 +61,7 @@ app.include_router(api_public)
 
 app.include_router(app_private, dependencies=[Depends(require_login)])
 app.include_router(app_public)
-
+app.include_router(api_ai)
 
 # 환자 정보 데이터 모델 정의
 class PatientData(BaseModel):
