@@ -1,4 +1,5 @@
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, APIRouter
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import Response
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,7 +10,8 @@ from io import BytesIO
 from utils.nail_detect import NailDetect
 from utils.lesion_predict import LesionPredict
 
-app = FastAPI()
+router = APIRouter(prefix="/api", tags=["api-public"])
+templates = Jinja2Templates(directory="templates")
 
 class_names = [
     "Acral_Lentiginous_Melanoma",
@@ -22,21 +24,21 @@ class_names = [
     "psoriasis"
 ]
 
-@app.on_event("startup")
+@router.on_event("startup")
 def load_model():
     print("Loading models...")
     global nail_detector
-    model_path = "models/yolov11-obb.pt"
+    model_path = "ai_models/yolov11-obb.pt"
     nail_detector = NailDetect(model_path)
     print("Nail detection model loaded.")
 
     global lesion_predictor
-    model_path = "models/MedSigLIP"
+    model_path = "ai_models/MedSigLIP"
     lesion_predictor = LesionPredict(model_path, class_names)
     print("Lesion prediction model loaded.")
     print("All models loaded.")
 
-@app.post("/nail_detect/")
+@router.post("/nail_detect/")
 async def nail_detect(
     file: UploadFile = File(...),
     is_thumb: bool = Form(False),
@@ -52,7 +54,7 @@ async def nail_detect(
         })
     return {"results": outs}
 
-@app.post("/plot_nail/")
+@router.post("/plot_nail/")
 async def plot_nail(cropped_image: UploadFile = File(...), obb_info: str = Form(...)):
     img_bytes = await cropped_image.read()
     cropped_img = np.array(Image.open(io.BytesIO(img_bytes)))
@@ -76,7 +78,7 @@ async def plot_nail(cropped_image: UploadFile = File(...), obb_info: str = Form(
 
     return Response(content=img_bytes, media_type="image/png")
 
-@app.post("/predict/")
+@router.post("/predict/")
 async def predict(file: UploadFile = File(...)):
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
