@@ -1,6 +1,5 @@
 import aiomysql
 from typing import List, Dict, Any, Optional, Tuple
-
 from test.dumy_data import RESOURCE_STUDY_LIST
 
 async def get_study_list(
@@ -109,4 +108,38 @@ async def get_image_origin_list(
         "total": total,   # 전체 개수
         "page": page,
         "rows": rows,
+    }
+
+async def get_image_origin_detail(
+    conn: aiomysql.Connection,
+    filename: Optional[str] = None,
+    page: int = 1,
+    rows: int = 20,
+) -> Dict[str, Any]:
+    
+    params: List[Any] = []
+    where_sql = "( uf_memo_2 LIKE %s OR uf_uri LIKE %s )"
+    like = f"{filename}" if filename else "%"
+    params.extend([like, like])
+    detail_sql = f"""
+        SELECT 
+            uf_seq,
+            uf_upload_write,
+            up_upload_date,
+            uf_uri,
+            uf_filetype,
+            uf_memo_1,
+            uf_memo_2
+        FROM upload_file
+        WHERE {where_sql}
+        ORDER BY uf_filetype ASC
+    """
+    
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(detail_sql, params)
+        items = await cur.fetchall()
+
+    # 6) 결과 포맷
+    return {
+        "items": items,   # 실제 데이터 목록
     }

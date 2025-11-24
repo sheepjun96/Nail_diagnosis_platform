@@ -21,7 +21,7 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid d-flex flex-column flex-grow-1" style="height: calc(100% - 70px) !important;">
                     <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <div class="d-sm-flex align-items-center justify-content-between m-0 mb-2">
                         <h1 class="h3 mb-0 text-gray-100 font-weight-bold project-title">Add Patient</h1>
                         <div class="text-gray-300 small">
                            <a class="btn btn-sm btn-danger fa-xs" href="/app"><i class="fas fa-arrow-right text-white"></i> Cancel</a>
@@ -29,10 +29,10 @@
                     </div>
 
                     <!-- Content Row -->
-                    <div class="row container-fluid h-100">
+                    <div class="d-sm-flex container-fluid h-100 m-0">
                         <div class="col-8 h-100" >
                             <div class="row h-100">
-                                <div class="container-fluid col-lg-12 mb-4 bg-bg2 card search-div " style="height: 360px;">
+                                <div class="container-fluid col-lg-12 mb-2 bg-bg2 card search-div add_div_card">
                                     <form
                                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 w-100 navbar-search">
                                         <table class="text-white mw-100" style="width:80%">
@@ -75,75 +75,75 @@
                                     </nav>
                                 </div>
 
-                                <div class="col-lg-12 mb-4 " style="height: calc(50% - 25px);">
-                                    <div class="row h-100 d-flex justify-content-between">
-                                        <div class="card col-4 bg-bg2 search-div h-100" style="overflow: auto;">
-                                            <table class="table-select-file text-center text-white fa-xs" width="100%" cellspacing="0">
-                                                <thead>
-                                                    <tr class="bg-bg3">
-                                                        <th colspan="3">Select Image</th>
-                                                    </tr>
-                                                    <tr class="bg-bg3">
-                                                        <td>No</td>
-                                                        <td>Filename</td>
-                                                        <td>create</td>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="origin_resource_list">
-                                                </tbody>
-                                            </table>
-                                            <nav aria-label="origin image list pagination">
-                                                <ul class="pagination pagination-sm justify-content-center" id="origin_resource_pagination">
-                                                </ul>
-                                            </nav>
-                                        </div>
-                                        <div class="card col-8 bg-bg2 search-div h-100">
-                                            <h4 class="sub-title">Image Detail</h4>
-                                            <div class="row m-0 w-100 " style="height: calc(100% - 24px);">
-                                                <div class="col-4 h-100">
-                                                    <div class="w-100 h-100"><img class="fit-image-width" src="/static/patient_images/1/2025-07-03/hand/left_four.jpg" width="100%" height="100%"/></div>
+                                <div class="row col-lg-12 mb-2 bg-bg2 card search-div add_div_card m-0 ">
+                                    <div class="col-4 search-div h-100 m-0 ">
+                                        <table class="table-select-file text-center text-white fa-xs" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr class="bg-bg3">
+                                                    <th colspan="3">Select Image</th>
+                                                </tr>
+                                                <tr class="bg-bg3">
+                                                    <td>No</td>
+                                                    <td>Filename</td>
+                                                    <td>create</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="origin_resource_list">
+                                            </tbody>
+                                        </table>
+                                        <nav aria-label="origin image list pagination">
+                                            <ul class="pagination pagination-sm justify-content-center" id="origin_resource_pagination">
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                    <div class="col-8 search-div h-100 m-0 ">
+                                        <h4 class="sub-title">Image Detail</h4>
+                                        <div class="row m-0 w-100 " style="height: calc(100% - 24px);">
+                                            <div class="col-4 h-100">
+                                                <div class="" id="select_origin_image">
+                                                    <!-- <img class="fit-image-width" src="/static/patient_images/1/2025-07-03/hand/left_four.jpg" width="100%" height="100%"/> -->
                                                 </div>
-                                                <div class="col-8 h-100">
-                                                    <table class="table text-center text-white fa-xs" width="100%" cellspacing="0">
-                                                        <tbody>
-                                                            <tr class="bg-bg3">
-                                                                <th>Thumb</th>
-                                                                <th>Index</th>
-                                                                <th>Middle</th>
-                                                                <th>Ring</th>
-                                                                <th>Pinky</th>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="p-1 fit-image" style="width: 20%;height:60px;"><span>No extra</span></td>
-                                                                <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                                <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                                <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                                <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-search-plus"></i></a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-search-plus"></i></a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-search-plus"></i></a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-search-plus"></i></a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-search-plus"></i></a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Left</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Left</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Left</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Left</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Left</a></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Right</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Right</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Right</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Right</a></td>
-                                                                <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-primary w-100">Right</a></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                            </div>
+                                            <div class="col-8 h-100">
+                                                <table class="table text-center text-white fa-xs" width="100%" cellspacing="0">
+                                                    <tbody>
+                                                        <tr class="bg-bg3">
+                                                            <th>Thumb</th>
+                                                            <th>Index</th>
+                                                            <th>Middle</th>
+                                                            <th>Ring</th>
+                                                            <th>Pinky</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="p-1 fit-image" id="select_crop_t" style="width: 20%;height:60px;"></td> 
+                                                            <td class="p-1 fit-image" id="select_crop_i" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_m" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_r" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_p" style="width: 20%;height:60px;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="p-1" id="select_crop_t_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_t')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_i_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_i')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_m_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_m')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_r')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_p_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_p')"><i class="fas fa-search-plus"></i></button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="p-1" id="select_crop_t_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_t', 'lt');">Left</button></td>
+                                                            <td class="p-1" id="select_crop_i_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_i', 'li');">Left</button></td>
+                                                            <td class="p-1" id="select_crop_m_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_m', 'lm');">Left</button></td>
+                                                            <td class="p-1" id="select_crop_r_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_r', 'lr');">Left</button></td>
+                                                            <td class="p-1" id="select_crop_p_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_p', 'lp');">Left</button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="p-1" id="select_crop_t_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_t', 'rt');">Right</button></td>
+                                                            <td class="p-1" id="select_crop_i_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_i', 'ri');">Right</button></td>
+                                                            <td class="p-1" id="select_crop_m_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_m', 'rm');">Right</button></td>
+                                                            <td class="p-1" id="select_crop_r_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_r', 'rr');">Right</button></td>
+                                                            <td class="p-1" id="select_crop_p_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_p', 'rp');">Right</button></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -161,56 +161,162 @@
                                             <tbody>
                                                 <tr >
                                                     <td class="bg-bg3">Type</td>
-                                                    <td class="m-0 p-1 font-sm-force"><select id="add_patient_type" class="form-control  m-0 p-0 font-sm-force text-center"><option>New</option><option>Exist</option></select></td>
+                                                    <td class="m-0 p-1 font-sm-force"><select id="add_patient_type" class="form-control  m-0 p-0 font-sm-force text-center"><option value="new" selected>New</option><option value="exist">Exist</option></select></td>
                                                     <td class="bg-bg3">ID</td>
-                                                    <td class="m-0 p-1 font-sm-force"><input id="add_patient_id" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="ANO_123456"/></td>
+                                                    <td class="m-0 p-1 font-sm-force"><input id="add_patient_id" type="text" class="form-control m-0 p-0 font-sm-force text-center" value=""/></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="bg-bg3">Name</td>
-                                                    <td class="m-0 p-1"><input id="add_patient_name" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="Tiger Nixon"/></td>
+                                                    <td class="m-0 p-1"><input id="add_patient_name" type="text" class="form-control m-0 p-0 font-sm-force text-center" value=""/></td>
                                                     <td class="bg-bg3">Gender</td>
-                                                    <td class="m-0 p-1"><select id="add_patient_gender"  class="form-control m-0 p-0 font-sm-force text-center"><option>M</option><option>F</option></select></td>
+                                                    <td class="m-0 p-1"><select id="add_patient_gender"  class="form-control m-0 p-0 font-sm-force text-center"><option value="M" selected>M</option><option value="F">F</option></select></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="bg-bg3">Birthday</td>
-                                                    <td class="m-0 p-1"><input id="add_patient_birth" type="date" class="form-control m-0 p-0 font-sm-force text-center" value="1996-04-25"/></td>
+                                                    <td class="m-0 p-1"><input id="add_patient_birth" type="date" class="form-control m-0 p-0 font-sm-force text-center" value=""/></td>
                                                     <td class="bg-bg3">Recent</td>
-                                                    <td class="m-0 p-1" id="add_patient_recent" >2025/10/21</td>
+                                                    <td class="m-0 p-1" id="add_patient_recent" ></td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="preview-div">
                                         <h4 class="sub-title">2. Image Datas</h4>
+                                        <div class="checkbox-wrap">
+                                            <input class="" type="checkbox" name="is_sar" id="add_imagedata_sar" /><label for="add_imagedata_sar" class="psoriasis_label"> nail psoriasis</label>
+                                        </div>
                                         <table class="table text-center text-white fa-xs vertical-item-middle" width="100%" cellspacing="0">
                                             <tbody>
                                                 <tr class="bg-bg3">
-                                                    <th>L Thumb</th>
-                                                    <th>L Index</th>
-                                                    <th>L Middle</th>
-                                                    <th>L Ring</th>
-                                                    <th>L Pinky</th>
+                                                    <th style="width: 20%;">L Thumb</th>
+                                                    <th style="width: 20%;">L Index</th>
+                                                    <th style="width: 20%;">L Middle</th>
+                                                    <th style="width: 20%;">L Ring</th>
+                                                    <th style="width: 20%;">L Pinky</th>
                                                 </tr>
                                                 <tr>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_t_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_i_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_m_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_r_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_p_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-sm btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
+                                                <tr class="extra-func ">
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-sm btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
+                                                <tr class="extra-func ">
+                                                    <td class="p-1 fit-image" id="image_data_t_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_i_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_m_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_r_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_p_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                </tr>
+                                                <tr class="extra-func ">
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                </tr>
+                                                <tr class="psoriasis-func none">
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                </tr>
+                                                <tr class="psoriasis-func none">
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                </tr>
+                                                <tr class="psoriasis-func none">
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>                                                    
                                                 </tr>
                                                 <tr class="bg-bg3">
                                                     <th>R Thumb</th>
@@ -220,25 +326,128 @@
                                                     <th>R Pinky</th>
                                                 </tr>
                                                 <tr>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_thumb.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_index.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_middle.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_ring.png"  height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_pinky.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_t_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_i_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_m_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_r_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png"  height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_p_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-sm btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-danger w-100 m-0"><i class="fas fa-times"></i></td>
+                                                <tr class="extra-func ">
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                    <td class="padding-1 line-td-white-tb">Extra</td>
                                                 </tr>
-                                                <tr>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-sm btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
+                                                <tr class="extra-func ">
+                                                    <td class="p-1 fit-image" id="image_data_t_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_i_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_m_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_r_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image" id="image_data_p_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                </tr>
+                                                <tr class="extra-func ">
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                    <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick=""><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn"><i class="fas fa-times"></i></button></td>
+                                                </tr>
+                                                <tr class="psoriasis-func none">
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                    <td class="padding-1 line-td-white-tb">Psoriasis</td>
+                                                </tr>
+                                                <tr class="psoriasis-func none">
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                    <td class="padding-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">1</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">2</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">4</button><button class="btn btn-sm btn-secondary margin-1px p-0 psoriasis_btn" onclick="">3</button></td>
+                                                </tr>
+                                                <tr class="psoriasis-func none">
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>
+                                                    <td class="padding-1" >
+                                                        <table class="w-100 psoriasis_table p-0 m-0">
+                                                            <thead><tr><th>Ind</th><th>M</th><th>B</th></tr></thead>
+                                                            <tbody>
+                                                                <tr><td>1</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>2</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>3</td><td>0</td><td>0</td></tr>
+                                                                <tr><td>4</td><td>0</td><td>0</td></tr>
+                                                            </tbody>
+                                                            <tfoot>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Matrix</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Bed</td><td>0</td></tr>
+                                                                <tr><td colspan="2" class="text-left">NAPSI Total</td><td>0</td></tr>
+                                                            </tfoot>
+                                                        </table>
+                                                    </td>                                                    
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -275,6 +484,142 @@
         const defaultRows = 5;
         let originCurrentPage = 1;
         const originDefaultRows = 10;
+        let nailPsoriasis = false;
+        let nailJson = {}
+        let nailPsoriasisJson = {};
+
+        function initNailJson(){
+            return {
+                lt: {crop : "", extra : "", sar:""},
+                li: {crop : "", extra : "", sar:""},
+                lm: {crop : "", extra : "", sar:""},
+                lr: {crop : "", extra : "", sar:""},
+                lp: {crop : "", extra : "", sar:""},
+                rt: {crop : "", extra : "", sar:""},
+                ri: {crop : "", extra : "", sar:""},
+                rm: {crop : "", extra : "", sar:""},
+                rr: {crop : "", extra : "", sar:""},
+                rp: {crop : "", extra : "", sar:""},
+            }
+        }
+
+        function initnailPariasisJson(){
+            return {
+                lt : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                li : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                lm : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                lr : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                lp : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                rt : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                ri : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                rm : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                rr : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                },
+                rp : {
+                    index1 : {matrix : 0,bed : 0},
+                    index2 : {matrix : 0,bed : 0},
+                    index3 : {matrix : 0,bed : 0},
+                    index4 : {matrix : 0,bed : 0},
+                    matrix : 0,
+                    bed : 0
+                }
+            }
+        }
+
+        window.addEventListener("load", () => {
+            nailJson = initNailJson();
+            nailPsoriasisJson = initnailPariasisJson();
+            document.getElementById("add_patient_type").addEventListener("change", function () {
+                if (this.value === "new") {
+                    clearPatientFields();
+                }
+            });
+
+            document.getElementById("add_imagedata_sar").addEventListener("change", function () {
+                console.log("add_imagedata_sar", this.checked)
+                nailPsoriasis = this.checked
+
+                if(this.checked){
+                    const psoriasisDom = document.querySelectorAll(".psoriasis-func");
+                    psoriasisDom.forEach(dom => dom.classList.remove("none"));
+                }else{
+                    const psoriasisDom = document.querySelectorAll(".psoriasis-func");
+                    psoriasisDom.forEach(dom => dom.classList.add("none"));
+                }
+            });
+        });
+
+        
+
+        function clearPatientFields() {
+            document.getElementById("add_patient_id").value = "";
+            document.getElementById("add_patient_name").value = "";
+            document.getElementById("add_patient_gender").value = "M";
+            document.getElementById("add_patient_birth").value = "";
+            document.getElementById("add_patient_recent").textContent = "";
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             loadStudyList(currentPage, defaultRows);
@@ -370,6 +715,8 @@
                         <td>${studyDate}</td>
                         <td>${recentDate}</td>
                     `;
+
+                    tr.classList.add("pointer")
 
                     tr.addEventListener("click", () => {
                         fillPatientInfoFromWorklist(row);
@@ -496,6 +843,12 @@
                         <td>${createDate}</td>
                     `;
 
+                    tr.addEventListener("click", () => {
+                        filselectOriginCropImage(row);
+                    });
+
+                    tr.classList.add("pointer")
+
                     tbody.appendChild(tr);
                 });
 
@@ -561,8 +914,10 @@
         }
 
         function fillPatientInfoFromWorklist(row) {
-            const typeEl = document.getElementById("add_patient_type");
-            if (typeEl) typeEl.value = "Exist";
+            const typeEl = document.querySelector("select#add_patient_type");
+            if (typeEl) {
+                typeEl.value = "exist";
+            }
 
             // ID
             const idEl = document.getElementById("add_patient_id");
@@ -573,9 +928,10 @@
             if (nameEl) nameEl.value = row.stl_patient_name || "";
 
             // Gender
-            const genderEl = document.querySelector("#patient_info_table select");
+            const genderEl = document.querySelector("#add_patient_gender");
             if (genderEl) {
                 const gender = row.stl_patient_gender || "M";
+                console.log("gender", gender, genderEl.value)
                 genderEl.value = gender;
             }
 
@@ -598,6 +954,190 @@
             }           
 
             console.log("Selected Image → Patient Info Updated:", row);
+        }
+
+        async function filselectOriginCropImage(row) {
+            const params = new URLSearchParams({
+                filename: row?.uf_uri,
+            });
+
+            const res = await fetch(`/api/resource/image/origin/detail?${params.toString()}`, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+
+            if (!res.ok) {
+                console.error("API 응답 오류:", res.status, res.statusText);
+                return;
+            }
+
+            const data = await res.json();
+
+            if (data.code !== 200) {
+                console.error("API 코드 오류:", data);
+                return;
+            }
+
+            const result = {
+                origin_uri: null,
+                crop_thumb_uri: null,
+                crop_index_uri: null,
+                crop_middle_uri: null,
+                crop_ring_uri: null,
+                crop_pinky_uri: null,
+            };
+
+            const baseUri = data.base;
+
+            data.context.forEach(item => {
+
+                // 1) origin 이미지
+                if (item.uf_filetype === 0) {
+                    result.origin_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                }
+
+                // 2) crop 이미지
+                if (item.uf_filetype === 1) {
+                    const memo = item.uf_memo_1?.toLowerCase();
+
+                    if (memo == "t") result.crop_thumb_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                    if (memo == "i") result.crop_index_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                    if (memo == "m") result.crop_middle_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                    if (memo == "r") result.crop_ring_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                    if (memo == "p") result.crop_pinky_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                }
+            });
+
+            const originDiv = document.getElementById("select_origin_image");
+            if (originDiv) {
+                if (result?.origin_uri) { // 실제 필드명에 맞게 수정
+                    originDiv.innerHTML = `
+                        <img 
+                        class="fit-image-width" 
+                        src="${result?.origin_uri}" 
+                        width="100%" 
+                        height="100%" 
+                        alt="origin"
+                        />
+                    `;
+                } else {
+                    originDiv.innerHTML = `<span>No image</span>`;
+                }
+            }
+            const selectCropList = ["t", "i", "m", "r", "p"]
+            selectCropList.forEach(item => {
+                const elementId = "select_crop_"+item
+                let imageUri = ""
+                const tDiv = document.getElementById(elementId);
+                const dDiv = document.getElementById(elementId+"_d");
+                const lDiv = document.getElementById(elementId+"_l");
+                const rDiv = document.getElementById(elementId+"_r");
+                if (item == "t") imageUri = result?.crop_thumb_uri;
+                if (item == "i") imageUri = result?.crop_index_uri;
+                if (item == "m") imageUri = result?.crop_middle_uri;
+                if (item == "r") imageUri = result?.crop_ring_uri;
+                if (item == "p") imageUri = result?.crop_pinky_uri;
+
+                if (tDiv) {
+                    if (imageUri) { // 실제 필드명에 맞게 수정
+                        tDiv.innerHTML = `
+                            <img 
+                            class="fit-image" 
+                            src="${imageUri}" 
+                            height="60px"
+                            alt="crop image ${item}"
+                            />
+                        `;
+
+                    } else {
+                        tDiv.innerHTML = `<span>No image</span>`;
+                    }
+                }
+
+                if(dDiv){
+                    if (imageUri) { 
+                        const buttons = dDiv.querySelectorAll("button");
+                        buttons.forEach(btn => btn.classList.remove("none"));
+                    }else{
+                        const buttons = dDiv.querySelectorAll("button");
+                        buttons.forEach(btn => btn.classList.add("none"));
+                    }
+                }
+
+                if(lDiv){
+                    if (imageUri) {
+                        const buttons = lDiv.querySelectorAll("button");
+                        buttons.forEach(btn => btn.classList.remove("none"));
+                    }else{
+                        const buttons = lDiv.querySelectorAll("button");
+                        buttons.forEach(btn => btn.classList.add("none"));
+                    }
+                }
+
+                if(rDiv){
+                    if (imageUri) {
+                        const buttons = rDiv.querySelectorAll("button");
+                        buttons.forEach(btn => btn.classList.remove("none"));
+                    }else{
+                        const buttons = rDiv.querySelectorAll("button");
+                        buttons.forEach(btn => btn.classList.add("none"));
+                    }
+                }
+            });
+        }
+
+         function popupDetailViewer(cellId) {
+            const cell = document.getElementById(cellId);
+            if (!cell) {
+                alert("이미지 셀을 찾을 수 없습니다.");
+                return;
+            }
+
+            // 2) 내부의 img 태그 찾기
+            const img = cell.querySelector("img");
+            if (!img || !img.src) {
+                alert("표시할 이미지가 없습니다.");
+                return;
+            }
+
+            const url = new URL(img.src);
+            const queryString = url.search;
+            const popupUrl = `/app/image${queryString}`;
+            const win = window.open(
+                popupUrl,
+                "_blank",
+                "width=900,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes"
+            );
+
+            if (!win) {
+                alert("팝업이 차단되었습니다. 팝업 허용 후 다시 시도해주세요.");
+                return;
+            }
+        }
+
+        function onSelectImageDatas(imageUri, type){
+            const typeMap = {
+                lt : "image_data_t_l",
+                li : "image_data_i_l",
+                lm : "image_data_m_l",
+                lr : "image_data_r_l",
+                lp : "image_data_p_l",
+                rt : "image_data_t_r",
+                ri : "image_data_i_r",
+                rm : "image_data_m_r",
+                rr : "image_data_r_r",
+                rp : "image_data_p_r",
+            }
+            const imageDataId = typeMap[type]
+            const imgTd = document.getElementById(imageUri);
+            const img = imgTd.querySelector("img");
+            // console.log(img.src)
+            // console.log(imageDataId)
+            const selectTd = document.getElementById(imageDataId);
+            const seletImg = selectTd.querySelector("img");
+            seletImg.src = img.src
+            nailJson[type].crop = img.src
+            console.log("nailJson", nailJson)
         }
     </script>
 

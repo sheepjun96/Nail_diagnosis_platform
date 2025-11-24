@@ -103,7 +103,7 @@ CREATE TABLE `upload_file` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO upload_file 
-(uf_upload_write, up_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2)
+(uf_upload_write, up_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_del_yn)
 VALUES
 ('gcubme', '2025-01-17 10:12:00', 'gcubme_20251117135018.png', 0, 'o', 'origin', 'N'),
 ('gcubme', '2025-01-02 10:12:00', 'gcubme_20251117135019.png', 0, 'o', 'origin', 'N'),
@@ -111,13 +111,13 @@ VALUES
 ('gcubme', '2025-01-02 10:12:00', 'gcubme_20251117135021.png', 0, 'o', 'origin', 'N'),
 ('gcubme', '2025-01-02 10:12:00', 'gcubme_20251117135025.png', 0, 'o', 'origin', 'N'),
 ('gcubme', '2025-01-02 10:12:15', 'crop_i_gcubme_20251117135018.png', 1, 'i', 'gcubme_20251117135018.png', 'N'),
-('gcubme', '2025-01-02 10:12:16', 'crop_p_gcubme_20251117135018.png', 1, 'm', 'gcubme_20251117135018.png', 'N'),
-('gcubme', '2025-01-02 10:12:17', 'crop_p_gcubme_20251117135018.png', 1, 'r', 'gcubme_20251117135018.png', 'N'),
+('gcubme', '2025-01-02 10:12:16', 'crop_m_gcubme_20251117135018.png', 1, 'm', 'gcubme_20251117135018.png', 'N'),
+('gcubme', '2025-01-02 10:12:17', 'crop_r_gcubme_20251117135018.png', 1, 'r', 'gcubme_20251117135018.png', 'N'),
 ('gcubme', '2025-01-02 10:12:18', 'crop_p_gcubme_20251117135018.png', 1, 'p', 'gcubme_20251117135018.png', 'N'),
 ('gcubme', '2025-01-02 10:12:19', 'crop_t_gcubme_20251117135019.png', 1, 't', 'gcubme_20251117135019.png', 'N'),
 ('gcubme', '2025-01-02 10:12:15', 'crop_i_gcubme_20251117135020.png', 1, 'i', 'gcubme_20251117135020.png', 'N'),
 ('gcubme', '2025-01-02 10:12:16', 'crop_m_gcubme_20251117135020.png', 1, 'm', 'gcubme_20251117135020.png', 'N'),
 ('gcubme', '2025-01-02 10:12:17', 'crop_r_gcubme_20251117135020.png', 1, 'r', 'gcubme_20251117135020.png', 'N'),
-('gcubme', '2025-01-02 10:12:18', 'crop_r_gcubme_20251117135020.png', 1, 'p', 'gcubme_20251117135020.png', 'N'),
+('gcubme', '2025-01-02 10:12:18', 'crop_p_gcubme_20251117135020.png', 1, 'p', 'gcubme_20251117135020.png', 'N'),
 ('gcubme', '2025-01-02 10:12:19', 'crop_t_gcubme_20251117135021.png', 1, 't', 'gcubme_20251117135021.png', 'N');
 
