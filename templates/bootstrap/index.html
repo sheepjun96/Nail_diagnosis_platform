@@ -75,7 +75,7 @@
                                                 <th class="bg-bg3">Readdate</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="main_resource_list">
                                             <tr class="bg-accent">
                                                 <td>1</td>
                                                 <th>-</th>
@@ -222,6 +222,78 @@
 
     </div>
     <!-- End of Page Wrapper -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadStudyList();
+        });
+        
+        async function loadStudyList() {
+            try {
+                const res = await fetch("/api/resource/study/list", {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+                });
+
+                if (!res.ok) {
+                console.error("API 응답 오류:", res.status, res.statusText);
+                return;
+                }
+
+                const data = await res.json();
+
+                if (data.code !== 200) {
+                console.error("API 응답 코드 에러:", data);
+                return;
+                }
+
+                const tbody = document.getElementById("main_resource_list");
+                if (!tbody) {
+                console.error("tbody#main_resource_list 를 찾을 수 없습니다.");
+                return;
+                }
+
+                // 기존 목록 초기화
+                tbody.innerHTML = "";
+
+                const items = data.context || [];
+
+                items.forEach((row, index) => {
+                const tr = document.createElement("tr");
+
+                // 날짜 포맷 간단 처리 (null 방지)
+                const birth = row.stl_patient_birthdate
+                    ? row.stl_patient_birthdate.substring(0, 10)
+                    : "";
+                const studyDate = row.stl_patient_studydate
+                    ? row.stl_patient_studydate.replace("T", " ").substring(0, 19)
+                    : "";
+                const recentDate = row.stl_patient_recentdate
+                    ? row.stl_patient_recentdate.replace("T", " ").substring(0, 19)
+                    : "";
+
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.stl_patient_status ?? ""}</td>
+                    <td>${row.stl_patient_id ?? ""}</td>
+                    <td>${row.stl_patient_name ?? ""}</td>
+                    <td>${row.stl_patient_gender ?? ""}</td>
+                    <td>${birth}</td>
+                    <td>${studyDate}</td>
+                    <td>${recentDate}</td>
+                    <td>${row.stl_patient_tag ?? ""}</td>
+                `;
+
+                tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error("study list 로딩 중 에러:", err);
+            }
+            }
+    </script>
 
     {% include "includes/scrollbutton.html" %}
 

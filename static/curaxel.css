@@ -13,6 +13,14 @@ body{
     background: #2a2a2a !important ;
 }
 
+.none{
+    display: none !important;
+}
+
+.pointer{
+    cursor: pointer;
+}
+
 .btn-accent{
     background: #00c09d !important;
     color: white;
@@ -103,4 +111,80 @@ body{
 
 .table-bottom-line td{
     border-bottom: 1px solid #656565;
+}
+
+.page-item.active .page-link{
+    background-color: #00c09d;
+    border-color: #00c09d;
+}
+
+#select_origin_image{
+    width: 100%;
+    height: 100%;
+    max-height: 328px;
+}
+
+.add_div_card{
+    height: calc(50% - 25px);
+    max-height: 360px;
+}
+.padding-1{
+    padding: 1px !important;
+}
+
+.margin-1px{
+    margin: 1px !important;
+}
+
+.image_data_info_btn{
+    width: 20px !important;
+    height: 20px !important;
+    line-height: unset !important;
+    font-size: 12px !important;
+}
+
+.checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;  
+}
+
+.checkbox-wrap input[type="checkbox"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-wrap .psoriasis_label {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+    font-size: 12px !important;
+    margin: 0px;
+}
+.line-td-white-tb{
+    border-top: 1px solid #fff !important;
+    border-bottom: 1px solid #fff !important;
+}
+
+.psoriasis_btn{
+    font-size: 10px;
+    line-height: 10px;
+    width: 33%;
+}
+
+.psoriasis_table{
+    font-size: 10px;
+    line-height: 10px;
+    border: 1px solid #686868;
+}
+
+.psoriasis_table tfoot{
+    border: 1px solid #686868;;
+}
+
+.psoriasis_table td, th{
+    padding: 1px !important;
+    margin: 1px !important;
 }

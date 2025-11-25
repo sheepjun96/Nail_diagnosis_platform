@@ -6,7 +6,9 @@ from pydantic import BaseModel
 from typing import Optional
 import json, os, shutil, pymysql
 from pathlib import Path
+
 from config import CONFIG_DIR, ensure_directories
+from db import init_db, close_db
 
 from contextlib import asynccontextmanager
 from detection import NailDetector
@@ -16,14 +18,22 @@ from detection import NailDetector
 async def lifespan(app: FastAPI):
     # --- 앱 시작 시 실행 (startup 대체) ---
     ensure_directories()
+    await init_db(app)
 
-    yield  # 👈 여기서 앱이 동작합니다.
-
-    # --- 앱 종료 시 실행 (shutdown 대체) ---
-    print("[SHUTDOWN] FastAPI 서버 종료 중...")
+    try:
+        yield
+    finally:
+        # 앱 종료 시
+        print("[SHUTDOWN] FastAPI 서버 종료 중...")
+        await close_db(app)    
 
 BASE_DIR = Path(__file__).resolve().parent
-app = FastAPI(title="OpenEMR Dermatology AI Integration", lifespan=lifespan, docs_url="/docs",)
+app = FastAPI(
+    title="OpenEMR Dermatology AI Integration", 
+    lifespan=lifespan, 
+    docs_url="/docs",
+)
+
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -38,12 +48,14 @@ from router.app_public import router as app_public
 
 from router.api_ai import router as api_ai
 from router.api_public import router as api_public
+from router.api_private import router as api_private
 
 def require_login():
     # 로그인 쿠키/세션 검사 로직
     # if not ok: raise HTTPException(status_code=401)
     return True
 
+app.include_router(api_private, dependencies=[Depends(require_login)])
 app.include_router(api_public)
 
 app.include_router(app_private, dependencies=[Depends(require_login)])

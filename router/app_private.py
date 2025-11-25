@@ -1,7 +1,10 @@
 # app_private.py
-from fastapi import APIRouter, Request, Form
+import os
+from fastapi import APIRouter, Request, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from typing import Optional
+from config import CONFIG_DIR
 
 router = APIRouter(prefix="/app", tags=["app-private"])
 templates = Jinja2Templates(directory="templates")
@@ -15,6 +18,25 @@ def utilities_other_page(request: Request):
 @router.get("/viewer", response_class=HTMLResponse)
 def utilities_other_page(request: Request):
     return templates.TemplateResponse("bootstrap/viewer.html", {"request": request})
+
+#20251021 update
+@router.get("/image", response_class=HTMLResponse)
+def utilities_other_page(
+    request: Request,
+    filename: Optional[str] = Query(None, description="파일이름"),
+    filetype: Optional[int] = Query(None, description="파일타입"),
+):  
+    fileUri = ""
+    if filename:
+        fileUri = "/api/resource/image/dump?filename="+filename+"&filetype="+str(filetype)
+    print("fileUri", fileUri)
+    return templates.TemplateResponse(
+        "bootstrap/image.html", 
+        {
+            "request": request,
+            "filename": fileUri,
+        }
+    )
 
 @router.get("/", response_class=HTMLResponse)
 def worklist_page(request: Request):

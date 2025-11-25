@@ -32,11 +32,11 @@ def load_model():
     nail_detector = NailDetect(model_path)
     print("Nail detection model loaded.")
 
-    global lesion_predictor
-    model_path = "ai_models/MedSigLIP"
-    lesion_predictor = LesionPredict(model_path, class_names)
-    print("Lesion prediction model loaded.")
-    print("All models loaded.")
+    # global lesion_predictor
+    # model_path = "ai_models/MedSigLIP"
+    # lesion_predictor = LesionPredict(model_path, class_names)
+    # print("Lesion prediction model loaded.")
+    # print("All models loaded.")
 
 @router.post("/nail_detect/")
 async def nail_detect(
