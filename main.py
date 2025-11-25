@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException, Depends, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from json import JSONDecodeError
@@ -210,6 +209,6 @@ async def get_status():
 
 
 if __name__ == "__main__":
-    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000 --ssl-keyfile=https/127.0.0.1-key.pem --ssl-certfile=https/127.0.0.1.pem  
+    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
     pass
