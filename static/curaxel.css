@@ -188,3 +188,53 @@ body{
     padding: 1px !important;
     margin: 1px !important;
 }
+
+#psoriasis-modal{
+    color: white;
+    font-size: 14px;
+}
+
+#psoriasis-modal div.modal-header{
+    border-bottom: 1px solid #686868;
+}
+
+#psoriasis-modal div.modal-footer{
+    border-top: 1px solid #686868;
+}
+
+#psoriasis-modal table{
+    color: #fff;
+}
+
+.psar-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 12px;
+    padding: 3px 8px;
+    margin: 2px;
+    font-size: 12px;
+}
+.psar-remove-btn {
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+}
+.psar-remove-btn:hover {
+    color: #ffdddd;
+}
+
+.add_patient_note{
+    resize: none;
+    background-color: #454545;
+    border: 1px solid #656565;
+    color: white;
+}
+
+.add_patient_note:focus{
+    background-color: #454545;
+    border: 1px solid #656565;
+    color: white;
+}

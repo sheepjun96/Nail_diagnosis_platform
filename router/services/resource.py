@@ -1,6 +1,8 @@
 import aiomysql
 from typing import List, Dict, Any, Optional, Tuple
 from test.dumy_data import RESOURCE_STUDY_LIST
+from datetime import datetime, date
+import json
 
 async def get_study_list(
     conn: aiomysql.Connection,
@@ -142,4 +144,110 @@ async def get_image_origin_detail(
     # 6) 결과 포맷
     return {
         "items": items,   # 실제 데이터 목록
+    }
+
+async def get_study_List_patientId(
+    conn: aiomysql.Connection,
+    patient_id: Optional[str] = None
+) -> Dict[str, Any]:
+    select_study_sql = """
+        SELECT stl_seq
+        FROM study_list
+        WHERE stl_patient_id = %s
+        ORDER BY stl_patient_recentdate DESC
+        LIMIT 1
+    """
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(select_study_sql, [patient_id])
+        items = await cur.fetchone()
+    return {
+        "stl": items["stl_seq"],   # 실제 데이터 목록
+    }
+
+async def add_study(
+    conn: aiomysql.Connection,
+    project_seq: int,
+    patient_id: str,
+    patient_name: str,
+    patient_gender: str,
+    patient_birth: Optional[date] = None,         # "YYYY-MM-DD" 문자열을 그대로 넘겨도 됨
+    patient_visit: Optional[datetime] = None,     # datetime 또는 None
+) -> Dict[str, Any]:
+    insert_study_sql = """
+        INSERT INTO study_list
+        (project_seq,
+            stl_patient_id,
+            stl_patient_name,
+            stl_patient_gender,
+            stl_patient_birthdate,
+            stl_patient_studydate,
+            stl_patient_recentdate)
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+    """
+    insert_value = (
+        project_seq,
+        patient_id,
+        patient_name,
+        patient_gender,
+        patient_birth,
+        patient_visit,
+        patient_visit
+    )
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(insert_study_sql, insert_value)
+        stl_seq = cur.lastrowid
+    await conn.commit()
+    return {
+        "stl_seq": stl_seq,
+    }
+
+async def add_seires(
+    conn: aiomysql.Connection,
+    stl_seq: int,
+    series_dt: datetime,
+    series_note: str,
+    nail_data: Dict[str, Any],
+) -> Dict[str, Any]:
+    
+    def nail_json(key: str) -> str:
+        # 없으면 {} 을 기본으로
+        return json.dumps(nail_data.get(key, {}), ensure_ascii=False)
+    insert_series_sql = """
+        INSERT INTO series_list
+        (stl_seq,
+         srl_patient_seriesdate,
+         srl_patient_note,
+         srl_patient_l_t,
+         srl_patient_l_i,
+         srl_patient_l_m,
+         srl_patient_l_R,
+         srl_patient_l_p,
+         srl_patient_r_t,
+         srl_patient_r_i,
+         srl_patient_r_m,
+         srl_patient_r_R,
+         srl_patient_r_p)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    """
+    insert_value = (
+        stl_seq,
+        series_dt,
+        series_note,
+        nail_json("patient_l_t"),
+        nail_json("patient_l_i"),
+        nail_json("patient_l_m"),
+        nail_json("patient_l_r"),
+        nail_json("patient_l_p"),
+        nail_json("patient_r_t"),
+        nail_json("patient_r_i"),
+        nail_json("patient_r_m"),
+        nail_json("patient_r_r"),
+        nail_json("patient_r_p"),
+    )
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(insert_series_sql, insert_value)
+        srl_seq = cur.lastrowid
+    await conn.commit()
+    return {
+        "srl_seq": srl_seq,
     }

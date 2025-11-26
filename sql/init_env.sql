@@ -16,6 +16,10 @@ CREATE TABLE `member` (
   PRIMARY KEY (`m_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO member 
+(mr_seq, m_name, m_email, m_password, m_salt, m_allow, m_description, m_reg_date, m_upd_date, m_del_yn, m_last_login_date, m_password_expiry_date, m_must_change_password)
+VALUES
+(0, 'admin', 'admin@gachon.ac.kr', 'sha:123456789', 'asd15a63sd', 'Y', 'Admin only', '2025-01-17 10:12:00', '2025-01-17 10:12:00', 'N', '2025-01-17 10:12:00', '2026-01-17 10:12:00', 0);
 
 /*
 Role
@@ -37,9 +41,32 @@ CREATE TABLE `member_role` (
   PRIMARY KEY (`mr_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO member_role 
+(mr_seq, mr_name, mr_reg_date, mr_upd_date, description, del_yn)
+VALUES
+(0, 'Admin', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '관리자 Only', 'N'),
+(1, 'Project Admin', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '시스템 관리자', 'N'),
+(2, 'Project Manager', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '프로젝트 관리자', 'N'),
+(3, 'Reader', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '팀장', 'N'),
+(4, 'Researcher', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '연구원', 'N'),
+(99, 'User', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '유저', 'N')
+;
+
+select * from member_role;
+
+CREATE TABLE `project_list` (
+	`project_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',
+	`pl_write_seq` int NOT NULL COMMENT 'member number',
+    `pl_write_date` datetime NOT NULL COMMENT 'write date',
+    `pl_project_title` varchar(100) NOT NULL COMMENT 'project name',
+    `pl_project_type` char(1) NOT NULL COMMENT '0 close, 1 open, 2 limit',
+    `pl_project_group` date COMMENT 'project allow project',
+     PRIMARY KEY (`project_seq`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE `study_list` (
 	`stl_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',
-	`project_seq` int NOT NULL COMMENT 'FK: member role number',
+	`project_seq` int NOT NULL COMMENT 'FK: project number',
     `stl_patient_id` varchar(100) NOT NULL COMMENT 'patient id',
     `stl_patient_name` varchar(100) NOT NULL COMMENT 'patient name',
     `stl_patient_gender` char(1) NOT NULL COMMENT 'patient gender M/F',
@@ -121,3 +148,16 @@ VALUES
 ('gcubme', '2025-01-02 10:12:18', 'crop_p_gcubme_20251117135020.png', 1, 'p', 'gcubme_20251117135020.png', 'N'),
 ('gcubme', '2025-01-02 10:12:19', 'crop_t_gcubme_20251117135021.png', 1, 't', 'gcubme_20251117135021.png', 'N');
 
+project_list` (
+	`project_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',
+	`pl_write_seq` int NOT NULL COMMENT 'member number',
+    `pl_write_date` datetime NOT NULL COMMENT 'write date',
+    `pl_project_title` varchar(100) NOT NULL COMMENT 'project name',
+    `pl_project_type` char(1) NOT NULL COMMENT '0 close, 1 open, 2 limit',
+    `pl_project_group` date COMMENT 'project allow project',
+     PRIMARY KEY (`project_seq`);
+	
+INSERT INTO project_list 
+(pl_write_seq, pl_write_date, pl_project_title, uf_filetype, uf_memo_1, uf_memo_2, uf_del_yn)
+VALUES
+('gcubme', '2025-01-17 10:12:00', 'gcubme_20251117135018.png', 0, 'o', 'origin', 'N'),
