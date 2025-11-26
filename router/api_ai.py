@@ -55,17 +55,55 @@ async def nail_detect(
 
 @router.post("/plot_nail/")
 async def plot_nail( 
-    obb_info: str = Form(...),
     image_path: str = Form(...),
     save_dir: str = Form("C:/curaxel/img/extra/")):
-    
+
     cropped_img = np.array(Image.open(image_path))
-    
-    obb = json.loads(obb_info)
-    cx, cy, _, _, _ = obb
+    base_name = os.path.basename(image_path)
+
+    finger_names = [
+        "left_thumb", "right_thumb",
+        "left_pinky", "left_ring", "left_middle", "left_index",
+        "right_index", "right_middle", "right_ring", "right_pinky"
+    ]
+
+    prefix = None
+    filename = None
+
+    for name in finger_names:
+        if base_name.startswith(name + "_"):
+            prefix = name
+            filename = base_name[len(name) + 1:]
+            break
+
+    if prefix is None or filename is None:
+        return JSONResponse(status_code=400, content={"msg": "Invalid filename format", "filename": base_name})
+
+    if prefix in ["left_thumb", "right_thumb"]:
+        json_prefix = "thumbs"
+    else:
+        json_prefix = "other_fingers"
+
+    filename_no_ext = os.path.splitext(filename)[0]
+    json_filename = f"{json_prefix}_{filename_no_ext}.json"
+    json_path = os.path.normpath(os.path.join("C:/curaxel/img/crop", json_filename))
+
+    if not os.path.exists(json_path):
+        return JSONResponse(status_code=404, content={"message": "JSON file not found.", "json_path": json_path})
+
+    with open(json_path, "r", encoding="utf-8") as f:
+        json_data = json.load(f)
+
+    if prefix not in json_data:
+        return JSONResponse(status_code=404, content={"msg": "Finger name not found in JSON", "finger_name": prefix})
+
+    obb_info = json_data[prefix]["obb_info"]
+    nail_index = json_data[prefix]["nail_index"]
+
+    cx, cy, _, _, _ = obb_info
 
     fig, ax = plt.subplots(1, figsize=(8,8))
-    ax.imshow(cropped_img)  
+    ax.imshow(cropped_img)
     ax.plot([cx, cx], [0, cropped_img.shape[0]], color='black', linewidth=1)
     ax.plot([0, cropped_img.shape[1]], [cy, cy], color='black', linewidth=1)
     plt.axis('off')
@@ -73,7 +111,6 @@ async def plot_nail(
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    base_name = os.path.basename(image_path)
     save_name = f"crop_{base_name}"
     save_path = os.path.join(save_dir, save_name)
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0, dpi=150)

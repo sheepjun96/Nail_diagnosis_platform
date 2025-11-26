@@ -7,7 +7,7 @@ from config import CONFIG_DIR
 from utils.nail_detect import nail_detect_process
 
 router = APIRouter(prefix="/api", tags=["api-public"])
-SAVE_NAIL_DIR = CONFIG_DIR["nail"]
+SAVE_NAIL_DIR = CONFIG_DIR["crop"]
 
 @router.get("/health", response_class=JSONResponse)
 def health_check(

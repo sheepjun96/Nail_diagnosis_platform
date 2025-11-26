@@ -17,7 +17,7 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     # --- 앱 시작 시 실행 (startup 대체) ---
     ensure_directories()
-    await init_db(app)
+    #await init_db(app)
 
     try:
         yield
