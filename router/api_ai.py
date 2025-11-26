@@ -1,13 +1,14 @@
 from fastapi import FastAPI, UploadFile, File, Form, APIRouter
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import Response
+from fastapi.responses import Response, JSONResponse
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-import json, io, base64
+import json, io, base64, os
 from io import BytesIO
 
 from utils.nail_detect import NailDetect
+from utils.nail_detect import nail_detect_process
 from utils.lesion_predict import LesionPredict
 
 router = APIRouter(prefix="/api", tags=["api-public"])
@@ -32,20 +33,18 @@ def load_model():
     nail_detector = NailDetect(model_path)
     print("Nail detection model loaded.")
 
-    # global lesion_predictor
-    # model_path = "ai_models/MedSigLIP"
-    # lesion_predictor = LesionPredict(model_path, class_names)
-    # print("Lesion prediction model loaded.")
-    # print("All models loaded.")
+    global lesion_predictor
+    model_path = "ai_models/MedSigLIP"
+    lesion_predictor = LesionPredict(model_path, class_names)
+    print("Lesion prediction model loaded.")
+    print("All models loaded.")
 
-@router.post("/nail_detect/")
+@router.post("/nail_detect/", response_class=JSONResponse)
 async def nail_detect(
-    file: UploadFile = File(...),
-    is_thumb: bool = Form(False),
-    save_dir: str = Form("./static/images")
+    image_path: str = Form(...),
+    save_dir: str = Form("C:/curaxel/img/crop/")
 ):
-    img_bytes = BytesIO(await file.read())
-    results = nail_detector.detect_and_crop(img_bytes, is_thumb=is_thumb, save_dir=save_dir)
+    results = await nail_detect_process(nail_detector, image_path, save_dir)
     outs = []
     for i, out in enumerate(results):
         outs.append({
@@ -55,9 +54,12 @@ async def nail_detect(
     return {"results": outs}
 
 @router.post("/plot_nail/")
-async def plot_nail(cropped_image: UploadFile = File(...), obb_info: str = Form(...)):
-    img_bytes = await cropped_image.read()
-    cropped_img = np.array(Image.open(io.BytesIO(img_bytes)))
+async def plot_nail( 
+    obb_info: str = Form(...),
+    image_path: str = Form(...),
+    save_dir: str = Form("C:/curaxel/img/extra/")):
+    
+    cropped_img = np.array(Image.open(image_path))
     
     obb = json.loads(obb_info)
     cx, cy, _, _, _ = obb
@@ -68,7 +70,13 @@ async def plot_nail(cropped_image: UploadFile = File(...), obb_info: str = Form(
     ax.plot([0, cropped_img.shape[1]], [cy, cy], color='black', linewidth=1)
     plt.axis('off')
 
-    plt.show()
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    base_name = os.path.basename(image_path)
+    save_name = f"crop_{base_name}"
+    save_path = os.path.join(save_dir, save_name)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0, dpi=150)
 
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0, dpi=150)
