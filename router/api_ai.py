@@ -123,10 +123,18 @@ async def plot_nail(
 
     return Response(content=img_bytes, media_type="image/png")
 
-@router.post("/predict/")
-async def predict(file: UploadFile = File(...)):
-    contents = await file.read()
-    image = Image.open(io.BytesIO(contents))
+@router.post("/predict/", response_class=JSONResponse)
+async def predict(
+    image_path: str = Form(...)
+):
+    if not os.path.exists(image_path):
+        return JSONResponse(status_code=404, content={"error": "Image file not found", "path": image_path})
+
+    try:
+        image = Image.open(image_path)
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": f"Failed to load image: {str(e)}"})
+
     result = lesion_predictor.predict(image)
     return result
 
