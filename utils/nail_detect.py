@@ -3,7 +3,8 @@ import numpy as np
 from PIL import Image, ExifTags
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
-import os
+import os, json
+from io import BytesIO
 
 class NailDetect:
     def __init__(self, model_path):
@@ -75,14 +76,9 @@ class NailDetect:
         obb_info = (cx_crop, cy_crop, cropped_rotated.shape[1], cropped_rotated.shape[0], 0.0)
         return cropped_rotated, obb_info
 
-    def detect_and_crop(self, img_bytes, is_thumb=False, save_dir="./"):
-        if is_thumb:
-            finger_names = ["left_thumb", "right_thumb"]
-        else:
-            finger_names = [
-                "left_pinky", "left_ring", "left_middle", "left_index",
-                "right_index", "right_middle", "right_ring", "right_pinky"
-            ]
+    def detect_and_crop(self, image_path, save_dir):
+        with open(image_path, "rb") as f:
+            img_bytes = BytesIO(f.read())
         img = self.load_image(img_bytes)
         results = self.model(img)
 
@@ -94,27 +90,58 @@ class NailDetect:
 
         if len(obb_arrs) == 0:
             return []
+        
         obb_arr = np.vstack(obb_arrs)
+
+        if len(obb_arr) == 2:
+            finger_names = ["left_thumb", "right_thumb"]
+            json_prefix = "thumbs"
+        else:
+            finger_names = [
+                "left_pinky", "left_ring", "left_middle", "left_index",
+                "right_index", "right_middle", "right_ring", "right_pinky"
+            ]
+            json_prefix = "other_fingers"
+
         sorted_indices = np.argsort(obb_arr[:, 0])
-
+        base_filename = os.path.basename(image_path)
         output_list = []
-
-        for idx, finger_name in zip(sorted_indices, finger_names):
-            cropped, obb_info = self.crop_rotated_bbox(img, obb_arr, idx=idx)
-            if cropped is not None:
-                output_list.append({
-                    "cropped_nail": cropped,
-                    "obb_info": obb_info,
-                    "finger_name": finger_name
-                })
 
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
-        for item in output_list:
-            img_to_save = Image.fromarray(item["cropped_nail"])
-            save_path = os.path.join(save_dir, f"{item['finger_name']}.jpg")
-            img_to_save.save(save_path)
-            print(f"Saved: {save_path}")
+        json_data = {}
+        for i, (idx, finger_name) in enumerate(zip(sorted_indices, finger_names)):
+            cropped, obb_info = self.crop_rotated_bbox(img, obb_arr, idx=idx)
+            if cropped is not None:
+                filename_cropped = f"{finger_name}_{base_filename}"
+                save_path = os.path.join(save_dir, filename_cropped)
+                img_to_save = Image.fromarray(cropped)
+                img_to_save.save(save_path)
+                print(f"Saved: {save_path}")
+
+                json_data[finger_name] = {
+                    "nail_index": i,
+                    "obb_info": list(obb_info),
+                    "cropped_nail_path": save_path.replace("\\", "/")
+                }
+
+                output_list.append({
+                    "finger_name": finger_name,
+                    "cropped_nail_path": save_path.replace("\\", "/"),
+                    "obb_info": list(obb_info),
+                    "nail_index": i
+                })
+
+        json_filename = os.path.join(save_dir, f"{json_prefix}_{base_filename.rsplit('.',1)[0]}.json")
+        with open(json_filename, "w") as f:
+            json.dump(json_data, f, indent=2)
+        print(f"Saved JSON: {json_filename}")
 
         return output_list
+
+async def nail_detect_process(model, image_path: str, save_dir: str = "C:/curaxel/img/crop/"):
+    if model is not None:
+        return model.detect_and_crop(image_path=image_path, save_dir=save_dir)
+    nail_detector = NailDetect(model_path="ai_models/yolov11-obb.pt")
+    return nail_detector.detect_and_crop(image_path=image_path, save_dir=save_dir)

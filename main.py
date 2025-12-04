@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException, Depends, status
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from json import JSONDecodeError
@@ -12,7 +11,6 @@ from config import CONFIG_DIR, ensure_directories
 from db import init_db, close_db
 
 from contextlib import asynccontextmanager
-from detection import NailDetector
 
 ## 시스템 실행 시 
 @asynccontextmanager
@@ -37,8 +35,6 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory="templates")
-
-nail_detector = NailDetector()
 
 ## Router 정의
 ## 이하 플랫폼 처리는 다음과 같이 구분합니다.
@@ -210,7 +206,7 @@ async def upload_hand_image(pid: int, appt_date: str, image_type: str = Form(...
         shutil.copyfileobj(file.file, buffer)
 
     # 손톱 크롭 수행
-    nail_detector.crop_nail(filepath, pid, appt_date)
+    
 
     return {"status": "success", "image_url": f"/{filepath}"}
 
@@ -222,6 +218,6 @@ async def get_status():
 
 
 if __name__ == "__main__":
-    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000 --ssl-keyfile=https/127.0.0.1-key.pem --ssl-certfile=https/127.0.0.1.pem  
+    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
     pass
