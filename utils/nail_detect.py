@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image, ExifTags
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
-import os, json
+import os
 from io import BytesIO
 
 class NailDetect:
@@ -95,13 +95,11 @@ class NailDetect:
 
         if len(obb_arr) == 2:
             finger_names = ["left_thumb", "right_thumb"]
-            json_prefix = "thumbs"
         else:
             finger_names = [
                 "left_pinky", "left_ring", "left_middle", "left_index",
                 "right_index", "right_middle", "right_ring", "right_pinky"
             ]
-            json_prefix = "other_fingers"
 
         sorted_indices = np.argsort(obb_arr[:, 0])
         base_filename = os.path.basename(image_path)
@@ -110,7 +108,6 @@ class NailDetect:
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
-        json_data = {}
         for i, (idx, finger_name) in enumerate(zip(sorted_indices, finger_names)):
             cropped, obb_info = self.crop_rotated_bbox(img, obb_arr, idx=idx)
             if cropped is not None:
@@ -120,23 +117,12 @@ class NailDetect:
                 img_to_save.save(save_path)
                 print(f"Saved: {save_path}")
 
-                json_data[finger_name] = {
-                    "nail_index": i,
-                    "obb_info": list(obb_info),
-                    "cropped_nail_path": save_path.replace("\\", "/")
-                }
-
                 output_list.append({
                     "finger_name": finger_name,
                     "cropped_nail_path": save_path.replace("\\", "/"),
                     "obb_info": list(obb_info),
                     "nail_index": i
                 })
-
-        json_filename = os.path.join(save_dir, f"{json_prefix}_{base_filename.rsplit('.',1)[0]}.json")
-        with open(json_filename, "w") as f:
-            json.dump(json_data, f, indent=2)
-        print(f"Saved JSON: {json_filename}")
 
         return output_list
 

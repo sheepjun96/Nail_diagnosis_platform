@@ -1,3 +1,5 @@
+USE curaxel_skin;
+
 CREATE TABLE `member` (
   `m_seq` int NOT NULL AUTO_INCREMENT COMMENT 'member sequence number',
   `mr_seq` int NOT NULL COMMENT 'FK: member_role sequence number',
@@ -20,6 +22,8 @@ INSERT INTO member
 (mr_seq, m_name, m_email, m_password, m_salt, m_allow, m_description, m_reg_date, m_upd_date, m_del_yn, m_last_login_date, m_password_expiry_date, m_must_change_password)
 VALUES
 (0, 'admin', 'admin@gachon.ac.kr', 'sha:123456789', 'asd15a63sd', 'Y', 'Admin only', '2025-01-17 10:12:00', '2025-01-17 10:12:00', 'N', '2025-01-17 10:12:00', '2026-01-17 10:12:00', 0);
+
+select * from member;
 
 /*
 Role
@@ -78,6 +82,8 @@ CREATE TABLE `study_list` (
      PRIMARY KEY (`stl_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+select * from study_list;
+
 CREATE TABLE `series_list` (
 	`srl_seq` int NOT NULL AUTO_INCREMENT COMMENT 'series id',
     `stl_seq` int NOT NULL COMMENT 'study id',
@@ -95,6 +101,8 @@ CREATE TABLE `series_list` (
     `srl_patient_r_p` text NOT NULL COMMENT 'patient right pinky type json normal, extra, soriasis',
      PRIMARY KEY (`srl_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+select * from series_list;
 
 CREATE TABLE `platform_env` (
 	`env_seq` int NOT NULL AUTO_INCREMENT COMMENT 'env id',
@@ -131,8 +139,11 @@ CREATE TABLE `upload_file` (
      PRIMARY KEY (`uf_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+select * from upload_file;
+select * from member;
+
 INSERT INTO upload_file 
-(uf_upload_write, up_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_del_yn)
+(uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_del_yn)
 VALUES
 ('gcubme', '2025-01-17 10:12:00', 'gcubme_20251117135018.png', 0, 'o', 'origin', 'N'),
 ('gcubme', '2025-01-02 10:12:00', 'gcubme_20251117135019.png', 0, 'o', 'origin', 'N'),
@@ -150,16 +161,16 @@ VALUES
 ('gcubme', '2025-01-02 10:12:18', 'crop_p_gcubme_20251117135020.png', 1, 'p', 'gcubme_20251117135020.png', 'N'),
 ('gcubme', '2025-01-02 10:12:19', 'crop_t_gcubme_20251117135021.png', 1, 't', 'gcubme_20251117135021.png', 'N');
 
-project_list` (
+CREATE TABLE `project_list` (
 	`project_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',
 	`pl_write_seq` int NOT NULL COMMENT 'member number',
     `pl_write_date` datetime NOT NULL COMMENT 'write date',
     `pl_project_title` varchar(100) NOT NULL COMMENT 'project name',
     `pl_project_type` char(1) NOT NULL COMMENT '0 close, 1 open, 2 limit',
     `pl_project_group` date COMMENT 'project allow project',
-     PRIMARY KEY (`project_seq`);
-	
+     PRIMARY KEY (`project_seq`));
+
 INSERT INTO project_list 
-(pl_write_seq, pl_write_date, pl_project_title, uf_filetype, uf_memo_1, uf_memo_2, uf_del_yn)
+(pl_write_seq, pl_write_date, pl_project_title, pl_filetype, pl_memo_1, uf_memo_2, uf_del_yn)
 VALUES
-('gcubme', '2025-01-17 10:12:00', 'gcubme_20251117135018.png', 0, 'o', 'origin', 'N'),
+('gcubme', '2025-01-17 10:12:00', 'gcubme_20251117135018.png', 0, 'o', 'origin', 'N');

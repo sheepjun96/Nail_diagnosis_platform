@@ -6,8 +6,8 @@ from typing import AsyncIterator
 DB_CONFIG = {
     "host": "127.0.0.1",
     "port": 3306,
-    "user": "gcubme",
-    "password": "gcubme@@!!",
+    "user": "root",
+    "password": "sheep",
     "db": "curaxel_skin",
     "minsize": 1,
     "maxsize": 10,

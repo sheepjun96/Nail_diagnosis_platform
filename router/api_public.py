@@ -72,7 +72,7 @@ async def upload_form(
     origin_seq = await add_file_origin(
         conn = conn,
         upload_type= type,
-        upload_uri= save_path,
+        upload_uri= filename,
     )
 
     print("origin_seq", origin_seq)
@@ -101,7 +101,7 @@ async def upload_form(
         crop_seq = await add_file_crop(
             conn = conn,
             upload_type = type,
-            upload_uri = cropped_path,
+            upload_uri = crop_filename,
             origin_seq =origin_seq["insert_seq"],
             origin_uri = filename,
             obb_info = obb_info_str,
@@ -130,9 +130,9 @@ async def upload_form(
         extra_psar_seq = await add_file_extra(
             conn = conn,
             upload_type = type,
-            upload_uri = plot_save_path.replace("\\", "/"),
+            upload_uri = extra_save_name,
             origin_seq =origin_seq["insert_seq"],
-            origin_uri = extra_save_name,
+            origin_uri = filename,
             obb_info = obb_info_str,
             finger_index = finger_type,
             upload_filetype = 4

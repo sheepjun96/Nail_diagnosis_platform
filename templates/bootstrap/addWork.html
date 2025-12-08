@@ -115,32 +115,46 @@
                                                             <th>Pinky</th>
                                                         </tr>
                                                         <tr>
-                                                            <td class="p-1 fit-image" id="select_crop_t" style="width: 20%;height:60px;"></td> 
-                                                            <td class="p-1 fit-image" id="select_crop_i" style="width: 20%;height:60px;"></td>
-                                                            <td class="p-1 fit-image" id="select_crop_m" style="width: 20%;height:60px;"></td>
-                                                            <td class="p-1 fit-image" id="select_crop_r" style="width: 20%;height:60px;"></td>
-                                                            <td class="p-1 fit-image" id="select_crop_p" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_t_l" style="width: 20%;height:60px;"></td> 
+                                                            <td class="p-1 fit-image" id="select_crop_i_l" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_m_l" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_r_l" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_p_l" style="width: 20%;height:60px;"></td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="p-1" id="select_crop_t_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_t')"><i class="fas fa-search-plus"></i></button></td>
-                                                            <td class="p-1" id="select_crop_i_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_i')"><i class="fas fa-search-plus"></i></button></td>
-                                                            <td class="p-1" id="select_crop_m_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_m')"><i class="fas fa-search-plus"></i></button></td>
-                                                            <td class="p-1" id="select_crop_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_r')"><i class="fas fa-search-plus"></i></button></td>
-                                                            <td class="p-1" id="select_crop_p_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_p')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_t_l_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_t_l')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_i_l_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_i_l')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_m_l_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_m_l')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_r_l_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_r_l')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_p_l_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_p_l')"><i class="fas fa-search-plus"></i></button></td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="p-1" id="select_crop_t_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_t', 'lt');">Left</button></td>
-                                                            <td class="p-1" id="select_crop_i_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_i', 'li');">Left</button></td>
-                                                            <td class="p-1" id="select_crop_m_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_m', 'lm');">Left</button></td>
-                                                            <td class="p-1" id="select_crop_r_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_r', 'lr');">Left</button></td>
-                                                            <td class="p-1" id="select_crop_p_l" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_p', 'lp');">Left</button></td>
+                                                            <td class="p-1" id="select_crop_t_l_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_t_l', 'lt');">Left</button><input type="text" id="select_crop_t_l_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_i_l_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_i_l', 'li');">Left</button><input type="text" id="select_crop_i_l_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_m_l_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_m_l', 'lm');">Left</button><input type="text" id="select_crop_m_l_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_r_l_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_r_l', 'lr');">Left</button><input type="text" id="select_crop_r_l_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_p_l_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_p_l', 'lp');">Left</button><input type="text" id="select_crop_p_l_ai" class="none" value="" /></td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="p-1" id="select_crop_t_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_t', 'rt');">Right</button></td>
-                                                            <td class="p-1" id="select_crop_i_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_i', 'ri');">Right</button></td>
-                                                            <td class="p-1" id="select_crop_m_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_m', 'rm');">Right</button></td>
-                                                            <td class="p-1" id="select_crop_r_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_r', 'rr');">Right</button></td>
-                                                            <td class="p-1" id="select_crop_p_r" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_p', 'rp');">Right</button></td>
+                                                            <td class="p-1 fit-image" id="select_crop_t_r" style="width: 20%;height:60px;"></td> 
+                                                            <td class="p-1 fit-image" id="select_crop_i_r" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_m_r" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_r_r" style="width: 20%;height:60px;"></td>
+                                                            <td class="p-1 fit-image" id="select_crop_p_r" style="width: 20%;height:60px;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="p-1" id="select_crop_t_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_t_r')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_i_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_i_r')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_m_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_m_r')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_r_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_r_r')"><i class="fas fa-search-plus"></i></button></td>
+                                                            <td class="p-1" id="select_crop_p_r_d" style="width: 20%;"><button class="btn btn-sm fa-xs btn-secondary w-100 m-0 none" onclick="popupDetailViewer('select_crop_p_r')"><i class="fas fa-search-plus"></i></button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="p-1" id="select_crop_t_r_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_t_r', 'rt');">Right</button><input type="text" id="select_crop_t_r_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_i_r_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_i_r', 'ri');">Right</button><input type="text" id="select_crop_i_r_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_m_r_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_m_r', 'rm');">Right</button><input type="text" id="select_crop_m_r_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_r_r_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_r_r', 'rr');">Right</button><input type="text" id="select_crop_r_r_ai" class="none" value="" /></td>
+                                                            <td class="p-1" id="select_crop_p_r_b" style="width: 20%;"><button class="btn btn-sm fa-xs btn-primary w-100 none" onclick="onSelectImageDatas('select_crop_p_r', 'rp');">Right</button><input type="text" id="select_crop_p_r_ai" class="none" value="" /></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -205,19 +219,26 @@
                                                     <td class="p-1 fit-image" id="image_data_r_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                     <td class="p-1 fit-image" id="image_data_p_l" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                 </tr>
-                                                <tr class="extra-func ">
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                <tr>
+                                                    <td class="p-1 fit-image" id="image_data_t_l_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_i_l_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_m_l_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_r_l_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_p_l_ai" style="width: 20%;height:60px;"></td>
                                                 </tr>
                                                 <tr class="extra-func ">
-                                                    <td class="p-1 fit-image" id="image_data_t_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_i_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_m_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_r_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_p_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                </tr>
+                                                <tr class="extra-func ">
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_t_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_i_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_m_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_r_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_p_l_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                 </tr>
                                                 <tr class="extra-func ">
                                                     <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick="popupDetailViewer('image_data_t_l')"><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick="onExtraImageAdd('image_data_t_l_e', 'lt')"><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn" onclick="onDeleteSelectImage('image_data_t_l', 'lt')"><i class="fas fa-times"></i></button><input class="none" type="file" id="image_data_t_l_e_input" accept="image/png, image/jpeg" /></td>
@@ -336,19 +357,26 @@
                                                     <td class="p-1 fit-image" id="image_data_r_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png"  height="60px" /></td>
                                                     <td class="p-1 fit-image" id="image_data_p_r" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                 </tr>
-                                                <tr class="extra-func ">
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
-                                                    <td class="padding-1 line-td-white-tb">Extra</td>
+                                                <tr>
+                                                    <td class="p-1 fit-image" id="image_data_t_r_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_i_r_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_m_r_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_r_r_ai" style="width: 20%;height:60px;"></td>
+                                                    <td class="p-1 fit-image" id="image_data_p_r_ai" style="width: 20%;height:60px;"></td>
                                                 </tr>
                                                 <tr class="extra-func ">
-                                                    <td class="p-1 fit-image" id="image_data_t_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_i_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_m_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_r_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" id="image_data_p_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                    <td class="padding-1 line-td-white-top">Extra</td>
+                                                </tr>
+                                                <tr class="extra-func ">
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_t_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_i_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_m_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_r_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
+                                                    <td class="p-1 fit-image line-td-white-bottom" id="image_data_p_r_e" style="width: 20%;height:60px;"><img src="/static/imgs/add_placeholder.png" height="60px" /></td>
                                                 </tr>
                                                 <tr class="extra-func ">
                                                     <td class="p-1" ><button class="btn btn-sm btn-secondary margin-1px p-0 image_data_info_btn" onclick="popupDetailViewer('image_data_t_r')"><i class="fas fa-search-plus"></i></button><button class="btn btn-sm btn-primary margin-1px p-0 image_data_info_btn" onclick="onExtraImageAdd('image_data_t_r_e', 'rt')"><i class="fas fa-plus"></i></button><button class="btn btn-sm btn-danger margin-1px p-0 image_data_info_btn" onclick="onDeleteSelectImage('image_data_t_r', 'rt')"><i class="fas fa-times"></i></button><input class="none" type="file" id="image_data_t_r_e_input" accept="image/png, image/jpeg" /></td>
@@ -481,7 +509,6 @@
                             </div>
 
                             <div class="modal-body">
-                                <!-- 여기에 원하는 내용 넣기 -->
                                 <p id="psoriasisModalBodyText">
                                 선택한 버튼에 맞는 설정 내용을 여기에 표시할 수 있습니다.
                                 </p>
@@ -490,12 +517,14 @@
                                 <table class="table w-100">
                                     <thead>
                                         <tr>
+                                            <th>Image</th>
                                             <th>Context</th>
                                             <th>Select</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
+                                            <td rowspan="2"><img id="modal_select_image_plot" src="/static/imgs/add_placeholder.png" width="120px" height="120px" /></td>
                                             <td>Matrix</td>
                                             <td>
                                                 <button class="btn btn-sm btn-secondary margin-1px p-0 w-100" onclick="onSelectPsar('matrix', 'pitting')">pitting</button>
@@ -517,11 +546,11 @@
                                     <tfoot>
                                         <tr>
                                             <td>Select Matrix</td>
-                                            <td id="psar_select_matrix"></td>
+                                            <td id="psar_select_matrix" colspan="2"></td>
                                         </tr>
                                         <tr>
                                             <td>Select Bed</td>
-                                            <td id="psar_select_bed"></td>
+                                            <td id="psar_select_bed"  colspan="2"></td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -564,16 +593,16 @@
 
         function initNailJson(){
             return {
-                lt: {crop : "", extra : "", sar:""},
-                li: {crop : "", extra : "", sar:""},
-                lm: {crop : "", extra : "", sar:""},
-                lr: {crop : "", extra : "", sar:""},
-                lp: {crop : "", extra : "", sar:""},
-                rt: {crop : "", extra : "", sar:""},
-                ri: {crop : "", extra : "", sar:""},
-                rm: {crop : "", extra : "", sar:""},
-                rr: {crop : "", extra : "", sar:""},
-                rp: {crop : "", extra : "", sar:""},
+                lt: {crop : "", extra : "", plot:"", ai: ""},
+                li: {crop : "", extra : "", plot:"", ai: ""},
+                lm: {crop : "", extra : "", plot:"", ai: ""},
+                lr: {crop : "", extra : "", plot:"", ai: ""},
+                lp: {crop : "", extra : "", plot:"", ai: ""},
+                rt: {crop : "", extra : "", plot:"", ai: ""},
+                ri: {crop : "", extra : "", plot:"", ai: ""},
+                rm: {crop : "", extra : "", plot:"", ai: ""},
+                rr: {crop : "", extra : "", plot:"", ai: ""},
+                rp: {crop : "", extra : "", plot:"", ai: ""},
             }
         }
 
@@ -911,8 +940,8 @@
                 items.forEach((row, index) => {
                     const tr = document.createElement("tr");
 
-                    const createDate = row.up_upload_date
-                        ? row.up_upload_date.replace("T", " ").substring(0, 19)
+                    const createDate = row.uf_upload_date
+                        ? row.uf_upload_date.replace("T", " ").substring(0, 19)
                         : "";
 
                     const filename = row.uf_uri ? row.uf_uri.split("/").pop() : "";
@@ -1037,6 +1066,7 @@
         }
 
         async function filselectOriginCropImage(row) {
+            console.log("select origin", row)
             const params = new URLSearchParams({
                 filename: row?.uf_uri,
             });
@@ -1060,11 +1090,26 @@
 
             const result = {
                 origin_uri: null,
-                crop_thumb_uri: null,
-                crop_index_uri: null,
-                crop_middle_uri: null,
-                crop_ring_uri: null,
-                crop_pinky_uri: null,
+                crop_thumb_l_uri: null,
+                crop_index_l_uri: null,
+                crop_middle_l_uri: null,
+                crop_ring_l_uri: null,
+                crop_pinky_l_uri: null,
+                crop_thumb_r_uri: null,
+                crop_index_r_uri: null,
+                crop_middle_r_uri: null,
+                crop_ring_r_uri: null,
+                crop_pinky_r_uri: null,
+                crop_thumb_l_ai: null,
+                crop_index_l_ai: null,
+                crop_middle_l_ai: null,
+                crop_ring_l_ai: null,
+                crop_pinky_l_ai: null,
+                crop_thumb_r_ai: null,
+                crop_index_r_ai: null,
+                crop_middle_r_ai: null,
+                crop_ring_r_ai: null,
+                crop_pinky_r_ai: null,
             };
 
             const baseUri = data.base;
@@ -1080,11 +1125,16 @@
                 if (item.uf_filetype === 1) {
                     const memo = item.uf_memo_1?.toLowerCase();
 
-                    if (memo == "t") result.crop_thumb_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
-                    if (memo == "i") result.crop_index_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
-                    if (memo == "m") result.crop_middle_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
-                    if (memo == "r") result.crop_ring_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
-                    if (memo == "p") result.crop_pinky_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;
+                    if (memo == "lt") {result.crop_thumb_l_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_thumb_l_ai = item.uf_memo_4}
+                    if (memo == "li") {result.crop_index_l_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_index_l_ai = item.uf_memo_4}
+                    if (memo == "lm") {result.crop_middle_l_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_middle_l_ai = item.uf_memo_4}
+                    if (memo == "lr") {result.crop_ring_l_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_ring_l_ai = item.uf_memo_4}
+                    if (memo == "lp") {result.crop_pinky_l_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_pinky_l_ai = item.uf_memo_4}
+                    if (memo == "rt") {result.crop_thumb_r_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_thumb_r_ai = item.uf_memo_4}
+                    if (memo == "ri") {result.crop_index_r_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_index_r_ai = item.uf_memo_4}
+                    if (memo == "rm") {result.crop_middle_r_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_middle_r_ai = item.uf_memo_4}
+                    if (memo == "rr") {result.crop_ring_r_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_ring_r_ai = item.uf_memo_4}
+                    if (memo == "rp") {result.crop_pinky_r_uri = baseUri+"?filename="+item.uf_uri+"&filetype="+item.uf_filetype;result.crop_pinky_r_ai = item.uf_memo_4}
                 }
             });
 
@@ -1104,19 +1154,25 @@
                     originDiv.innerHTML = `<span>No image</span>`;
                 }
             }
-            const selectCropList = ["t", "i", "m", "r", "p"]
+            const selectCropList = ["t_l", "i_l", "m_l", "r_l", "p_l", "t_r", "i_r", "m_r", "r_r", "p_r"]
             selectCropList.forEach(item => {
                 const elementId = "select_crop_"+item
                 let imageUri = ""
+                let imageAi = ""
                 const tDiv = document.getElementById(elementId);
                 const dDiv = document.getElementById(elementId+"_d");
-                const lDiv = document.getElementById(elementId+"_l");
-                const rDiv = document.getElementById(elementId+"_r");
-                if (item == "t") imageUri = result?.crop_thumb_uri;
-                if (item == "i") imageUri = result?.crop_index_uri;
-                if (item == "m") imageUri = result?.crop_middle_uri;
-                if (item == "r") imageUri = result?.crop_ring_uri;
-                if (item == "p") imageUri = result?.crop_pinky_uri;
+                const bDiv = document.getElementById(elementId+"_b");
+                const inputAi = document.getElementById(elementId+"_ai");
+                if (item == "t_l") {imageUri = result?.crop_thumb_l_uri;imageAi = result?.crop_thumb_l_ai;}
+                if (item == "i_l") {imageUri = result?.crop_index_l_uri;imageAi = result?.crop_index_l_ai;}
+                if (item == "m_l") {imageUri = result?.crop_middle_l_uri;imageAi = result?.crop_middle_l_ai;}
+                if (item == "r_l") {imageUri = result?.crop_ring_l_uri;imageAi = result?.crop_ring_l_ai;}
+                if (item == "p_l") {imageUri = result?.crop_pinky_l_uri;imageAi = result?.crop_pinky_l_ai;}
+                if (item == "t_r") {imageUri = result?.crop_thumb_r_uri;imageAi = result?.crop_thumb_r_ai;}
+                if (item == "i_r") {imageUri = result?.crop_index_r_uri;imageAi = result?.crop_index_r_ai;}
+                if (item == "m_r") {imageUri = result?.crop_middle_r_uri;imageAi = result?.crop_middle_r_ai;}
+                if (item == "r_r") {imageUri = result?.crop_ring_r_uri;imageAi = result?.crop_ring_r_ai;}
+                if (item == "p_r") {imageUri = result?.crop_pinky_r_uri;imageAi = result?.crop_pinky_r_ai;}
 
                 if (tDiv) {
                     if (imageUri) { // 실제 필드명에 맞게 수정
@@ -1144,24 +1200,18 @@
                     }
                 }
 
-                if(lDiv){
+                if(bDiv){
                     if (imageUri) {
-                        const buttons = lDiv.querySelectorAll("button");
+                        const buttons = bDiv.querySelectorAll("button");
                         buttons.forEach(btn => btn.classList.remove("none"));
                     }else{
-                        const buttons = lDiv.querySelectorAll("button");
+                        const buttons = bDiv.querySelectorAll("button");
                         buttons.forEach(btn => btn.classList.add("none"));
                     }
                 }
 
-                if(rDiv){
-                    if (imageUri) {
-                        const buttons = rDiv.querySelectorAll("button");
-                        buttons.forEach(btn => btn.classList.remove("none"));
-                    }else{
-                        const buttons = rDiv.querySelectorAll("button");
-                        buttons.forEach(btn => btn.classList.add("none"));
-                    }
+                if(inputAi){
+                    inputAi.value = imageAi
                 }
             });
         }
@@ -1222,16 +1272,36 @@
             }
             const imageDataId = typeMap[type]
             const imgTd = document.getElementById(imageUri);
+            const aiElement = document.getElementById(imageUri+"_ai");
             const img = imgTd.querySelector("img");
             // console.log(img.src)
             // console.log(imageDataId)
+            const aiResult = JSON.parse(aiElement.value ? aiElement.value : {})
+            let aiString = `
+                ${aiResult?.predicted_class} <br/>
+                [auc : ${(aiResult?.probability?aiResult?.probability*100:0)?.toFixed(2)}%]
+            `
 
             if(confirm("Are you sure you want to select this image?\nSelected : " + positionMap[type])){
+                const selectImageAi = imageDataId+"_ai"
                 const selectTd = document.getElementById(imageDataId);
+                const selectInputAi = document.getElementById(selectImageAi)
                 const seletImg = selectTd.querySelector("img");
                 seletImg.src = img.src
                 nailJson[type].crop = img.src
+                selectInputAi.innerHTML = aiString
+                nailJson[type].ai = aiElement.value
                 console.log("nailJson", nailJson)
+
+                const url = new URL(img.src);
+                url.searchParams.set(
+                "filename",
+                "plot_" + url.searchParams.get("filename")
+                );
+                url.searchParams.set("filetype", "4");
+                const newSrc = url.toString();
+
+                nailJson[type].plot = newSrc
             }
         }
 
@@ -1244,7 +1314,7 @@
                 const extraImgTd = document.getElementById(imageUri+"_e");      
                 const extraSeletImg = extraImgTd.querySelector("img");
                 extraSeletImg.src = "/static/imgs/add_placeholder.png"     
-                nailJson[type] = {crop : "", extra : "", sar:""}
+                nailJson[type] = {crop : "", extra : "", plot:"", ai:""}
                 nailPsoriasisJson[type] = {
                     index1 : {matrix : 0,bed : 0},
                     index2 : {matrix : 0,bed : 0},
@@ -1253,6 +1323,9 @@
                     matrix : 0,
                     bed : 0
                 }
+                const selectImageAi = imageUri+"_ai"
+                const selectInputAi = document.getElementById(selectImageAi)
+                selectInputAi.innerHTML = ''
             }
         }
 
@@ -1288,14 +1361,26 @@
         }
 
         function openPsoriasisModal(value, type) {
+            const selectJson = nailJson[type]
+
+            console.log("selectJson", selectJson)
+
+            if(!selectJson.crop || selectJson.crop?.includes("placeholder")){
+                alert("선택된 이미지가 없습니다.")
+                return
+            }
+           
+            const modalImage = document.getElementById("modal_select_image_plot")
+            modalImage.src = selectJson.plot
+
             const titleEl = document.getElementById("psoriasisModalLabel");
             const bodyEl  = document.getElementById("psoriasisModalBodyText");
 
             if (titleEl) {
-                titleEl.textContent = "Psoriasis option: " + value;
+                titleEl.textContent = "Psoriasis Position: " + value;
             }
             if (bodyEl) {
-                bodyEl.textContent = type+" 선택한 값: " + value + " 에 대한 설정을 진행합니다.";
+                bodyEl.textContent = "select Psoriasis Position: " + value;
             }
 
             const parSelectNo  = document.getElementById("psar_select_no");
@@ -1559,15 +1644,17 @@
                 const psarPath = psarUri ? psarUri.pathname + psarUri.search : "";
 
                 const extraList = nailInfo?.extra ? [nailInfo?.extra] : []              
+                const aiResult = nailInfo?.ai ? nailInfo?.ai : ""              
 
 
                 nailBody[element] = {
                     origin : originFilename,
                     name : filename,
                     crop : onlyPath || "",
-                    sar : psarPath || "",
+                    plot : psarPath || "",
                     psar : nailPsoriasisInfo,
-                    extra : extraList
+                    extra : extraList,
+                    ai : aiResult
                 }
             })
 
@@ -1626,15 +1713,116 @@
                     "OK: Add another\nCancel: Go to list"
                 );
                 if (again) {
-                    // reset 로직 있으면 여기서 호출
+                    resetAddPatientPage();
                 } else {
-                    window.location.href = "/patient/list";
+                    resetAddPatientPage();
+                    window.location.href = "/app";
                 }
             } else {
                 const text = await response.text().catch(() => "");
                 console.error("Upload failed:", response.status, text);
                 alert("등록 중 오류가 발생했습니다.");
             }
+        }
+
+        function resetAddPatientPage() {
+            // 1) 환자 기본 정보 초기화
+            const typeEl = document.getElementById("add_patient_type");
+            if (typeEl) typeEl.value = "new";
+
+            clearPatientFields(); // ID, Name, Gender, Birth, Recent 등 초기화
+
+            const visitEl = document.getElementById("add_patient_visit");
+            if (visitEl) {
+                visitEl.value = getLocalDateTime(); // 현재 날짜/시간 다시 세팅
+            }
+
+            const noteEl = document.getElementById("add-patient-note");
+            if (noteEl) {
+                noteEl.value = "";
+            }
+
+            // 2) nail / psoriasis 데이터 초기화
+            nailJson = initNailJson();
+            nailPsoriasisJson = initnailPariasisJson();
+
+            // psoriasis 체크박스 및 UI 초기화
+            const sarCheckbox = document.getElementById("add_imagedata_sar");
+            if (sarCheckbox) {
+                sarCheckbox.checked = false;
+                onChangePsar(sarCheckbox); // .psoriasis-func 다시 숨기기
+            }
+
+            // 3) 원본 이미지 영역 초기화
+            const originDiv = document.getElementById("select_origin_image");
+            if (originDiv) {
+                originDiv.innerHTML = "";
+            }
+
+            // 4) crop 이미지 영역 초기화 (select_crop_* 셀)
+            const selectCropList = ["t_l", "i_l", "m_l", "r_l", "p_l", "t_r", "i_r", "m_r", "r_r", "p_r"];
+            selectCropList.forEach((item) => {
+                const baseId = "select_crop_" + item;
+                const cell = document.getElementById(baseId);
+                const dCell = document.getElementById(baseId + "_d");
+                const bCell = document.getElementById(baseId + "_b");
+                const aiInput = document.getElementById(baseId + "_ai");
+
+                if (cell) cell.innerHTML = "";           // 이미지 지우기
+                if (aiInput) aiInput.value = "";         // AI 결과값 초기화
+
+                if (dCell) {
+                    const buttons = dCell.querySelectorAll("button");
+                    buttons.forEach((btn) => btn.classList.add("none")); // 확대보기 버튼 숨김
+                }
+                if (bCell) {
+                    const buttons = bCell.querySelectorAll("button");
+                    buttons.forEach((btn) => btn.classList.add("none")); // Left/Right 선택 버튼 숨김
+                }
+            });
+
+            // 5) 오른쪽 Image Datas 테이블의 이미지/AI/Extra 초기화
+            const placeholder = "/static/imgs/add_placeholder.png";
+            const imageDataKeys = ["t_l", "i_l", "m_l", "r_l", "p_l", "t_r", "i_r", "m_r", "r_r", "p_r"];
+
+            imageDataKeys.forEach((key) => {
+                const baseId = "image_data_" + key;
+
+                // 기본 썸네일 영역
+                const thumbTd = document.getElementById(baseId);
+                if (thumbTd) {
+                    let img = thumbTd.querySelector("img");
+                    if (!img) {
+                        img = document.createElement("img");
+                        img.height = 60;
+                        img.className = "fit-image";
+                        thumbTd.innerHTML = "";
+                        thumbTd.appendChild(img);
+                    }
+                    img.src = placeholder;
+                }
+
+                // Extra 썸네일 영역
+                const extraTd = document.getElementById(baseId + "_e");
+                if (extraTd) {
+                    const extraImg = extraTd.querySelector("img");
+                    if (extraImg) extraImg.src = placeholder;
+                }
+
+                // AI 결과 영역
+                const aiTd = document.getElementById(baseId + "_ai");
+                if (aiTd) {
+                    aiTd.innerHTML = "";
+                }
+            });
+
+            // 6) 건선(NAPSI) 테이블 값 초기화
+            document.querySelectorAll(".psoriasis_table span").forEach((span) => {
+                span.textContent = "0";
+                span.removeAttribute("title");
+            });
+
+            console.log("resetAddPatientPage: state and UI have been reset.");
         }
         
     </script>

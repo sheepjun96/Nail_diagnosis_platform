@@ -1,35 +1,91 @@
 import aiomysql
 from typing import List, Dict, Any, Optional, Tuple
-from test.dumy_data import RESOURCE_STUDY_LIST
 from datetime import datetime, date
 import json
 
 async def get_study_list(
     conn: aiomysql.Connection,
-    project_seq: Optional[str] = None,
+    project_seq: Optional[int] = None,
     search: Optional[str] = None,
     filter_key: str = "name_asc",
     page: int = 1,
     rows: int = 20,
-) -> List[Dict]:
-    
-    items = RESOURCE_STUDY_LIST
-    total = len(items)
+) -> Dict:
 
     if page < 1:
         page = 1
     if rows < 1:
         rows = 20
 
-    start = (page - 1) * rows
-    end = start + rows
+    offset = (page - 1) * rows
 
-    paginated_items = items[start:end]
+    # 정렬 기준
+    order_by_map = {
+        "name_asc":  "stl_patient_name ASC",
+        "name_desc": "stl_patient_name DESC",
+        "date_asc":  "stl_patient_studydate ASC",
+        "date_desc": "stl_patient_studydate DESC",
+    }
+    order_by = order_by_map.get(filter_key, "stl_patient_name ASC")
 
-    # 6) 결과 포맷
+    where_clauses = ["1=1"]
+    params: List = []
+
+    if project_seq is not None:
+        where_clauses.append("project_seq = %s")
+        params.append(project_seq)
+
+    if search:
+        where_clauses.append(
+            "(stl_patient_name LIKE %s OR stl_patient_id LIKE %s)"
+        )
+        like = f"%{search}%"
+        params.extend([like, like])
+
+    where_sql = " AND ".join(where_clauses)
+
+    # 1) 전체 개수
+    count_sql = f"""
+        SELECT COUNT(*) AS total
+        FROM curaxel_skin.study_list
+        WHERE {where_sql}
+    """
+
+    # 2) 실제 데이터
+    data_sql = f"""
+        SELECT
+            stl_seq,
+            project_seq,
+            stl_patient_id,
+            stl_patient_name,
+            stl_patient_gender,
+            stl_patient_birthdate,
+            stl_patient_studydate,
+            stl_patient_recentdate,
+            stl_patient_status,
+            stl_patient_tag
+        FROM curaxel_skin.study_list
+        WHERE {where_sql}
+        ORDER BY {order_by}
+        LIMIT %s OFFSET %s
+    """
+
+    async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
+        # total
+        await cur.execute(count_sql, params)
+        total_row = await cur.fetchone()
+        total = total_row["total"] if total_row else 0
+
+        # data
+        params_with_paging = params + [rows, offset]
+        await cur.execute(data_sql, params_with_paging)
+        db_rows = await cur.fetchall()
+
+    items = db_rows
+
     return {
-        "items": paginated_items,   # 실제 데이터 목록
-        "total": total,   # 전체 개수
+        "items": items,
+        "total": total,
         "page": page,
         "rows": rows,
     }
@@ -46,8 +102,8 @@ async def get_image_origin_list(
     order_map = {
         "filename_asc": "uf_uri ASC",
         "filename_desc": "uf_uri DESC",
-        "create_asc": "up_upload_date ASC",
-        "create_desc": "up_upload_date DESC",
+        "create_asc": "uf_upload_date ASC",
+        "create_desc": "uf_upload_date DESC",
     }
     order_by = order_map.get(filter_key, "uf_uri ASC")  # 기본값: 이름 오름차순
 
@@ -88,7 +144,7 @@ async def get_image_origin_list(
         SELECT 
             uf_seq,
             uf_upload_write,
-            up_upload_date,
+            uf_upload_date,
             uf_uri,
             uf_filetype,
             uf_memo_1,
@@ -127,11 +183,13 @@ async def get_image_origin_detail(
         SELECT 
             uf_seq,
             uf_upload_write,
-            up_upload_date,
+            uf_upload_date,
             uf_uri,
             uf_filetype,
             uf_memo_1,
-            uf_memo_2
+            uf_memo_2,
+            uf_memo_3,
+            uf_memo_4
         FROM upload_file
         WHERE {where_sql}
         ORDER BY uf_filetype ASC
@@ -160,8 +218,10 @@ async def get_study_List_patientId(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(select_study_sql, [patient_id])
         items = await cur.fetchone()
+    
+    stl_seq = items["stl_seq"] if items else None
     return {
-        "stl": items["stl_seq"],   # 실제 데이터 목록
+        "stl": stl_seq,   # 실제 데이터 목록
     }
 
 async def add_study(
@@ -387,3 +447,127 @@ async def add_file_extra(
     return {
         "insert_seq": insert_seq,
     }
+
+async def get_series_list(
+    conn: aiomysql.Connection,
+    patient_id: str,
+) -> Dict:
+    async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
+        # 1) patient_id -> stl_seq
+        await cur.execute(
+            """
+            SELECT stl_seq
+            FROM curaxel_skin.study_list
+            WHERE stl_patient_id = %s
+            """,
+            (patient_id,),
+        )
+        row = await cur.fetchone()
+        if not row:
+            return {"code": 200, "message": "OK", "context": []}
+
+        stl_seq = row["stl_seq"]
+
+        # 2) stl_seq 기준으로 series_list 조회
+        await cur.execute(
+            """
+            SELECT
+                srl_seq,
+                stl_seq,
+                srl_patient_seriesdate,
+                srl_patient_note,
+                srl_patient_l_t,
+                srl_patient_l_i,
+                srl_patient_l_m,
+                srl_patient_l_R,
+                srl_patient_l_p,
+                srl_patient_r_t,
+                srl_patient_r_i,
+                srl_patient_r_m,
+                srl_patient_r_R,
+                srl_patient_r_p
+            FROM curaxel_skin.series_list
+            WHERE stl_seq = %s
+            ORDER BY srl_patient_seriesdate DESC
+            """,
+            (stl_seq,),
+        )
+        rows = await cur.fetchall()
+
+    # 3) No/instance 계산
+    series_items = []
+    for idx, r in enumerate(rows, start=1):
+        fingers = [
+            r["srl_patient_l_t"],
+            r["srl_patient_l_i"],
+            r["srl_patient_l_m"],
+            r["srl_patient_l_R"],
+            r["srl_patient_l_p"],
+            r["srl_patient_r_t"],
+            r["srl_patient_r_i"],
+            r["srl_patient_r_m"],
+            r["srl_patient_r_R"],
+            r["srl_patient_r_p"],
+        ]
+        # 빈 JSON(입력 안 된 경우)와 실제 입력 구분: origin 이 비어 있지 않은 것만 카운트
+        instance_cnt = 0
+        for f in fingers:
+            if not f:
+                continue
+            try:
+                j = json.loads(f)
+                if j.get("origin"):
+                    instance_cnt += 1
+            except Exception:
+                # 혹시 포맷이 달라도 일단 1개로 취급
+                instance_cnt += 1
+
+        series_items.append({
+            "no": idx,
+            "date": r["srl_patient_seriesdate"],
+            "instance": instance_cnt,
+            "srl_seq": r["srl_seq"],
+        })
+
+    return {
+        "code": 200,
+        "message": "OK",
+        "context": series_items,
+    }
+
+async def get_series_detail(
+    conn: aiomysql.Connection,
+    stl_seq: int,
+    srl_seq: int,
+) -> Dict[str, Any]:
+    async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
+        await cur.execute(
+            """
+            SELECT
+                srl_seq,
+                stl_seq,
+                srl_patient_seriesdate,
+                srl_patient_note,
+                srl_patient_l_t,
+                srl_patient_l_i,
+                srl_patient_l_m,
+                srl_patient_l_R,
+                srl_patient_l_p,
+                srl_patient_r_t,
+                srl_patient_r_i,
+                srl_patient_r_m,
+                srl_patient_r_R,
+                srl_patient_r_p
+            FROM curaxel_skin.series_list
+            WHERE stl_seq = %s
+              AND srl_seq = %s
+            LIMIT 1
+            """,
+            (stl_seq, srl_seq),
+        )
+        row = await cur.fetchone()
+
+    if not row:
+        return {"code": 404, "message": "Series not found", "context": None}
+
+    return {"code": 200, "message": "OK", "context": row}

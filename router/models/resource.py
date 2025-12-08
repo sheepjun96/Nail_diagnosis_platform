@@ -9,7 +9,7 @@ from config import CONFIG_DIR
 from typing import List, Optional
 import aiomysql
 from db import get_conn
-from router.services.resource import get_study_list, get_study_List_patientId, add_study, add_seires
+from router.services.resource import get_study_list, get_study_List_patientId, add_study, add_seires, get_series_list, get_series_detail
 from router.services.resource import get_image_origin_list, get_image_origin_detail
 
 router = APIRouter(prefix="/resource", tags=["resource"])
@@ -101,8 +101,8 @@ async def image_origin_detail(
 @router.get("/image/dump", response_class=JSONResponse)
 async def image_origin_detail(
     request: Request,
-    filename: Optional[str] = Query(None, description="파일이름"),
-    filetype: Optional[int] = Query(None, description="파일타입"),
+    filename: Optional[str] = Query(None, description="filename"),
+    filetype: Optional[int] = Query(None, description="filetype"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
     # 1) filename 검증
@@ -135,6 +135,20 @@ async def image_origin_detail(
 
     # 5) 파일 응답 반환
     return FileResponse(file_path, media_type=media_type)
+
+@router.get("/image/extra")
+async def image_extra(
+    request: Request,
+    filename: str = Query(..., description="filename"),
+    filetype: int = Query(2, description="filetype (default 2)"),
+    conn: aiomysql.Connection = Depends(get_conn),
+):
+    return await image_origin_detail(
+        request=request,
+        filename=filename,
+        filetype=filetype,
+        conn=conn,
+    )
 
 @router.post("/patient/add")
 async def add_patient(
@@ -170,7 +184,7 @@ async def add_patient(
     nail_dict = data.get("nail", {})
     
     def build_extra_url(filename: str) -> str:
-        return f"/api/resource/image/extra?filename={filename}&filetype=2"
+        return f"/api/resource/image/dump?filename={filename}&filetype=2"
     
     for nail_key, files in file_map.items():
         if not files:  
@@ -186,8 +200,7 @@ async def add_patient(
             _, ext = os.path.splitext(upload.filename)
             if not ext:
                 ext = ".png"
-            now_str = datetime.now().strftime("%Y%m%d%H%M%S")
-            cvt_filename = upload.filename.replace("crop", f"extra_{now_str}")
+            cvt_filename = f"extra_{upload.filename}"
             safe_filename = f"{cvt_filename}"
             save_path = os.path.join(SAVE_EXTRA_DIR, safe_filename)
 
@@ -224,7 +237,6 @@ async def add_patient(
         exist_result = await get_study_List_patientId(patient_id=patient_id, conn=conn)
         print("exist_result", exist_result)
         stl_seq = exist_result["stl"]
-
         if not stl_seq:
             add_result = await add_study(
                 project_seq=project_seq,
@@ -236,6 +248,17 @@ async def add_patient(
                 conn=conn
             )
             stl_seq = add_result["stl_seq"]
+    else :
+        add_result = await add_study(
+            project_seq=project_seq,
+            patient_id= patient_id,
+            patient_name=patient_name,
+            patient_gender=patient_gender,
+            patient_birth=patient_birth,
+            patient_visit=patient_visit, 
+            conn=conn
+        )
+        stl_seq = add_result["stl_seq"]
     
     if not stl_seq:
         raise HTTPException(status_code=404, detail="Study not exist")
@@ -262,4 +285,43 @@ async def add_patient(
             stl_seq : stl_seq,
             srl_seq : srl_seq
         },
+    }
+
+# Series List
+@router.get("/series/list", response_class=JSONResponse)
+async def series_list(
+    request: Request,
+    patient_id: str = Query(..., description="환자 Patient ID"),
+    conn: aiomysql.Connection = Depends(get_conn),
+):
+    # patient_id 를 받아서 해당 환자의 series_list 를 반환
+    result = await get_series_list(
+        conn=conn,
+        patient_id=patient_id,
+    )
+
+    return {
+        "code": result.get("code", 200),
+        "state": "ok",
+        "message": result.get("message", "OK"),
+        "context": result.get("context", []),
+    }
+
+@router.get("/series/detail", response_class=JSONResponse)
+async def series_detail(
+    request: Request,
+    stl_seq: int = Query(..., description="study_list.stl_seq"),
+    srl_seq: int = Query(..., description="series_list.srl_seq"),
+    conn: aiomysql.Connection = Depends(get_conn),
+):
+    result = await get_series_detail(
+        conn=conn,
+        stl_seq=stl_seq,
+        srl_seq=srl_seq,
+    )
+    return {
+        "code": result.get("code", 200),
+        "state": "ok",
+        "message": result.get("message", "OK"),
+        "context": result.get("context"),
     }
