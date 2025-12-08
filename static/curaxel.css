@@ -13,6 +13,10 @@ body{
     background: #2a2a2a !important ;
 }
 
+.minh-100{
+
+}
+
 .none{
     display: none !important;
 }
@@ -73,6 +77,10 @@ body{
     font-size: 14px;
 }
 
+.table-select-file{
+    max-height: 354px;
+}
+
 .table-select-file th{
     height: 30px;
 }
@@ -124,6 +132,10 @@ body{
     max-height: 328px;
 }
 
+#select_origin_image img{
+    object-fit: contain;
+}
+
 .add_div_card{
     height: calc(50% - 25px);
     max-height: 360px;
@@ -163,8 +175,11 @@ body{
     font-size: 12px !important;
     margin: 0px;
 }
-.line-td-white-tb{
+.line-td-white-top{
     border-top: 1px solid #fff !important;
+}
+
+.line-td-white-bottom{
     border-bottom: 1px solid #fff !important;
 }
 

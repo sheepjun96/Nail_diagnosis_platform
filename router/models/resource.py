@@ -186,8 +186,7 @@ async def add_patient(
             _, ext = os.path.splitext(upload.filename)
             if not ext:
                 ext = ".png"
-            now_str = datetime.now().strftime("%Y%m%d%H%M%S")
-            cvt_filename = upload.filename.replace("crop", f"extra_{now_str}")
+            cvt_filename = f"extra_{upload.filename}"
             safe_filename = f"{cvt_filename}"
             save_path = os.path.join(SAVE_EXTRA_DIR, safe_filename)
 
@@ -224,7 +223,6 @@ async def add_patient(
         exist_result = await get_study_List_patientId(patient_id=patient_id, conn=conn)
         print("exist_result", exist_result)
         stl_seq = exist_result["stl"]
-
         if not stl_seq:
             add_result = await add_study(
                 project_seq=project_seq,
@@ -236,6 +234,17 @@ async def add_patient(
                 conn=conn
             )
             stl_seq = add_result["stl_seq"]
+    else :
+        add_result = await add_study(
+            project_seq=project_seq,
+            patient_id= patient_id,
+            patient_name=patient_name,
+            patient_gender=patient_gender,
+            patient_birth=patient_birth,
+            patient_visit=patient_visit, 
+            conn=conn
+        )
+        stl_seq = add_result["stl_seq"]
     
     if not stl_seq:
         raise HTTPException(status_code=404, detail="Study not exist")

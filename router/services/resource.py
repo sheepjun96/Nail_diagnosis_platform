@@ -46,8 +46,8 @@ async def get_image_origin_list(
     order_map = {
         "filename_asc": "uf_uri ASC",
         "filename_desc": "uf_uri DESC",
-        "create_asc": "up_upload_date ASC",
-        "create_desc": "up_upload_date DESC",
+        "create_asc": "uf_upload_date ASC",
+        "create_desc": "uf_upload_date DESC",
     }
     order_by = order_map.get(filter_key, "uf_uri ASC")  # 기본값: 이름 오름차순
 
@@ -88,7 +88,7 @@ async def get_image_origin_list(
         SELECT 
             uf_seq,
             uf_upload_write,
-            up_upload_date,
+            uf_upload_date,
             uf_uri,
             uf_filetype,
             uf_memo_1,
@@ -127,11 +127,13 @@ async def get_image_origin_detail(
         SELECT 
             uf_seq,
             uf_upload_write,
-            up_upload_date,
+            uf_upload_date,
             uf_uri,
             uf_filetype,
             uf_memo_1,
-            uf_memo_2
+            uf_memo_2,
+            uf_memo_3,
+            uf_memo_4
         FROM upload_file
         WHERE {where_sql}
         ORDER BY uf_filetype ASC
@@ -160,8 +162,10 @@ async def get_study_List_patientId(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(select_study_sql, [patient_id])
         items = await cur.fetchone()
+    
+    stl_seq = items["stl_seq"] if items else None
     return {
-        "stl": items["stl_seq"],   # 실제 데이터 목록
+        "stl": stl_seq,   # 실제 데이터 목록
     }
 
 async def add_study(
