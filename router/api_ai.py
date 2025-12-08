@@ -1,5 +1,4 @@
 from fastapi import FastAPI, UploadFile, File, Form, APIRouter
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import Response, JSONResponse
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +11,6 @@ from utils.nail_detect import nail_detect_process
 from utils.lesion_predict import LesionPredict
 
 router = APIRouter(prefix="/api", tags=["api-public"])
-templates = Jinja2Templates(directory="templates")
 
 class_names = [
     "Acral_Lentiginous_Melanoma",

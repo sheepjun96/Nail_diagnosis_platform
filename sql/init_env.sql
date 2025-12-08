@@ -120,11 +120,13 @@ CREATE TABLE `notice_alarm` (
 CREATE TABLE `upload_file` (
 	`uf_seq` int NOT NULL AUTO_INCREMENT COMMENT 'upload file id',
     `uf_upload_write` varchar(50) COMMENT 'upload file write/org(type)',
-    `up_upload_date` datetime COMMENT 'alarm date',
+    `uf_upload_date` datetime COMMENT 'alarm date',
     `uf_uri` varchar(300) COMMENT 'file uri',
     `uf_filetype` int NOT NULL COMMENT 'type origin 0, crop 1, extra 2, ai 3, sariasis 4',
     `uf_memo_1` varchar(100) NOT NULL COMMENT 'if crop, write T, I, M, R, P',
     `uf_memo_2` varchar(100) NOT NULL COMMENT 'extram summary',
+    `uf_memo_3` varchar(100) NOT NULL COMMENT 'obbs summary',
+    `uf_memo_4` varchar(100) NOT NULL COMMENT 'ai summary',
 	`uf_del_yn` char(1) DEFAULT 'N',
      PRIMARY KEY (`uf_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

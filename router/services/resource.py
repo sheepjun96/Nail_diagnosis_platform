@@ -251,3 +251,139 @@ async def add_seires(
     return {
         "srl_seq": srl_seq,
     }
+
+async def add_file_origin(
+    conn: aiomysql.Connection,
+    upload_type: str,
+    upload_uri: str,
+) -> Dict[str, Any]:
+    
+    uf_upload_write = upload_type
+    uf_upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    uf_uri = upload_uri
+    uf_filetype = 0
+    uf_memo_1 = "o"
+    uf_memo_2 = "origin"
+    uf_memo_3 = ""
+    uf_memo_4 = ""
+    uf_del_yn = "N"
+    
+   
+    insert_sql = """
+        INSERT INTO upload_file
+        (uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_memo_3, uf_memo_4, uf_del_yn)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    insert_value = (
+        uf_upload_write,
+        uf_upload_date,
+        uf_uri,
+        uf_filetype,
+        uf_memo_1,
+        uf_memo_2,
+        uf_memo_3,
+        uf_memo_4,
+        uf_del_yn
+    )
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(insert_sql, insert_value)
+        insert_seq = cur.lastrowid
+    await conn.commit()
+    return {
+        "insert_seq": insert_seq,
+    }
+
+async def add_file_crop(
+    conn: aiomysql.Connection,
+    upload_type: str,
+    upload_uri: str,
+    origin_seq : str,
+    origin_uri : str,
+    obb_info : str,
+    ai_info : str,
+    finger_index : str,
+) -> Dict[str, Any]:
+    
+    uf_upload_write = upload_type
+    uf_upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    uf_uri = upload_uri
+    uf_filetype = 1
+    uf_memo_1 = finger_index
+    uf_memo_2 = origin_uri
+    uf_memo_3 = obb_info
+    uf_memo_4 = ai_info
+    uf_del_yn = "N"
+    
+   
+    insert_sql = """
+        INSERT INTO upload_file
+        (uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_memo_3, uf_memo_4, uf_del_yn)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    insert_value = (
+        uf_upload_write,
+        uf_upload_date,
+        uf_uri,
+        uf_filetype,
+        uf_memo_1,
+        uf_memo_2,
+        uf_memo_3,
+        uf_memo_4,
+        uf_del_yn
+    )
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(insert_sql, insert_value)
+        insert_seq = cur.lastrowid
+    await conn.commit()
+    return {
+        "insert_seq": insert_seq,
+    }
+
+async def add_file_extra(
+    conn: aiomysql.Connection,
+    upload_type: str,
+    upload_uri: str,
+    origin_seq : str,
+    origin_uri : str,
+    obb_info : str,
+    finger_index : str,
+    upload_filetype : int,
+) -> Dict[str, Any]:
+    
+    uf_upload_write = upload_type
+    uf_upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    uf_uri = upload_uri
+    uf_filetype = upload_filetype
+    uf_memo_1 = finger_index
+    uf_memo_2 = origin_uri
+    uf_memo_3 = obb_info
+    uf_memo_4 = ""
+    uf_del_yn = "N"
+    
+   
+    insert_sql = """
+        INSERT INTO upload_file
+        (uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_memo_3, uf_memo_4, uf_del_yn)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    insert_value = (
+        uf_upload_write,
+        uf_upload_date,
+        uf_uri,
+        uf_filetype,
+        uf_memo_1,
+        uf_memo_2,
+        uf_memo_3,
+        uf_memo_4,
+        uf_del_yn
+    )
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(insert_sql, insert_value)
+        insert_seq = cur.lastrowid
+    await conn.commit()
+    return {
+        "insert_seq": insert_seq,
+    }
