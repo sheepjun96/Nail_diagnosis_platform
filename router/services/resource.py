@@ -1,5 +1,5 @@
 import aiomysql
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 import json
 

@@ -2,6 +2,35 @@
 <html lang="en">
 
 {% include "includes/head.html" %}
+<style>
+    tr.selected-row {
+        background-color: #00b894 !important;
+        color: #ffffff;
+    }
+
+    .image-container {
+    display: flex;
+    gap: 20px;
+    }
+    .hand-group {
+    flex: 1;
+    }
+    .finger-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    }
+    .finger-item {
+    display: flex;
+    gap: 10px;
+    }
+    .crop-img, .extra-img {
+    width: 100px;
+    height: 100px;
+    background: #eee;
+    border: 1px solid #ccc;
+    }
+</style>
 
 <body id="page-top" class="d-flex flex-column min-vh-100">
 
@@ -33,19 +62,24 @@
                                                         <td class="bg-bg3">Type</td>
                                                         <td class="m-0 p-1 font-sm-force"><select id="add_patient_type" class="form-control  m-0 p-0 font-sm-force text-center"><option>New</option><option selected>Exist</option></select></td>
                                                         <td class="bg-bg3">ID</td>
-                                                        <td class="m-0 p-1 font-sm-force"><input id="add_patient_id" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="ANO_123456"/></td>
+                                                        <td class="m-0 p-1 font-sm-force"><input id="add_patient_id" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="."/></td>
                                                     </tr>
                                                     <tr>
                                                         <td class="bg-bg3">Name</td>
-                                                        <td class="m-0 p-1"><input id="add_patient_name" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="Tiger Nixon"/></td>
+                                                        <td class="m-0 p-1"><input id="add_patient_name" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="."/></td>
                                                         <td class="bg-bg3">Gender</td>
-                                                        <td class="m-0 p-1"><select class="form-control m-0 p-0 font-sm-force text-center"><option selected>M</option><option>F</option></select></td>
+                                                        <td class="m-0 p-1">
+                                                        <select id="add_patient_gender" class="form-control m-0 p-0 font-sm-force text-center">
+                                                            <option>M</option>
+                                                            <option>F</option>
+                                                        </select>
+                                                        </td>
                                                     </tr>
                                                     <tr>
                                                         <td class="bg-bg3">Birthday</td>
-                                                        <td class="m-0 p-1"><input id="add_patient_birth" type="date" class="form-control m-0 p-0 font-sm-force text-center" value="1996-04-25"/></td>
+                                                        <td class="m-0 p-1"><input id="add_patient_birth" type="date" class="form-control m-0 p-0 font-sm-force text-center" value="2000-01-01"/></td>
                                                         <td class="bg-bg3">Recent</td>
-                                                        <td class="m-0 p-1">2025/10/21</td>
+                                                        <td id="add_patient_recent" class="m-0 p-1">.</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -78,30 +112,16 @@
                                             </table>
                                         </form>
                                         
-                                        <table class="table text-center text-white fa-xs" width="100%" cellspacing="0">
+                                        <table id="viewer_series_table" class="table text-center text-white fa-xs" width="100%" cellspacing="0">
                                             <thead>
-                                                <tr>
-                                                    <th>No</th>
-                                                    <th>date</th>
-                                                    <th>instance</th>
-                                                </tr>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>date</th>
+                                                <th>instance</th>
+                                            </tr>
                                             </thead>
-                                            <tbody>
-                                                <tr class="bg-accent">
-                                                    <td>1</td>
-                                                    <td>2025/10/21</td>
-                                                    <td>4</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>2</td>
-                                                    <td>2025/10/20</td>
-                                                    <td>4</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>3</td>
-                                                    <td>2025/10/18</td>
-                                                    <td>4</td>
-                                                </tr>
+                                            <tbody id="viewer_series_body">
+                                            <!-- JS로 채움 -->
                                             </tbody>
                                         </table>
                                     </div>
@@ -124,18 +144,28 @@
                                                     <th>L Pinky</th>
                                                 </tr>
                                                 <tr>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_thumb" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_index" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_middle" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_ring" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_pinky" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="p-1" style="width: 20%;"><a class="w-100 m-0"><img src="/static/patient_images/1/2025-07-03/extra/temp_item.png" height="60px" /></td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
+                                                    <td><span id="extra_l_thumb">No extra</span></td>
+                                                    <td><span id="extra_l_index">No extra</span></td>
+                                                    <td><span id="extra_l_middle">No extra</span></td>
+                                                    <td><span id="extra_l_ring">No extra</span></td>
+                                                    <td><span id="extra_l_pinky">No extra</span></td>
                                                 </tr>
                                                 <tr class="bg-bg3">
                                                     <th>R Thumb</th>
@@ -145,25 +175,36 @@
                                                     <th>R Pinky</th>
                                                 </tr>
                                                 <tr>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_thumb.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_index.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_middle.png" height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_ring.png"  height="60px" /></td>
-                                                    <td class="p-1 fit-image" style="width: 20%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/right_pinky.png" height="60px" /></td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_thumb" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_index" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_middle" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_ring" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_pinky" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-sm btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
-                                                    <td class="p-1" style="width: 20%;"><a class="btn btn-sm fa-xs btn-secondary w-100 m-0"><i class="fas fa-plus"></i> Extra</td>
+                                                    <td><span id="extra_r_thumb">No extra</span></td>
+                                                    <td><span id="extra_r_index">No extra</span></td>
+                                                    <td><span id="extra_r_middle">No extra</span></td>
+                                                    <td><span id="extra_r_ring">No extra</span></td>
+                                                    <td><span id="extra_r_pinky">No extra</span></td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="preview-div">
                                         <h4 class="sub-title">4. Patient Note</h4>
-                                        <textarea class="form-control w-100" rows="10"></textarea>
+                                        <div id="patient_note_container" class="p-2">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="w-100">
@@ -391,10 +432,10 @@
 
     </div>
     <!-- End of Page Wrapper -->
-
+    
     {% include "includes/scrollbutton.html" %}
-
     {% include "includes/scripts.html" %}
+    <script src="{{ url_for('static', path='bootstrap/js/viewer.js') }}"></script>
 
 </body>
 
