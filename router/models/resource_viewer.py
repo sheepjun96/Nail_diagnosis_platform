@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Request, Form, File, Depends, Query
+from fastapi import APIRouter, Request, Form, Depends, Query
 from fastapi.responses import JSONResponse
 from config import CONFIG_DIR
 from typing import Optional
 import aiomysql
 from db import get_conn
-from router.services.resource_viewer import get_viewer_info, update_study_patient, get_series_note
+from router.services.resource_viewer import get_viewer_info, update_study_patient, get_series_note, update_series_note
 
 router = APIRouter(prefix="/resource", tags=["resource_viewer"])
 SAVE_NAIL_DIR = CONFIG_DIR["nail"]
@@ -56,4 +56,15 @@ async def viewer_series_note(
     conn: aiomysql.Connection = Depends(get_conn),
 ):
     result = await get_series_note(conn, stl_seq, srl_seq)
+    return result
+
+@router.post("/viewer/update_series_note", response_class=JSONResponse)
+async def update_viewer_series_note(
+    request: Request,
+    stl_seq: int = Form(...),
+    srl_seq: int = Form(...),
+    note: str = Form(...),
+    conn: aiomysql.Connection = Depends(get_conn),
+):
+    result = await update_series_note(conn, stl_seq, srl_seq, note)
     return result

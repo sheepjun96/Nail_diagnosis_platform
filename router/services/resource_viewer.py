@@ -91,9 +91,6 @@ async def get_series_note(
     stl_seq: int,
     srl_seq: int
 ) -> Dict[str, Any]:
-    """
-    stl_seq, srl_seq로 series_list의 srl_patient_note 가져오기
-    """
     async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
         await cur.execute(
             """
@@ -107,3 +104,21 @@ async def get_series_note(
         if not row:
             return {"code": 404, "message": "Series not found", "context": None}
         return {"code": 200, "message": "OK", "context": row["srl_patient_note"]}
+
+async def update_series_note(
+    conn: aiomysql.Connection,
+    stl_seq: int,
+    srl_seq: int,
+    note: str
+) -> Dict[str, Any]:
+    async with conn.cursor() as cur:
+        await cur.execute(
+            """
+            UPDATE curaxel_skin.series_list
+            SET srl_patient_note = %s
+            WHERE stl_seq = %s AND srl_seq = %s
+            """,
+            (note, stl_seq, srl_seq)
+        )
+        await conn.commit()
+        return {"code": 200, "message": "Note updated"}

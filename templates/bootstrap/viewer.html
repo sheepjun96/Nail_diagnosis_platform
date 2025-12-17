@@ -203,12 +203,11 @@
                                     </div>
                                     <div class="preview-div">
                                         <h4 class="sub-title">4. Patient Note</h4>
-                                        <div id="patient_note_container" class="p-2">
-                                        </div>
+                                        <textarea id="patient_note_textarea" class="form-control w-100" rows="10"></textarea>
                                     </div>
                                 </div>
                                 <div class="w-100">
-                                    <a class="btn btn-secondary w-100"><i class="fas fa-pen"></i> Image & Note Modifiy</a>
+                                    <a class="btn btn-revise w-100"><i class="fas fa-pen"></i> Image & Note Modifiy</a>
                                 </div>
                             </div>
                         </div>
@@ -222,79 +221,29 @@
                                             <div class="col-12">
                                                 <h4 class="sub-title">5-1 Left hand</h4>
                                                 <table class="table text-center text-white fa-xs vertical-item-middle table-bottom-line" width="100%" cellspacing="0">
-                                                    <tbody>
+                                                    <tbody id="left_hand_body">
                                                         <tr class="bg-bg3">
                                                             <th>Date</th>
-                                                            <th>T</th>
-                                                            <th>I</th>
-                                                            <th>M</th>
-                                                            <th>R</th>
-                                                            <th>P</th>
+                                                            <th>Thumb</th>
+                                                            <th>Index</th>
+                                                            <th>Middle</th>
+                                                            <th>Ring</th>
+                                                            <th>Pinky</th>
                                                         </tr>
                                                         <tr>
-                                                            <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2025<br/>/10<br/>/21</span></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/extra/temp_item.png" height="60px" /></td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1 text-left" colspan="5" style="width: 16%;">note : </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2025<br/>/10<br/>/20</span></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
+                                                            <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2000<br/>/1<br/>/1</span></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
                                                         </tr>
                                                         <tr>
                                                             <td class="p-1" style="width: 16%;">0</td>
                                                             <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">44.29</td>
-                                                            <td class="p-1" style="width: 16%;">61.38</td>
                                                             <td class="p-1" style="width: 16%;">0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1 text-left" colspan="5" style="width: 16%;">note : </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2025<br/>/10<br/>/18</span></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;">70.72</td>
-                                                            <td class="p-1" style="width: 16%;">67.11</td>
-                                                            <td class="p-1" style="width: 16%;">63.08</td>
-                                                            <td class="p-1" style="width: 16%;">61.38</td>
-                                                            <td class="p-1" style="width: 16%;">60.00</td>
+                                                            <td class="p-1" style="width: 16%;">0</td>
+                                                            <td class="p-1" style="width: 16%;">0</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
@@ -320,22 +269,22 @@
                                             <div class="col-12">
                                                 <h4 class="sub-title">5-2 Right hand</h4>
                                                 <table class="table text-center text-white fa-xs vertical-item-middle table-bottom-line" width="100%" cellspacing="0">
-                                                    <tbody>
+                                                    <tbody id="right_hand_body">
                                                         <tr class="bg-bg3">
                                                             <th>Date</th>
-                                                            <th>T</th>
-                                                            <th>I</th>
-                                                            <th>M</th>
-                                                            <th>R</th>
-                                                            <th>P</th>
+                                                            <th>Thumb</th>
+                                                            <th>Index</th>
+                                                            <th>Middle</th>
+                                                            <th>Ring</th>
+                                                            <th>Pinky</th>
                                                         </tr>
                                                         <tr>
                                                             <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2025<br/>/10<br/>/21</span></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
+                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/imgs/Null.png" height="60px" /></td>
                                                         </tr>
                                                         <tr>
                                                             <td class="p-1" style="width: 16%;">0</td>
@@ -343,56 +292,6 @@
                                                             <td class="p-1" style="width: 16%;">0</td>
                                                             <td class="p-1" style="width: 16%;">0</td>
                                                             <td class="p-1" style="width: 16%;">0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/extra/temp_item.png" height="60px" /></td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1 text-left" colspan="5" style="width: 16%;">note : </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2025<br/>/10<br/>/20</span></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                            <td class="p-1" style="width: 16%;">44.29</td>
-                                                            <td class="p-1" style="width: 16%;">61.38</td>
-                                                            <td class="p-1" style="width: 16%;">0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                            <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1 text-left" colspan="5" style="width: 16%;">note : </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td rowspan="4" class="p-1 fit-image" style="width: 16%;"><span>2025<br/>/10<br/>/18</span></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_thumb.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_index.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_middle.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_ring.png" height="60px" /></td>
-                                                            <td class="p-1 fit-image" style="width: 16%;height:60px;"><img src="/static/patient_images/1/2025-07-03/cropped_nail/left_pinky.png" height="60px" /></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="p-1" style="width: 16%;">70.72</td>
-                                                            <td class="p-1" style="width: 16%;">67.11</td>
-                                                            <td class="p-1" style="width: 16%;">63.08</td>
-                                                            <td class="p-1" style="width: 16%;">61.38</td>
-                                                            <td class="p-1" style="width: 16%;">60.00</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="p-1" style="width: 16%;height:60px;">No Extra</td>
