@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Detail</title>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body.image-popup {
+            background: #000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .image-popup-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            overflow: hidden;
+        }
+
+        .image-popup-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .image-popup-message {
+            color: #fff;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="image-popup">
+    {% if filename %}
+        <div class="image-popup-wrapper" id="imgWrapper">
+            <img id="popup_image" src="{{ filename }}" alt="detail image">
+        </div>
+
+        <script>
+            (function () {
+                const img = document.getElementById("popup_image");
+                const wrapper = document.getElementById("imgWrapper");
+
+                let scale = 1;
+                let posX = 0;
+                let posY = 0;
+                let isDragging = false;
+                let startX = 0;
+                let startY = 0;
+
+                function applyTransform() {
+                    img.style.transform =
+                        "translate(" + posX + "px, " + posY + "px) scale(" + scale + ")";
+                }
+
+                // 마우스 휠로 확대/축소
+                wrapper.addEventListener("wheel", function (e) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    const newScale = Math.min(Math.max(scale + delta, 0.5), 10);
+                    scale = newScale;
+                    applyTransform();
+                });
+
+                // 드래그로 이동
+                wrapper.addEventListener("mousedown", function (e) {
+                    isDragging = true;
+                    startX = e.clientX - posX;
+                    startY = e.clientY - posY;
+                    wrapper.style.cursor = "grabbing";
+                });
+
+                window.addEventListener("mousemove", function (e) {
+                    if (!isDragging) return;
+                    posX = e.clientX - startX;
+                    posY = e.clientY - startY;
+                    applyTransform();
+                });
+
+                window.addEventListener("mouseup", function () {
+                    isDragging = false;
+                    wrapper.style.cursor = "grab";
+                });
+
+                // 더블 클릭 시 초기화
+                wrapper.addEventListener("dblclick", function () {
+                    scale = 1;
+                    posX = 0;
+                    posY = 0;
+                    applyTransform();
+                });
+            })();
+        </script>
+    {% else %}
+        <div class="image-popup-message">
+            표시할 이미지가 없습니다.
+        </div>
+    {% endif %}
+</body>
+</html>

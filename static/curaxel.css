@@ -1,0 +1,274 @@
+/*
+bg1 :#2a2a2a
+bg2 : #303030
+bg3 : #454545
+accent : #00c09d
+*/
+
+.bg-accent{
+    background: #00c09d !important;
+}
+
+body{
+    background: #2a2a2a !important ;
+}
+
+.none{
+    display: none !important;
+}
+
+.pointer{
+    cursor: pointer;
+}
+
+.btn-accent{
+    background: #00c09d !important;
+    color: white;
+}
+
+#wrapper #content-wrapper{
+    background: #2a2a2a !important ;
+}
+
+#accordionSidebar{
+    background: #454545 ;
+}
+
+#main_top_bar{
+    background: #303030 ;
+    color : white;
+}
+.table th,
+.table td{
+    border: 0px;
+}
+.table thead th{
+    border-bottom : 1px solid #656565
+}
+
+.bg-bg2{
+    background: #454545 !important;
+}
+
+.bg-bg3{
+    background: #656565 !important;
+}
+
+.project-title{
+    border-left: 4px solid #00c09d;
+    padding-left: 8px;
+}
+
+.search-div{
+    padding: 8px;
+    border: 0px;
+}
+
+.preview-div{
+    margin: 8px 12px;
+    position: relative;
+}
+
+.sub-title{
+    color : #fff;
+    font-size: 14px;
+}
+
+.table-select-file{
+    max-height: 354px;
+}
+
+.table-select-file th{
+    height: 30px;
+}
+
+.table-select-file td{
+    height: 24px;
+}
+
+.fit-image-hight{
+    height: 100%;
+    object-fit: contain;
+}
+
+.fit-image-width{
+    width: 100%;
+}
+
+.fit-image{
+    object-fit: contain;
+}
+
+.font-sm-force{
+    font-size: 12px !important;
+}
+
+#patient_info_table td{
+    vertical-align : middle !important;
+}
+
+.vertical-item-middle td{
+    vertical-align : middle !important;
+}
+
+.table-bottom-line td{
+    border-bottom: 1px solid #656565;
+}
+
+.page-item.active .page-link{
+    background-color: #00c09d;
+    border-color: #00c09d;
+}
+
+#select_origin_image{
+    width: 100%;
+    height: 100%;
+    max-height: 250px;
+}
+
+#select_origin_image img{
+    object-fit: contain;
+}
+
+.add_div_card{
+    height: calc(50% - 25px);
+    max-height: 360px;
+}
+.padding-1{
+    padding: 1px !important;
+}
+
+.margin-1px{
+    margin: 1px !important;
+}
+
+.image_data_info_btn{
+    width: 20px !important;
+    height: 20px !important;
+    line-height: unset !important;
+    font-size: 12px !important;
+}
+
+.checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;  
+}
+
+.checkbox-wrap input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-wrap .psoriasis_label {
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px !important;
+    margin: 0px;
+}
+.line-td-white-top{
+    border-top: 1px solid #fff !important;
+}
+
+.line-td-white-bottom{
+    border-bottom: 1px solid #fff !important;
+}
+
+.psoriasis_btn{
+    font-size: 10px;
+    line-height: 10px;
+    width: 33%;
+}
+
+.psoriasis_table{
+    font-size: 10px;
+    line-height: 10px;
+    border: 1px solid #686868;
+}
+
+.psoriasis_table tfoot{
+    border: 1px solid #686868;;
+}
+
+.psoriasis_table td, th{
+    padding: 1px !important;
+    margin: 1px !important;
+}
+
+#psoriasis-modal{
+    color: white;
+    font-size: 14px;
+}
+
+#psoriasis-modal div.modal-header{
+    border-bottom: 1px solid #686868;
+}
+
+#psoriasis-modal div.modal-footer{
+    border-top: 1px solid #686868;
+}
+
+#psoriasis-modal table{
+    color: #fff;
+}
+
+.psar-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: #0d6efd;
+    color: #fff;
+    border-radius: 12px;
+    padding: 3px 8px;
+    margin: 2px;
+    font-size: 12px;
+}
+.psar-remove-btn {
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #fff;
+}
+.psar-remove-btn:hover {
+    color: #ffdddd;
+}
+
+.add_patient_note{
+    resize: none;
+    background-color: #454545;
+    border: 1px solid #656565;
+    color: white;
+}
+
+.add_patient_note:focus{
+    background-color: #454545;
+    border: 1px solid #656565;
+    color: white;
+}
+
+body.image-popup {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.image-popup-wrapper img {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    image-rendering: auto;
+}
+
+img.js-detail-image {
+    max-height: 60px;
+    width: auto;
+    object-fit: contain;
+}

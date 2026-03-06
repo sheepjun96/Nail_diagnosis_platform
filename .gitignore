@@ -1,0 +1,13 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+*.zip
+.idea
+# Virtual environments
+.venv
+MedSigLIP
+.env

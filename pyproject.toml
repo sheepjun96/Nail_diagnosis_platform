@@ -1,0 +1,39 @@
+[project]
+name = "nail-platform"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+     "fastapi>=0.116.1",
+     "jinja2>=3.1.6",
+     "pymysql>=1.1.2",
+     "python-multipart>=0.0.20",
+     "roboflow>=1.2.9",
+     "starlette>=0.47.3",
+     "transformers>=4.57.1",
+     "uvicorn>=0.35.0",
+     "aiomysql>=0.3.2",
+     # --- OpenCV (headless) ---
+     # GUI 창 필요 없으면 headless만 두는게 안전
+     "opencv-python-headless>=4.10.0.84,<5.0.0", # ✅ roboflow와 호환
+     # --- ultralytics 및 종속 패키지 ---
+     "ultralytics>=8.3.0",
+     "ultralytics-thop>=2.0.0",
+     # ultralytics가 내부적으로 사용하는 스택 (명시적으로 관리)
+     "torch>=2.0.0",
+     "torchvision>=0.15.0",
+     "numpy>=1.24.0",
+     "matplotlib>=3.7.0",
+     "polars>=1.7.0",
+     "pyyaml>=6.0",
+     "pillow>=10.0.0",
+     "psutil>=5.9.0",
+     "requests>=2.31.0",
+     "scipy>=1.11.0",
+     "cryptography>=46.0.3",
+]
+
+[tool.setuptools.packages.find]
+include = ["nail_platform*"]
+exclude = ["static*", "templates*", "tests*", "docs*", "https*", "model*", "router*"]
