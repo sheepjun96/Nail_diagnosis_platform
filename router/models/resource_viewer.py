@@ -4,7 +4,7 @@ from config import CONFIG_DIR
 from typing import Optional
 import aiomysql
 from db import get_conn
-from router.services.resource_viewer import get_viewer_info, update_study_patient, get_series_note, update_series_note
+from router.services.resource_viewer import get_viewer_info, update_study_patient, get_series_note, update_series_note, get_filtered_series_list
 
 router = APIRouter(prefix="/resource", tags=["resource_viewer"])
 SAVE_NAIL_DIR = CONFIG_DIR["nail"]
@@ -22,6 +22,19 @@ async def viewer_info(
         "state": "ok",
         "message": result.get("message", "OK"),
         "context": result.get("context"),
+    }
+
+@router.get("/viewer/series/list", response_class=JSONResponse)
+async def api_get_series_list(
+    stl_seq: int = Query(..., description="study_list.stl_seq"),
+    search: str = Query("", description="진단 결과 검색어"),
+    conn: aiomysql.Connection = Depends(get_conn)
+):
+    result = await get_filtered_series_list(conn, stl_seq, search)
+    return {
+        "code": result.get("code", 200),
+        "state": "success",
+        "context": result.get("context", [])
     }
 
 @router.post("/viewer/patient/modify", response_class=JSONResponse)

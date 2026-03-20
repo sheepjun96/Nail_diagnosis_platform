@@ -34,7 +34,7 @@ app = FastAPI(
     docs_url="/docs",
 )
 
-app.mount("/static", StaticFiles(directory="/app/static"), name="static")
+app.mount("/static", StaticFiles(directory="/static"), name="static")
 app.mount("/images", StaticFiles(directory="/curaxel_images"), name="images")
 templates = Jinja2Templates(directory="templates")
 

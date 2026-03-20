@@ -55,6 +55,70 @@ async def get_viewer_info(
 
     return {"code": 200, "message": "OK", "context": info}
 
+async def get_filtered_series_list(
+    conn: aiomysql.Connection,
+    stl_seq: int,
+    search_query: str = ""
+) -> Dict[str, Any]:
+    async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
+        finger_fields = [
+            "srl_patient_l_t", "srl_patient_l_i", "srl_patient_l_m", "srl_patient_l_R", "srl_patient_l_p",
+            "srl_patient_r_t", "srl_patient_r_i", "srl_patient_r_m", "srl_patient_r_R", "srl_patient_r_p"
+        ]
+        await cur.execute(
+            """
+            SELECT srl_seq, stl_seq, srl_patient_seriesdate, 
+                   srl_patient_l_t, srl_patient_l_i, srl_patient_l_m, srl_patient_l_R, srl_patient_l_p,
+                   srl_patient_r_t, srl_patient_r_i, srl_patient_r_m, srl_patient_r_R, srl_patient_r_p
+            FROM curaxel_skin.series_list
+            WHERE stl_seq = %s
+            ORDER BY srl_patient_seriesdate DESC
+            """,
+            (stl_seq,),
+        )
+        rows = await cur.fetchall()
+
+        series_items = []
+        for idx, r in enumerate(rows, start=1):
+            instance_cnt = 0
+            diagnosis_set = set()
+            
+            for field in finger_fields:
+                val = r[field]
+                if not val: continue
+                
+                try:
+                    if isinstance(val, (str, bytes, bytearray)): j = json.loads(val)
+                    else: j = val
+                    if not j: continue
+                    if not isinstance(j, dict): continue
+
+                    if j.get("origin"): instance_cnt += 1
+                    
+                    ai_data = j.get("ai")
+                    if ai_data:
+                        ai_obj = json.loads(ai_data) if isinstance(ai_data, (str, bytes, bytearray)) else ai_data
+                        predicted = ai_obj.get("predicted_class")
+                        if predicted:
+                            diagnosis_set.add(predicted)
+                except Exception as e:
+                    print(f"JSON Parsing Error in {field}: {e}")
+                    continue
+            
+            diagnosis_result_str = ", ".join(list(diagnosis_set)) if diagnosis_set else "-"
+            print(diagnosis_result_str)
+            
+            if not search_query or search_query.lower() in diagnosis_result_str.lower():
+                series_items.append({
+                    "no": idx,
+                    "date": r["srl_patient_seriesdate"],
+                    "instance": instance_cnt,
+                    "diagnosis_result": diagnosis_result_str,
+                    "srl_seq": r["srl_seq"],
+                })
+
+        return {"code": 200, "message": "OK", "context": series_items}
+
 async def update_study_patient(
     conn: aiomysql.Connection,
     stl_seq: int,

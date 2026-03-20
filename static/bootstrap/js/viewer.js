@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // 페이지 로드 시 호출
     loadPatientInfo().then(() => {
         loadSeriesListForViewer();
+
+        initGlobalSearch(function() {
+            const searchInput = document.getElementById("main_search_input");
+            const text = searchInput ? searchInput.value.trim() : "";
+            loadSeriesListForViewer(text);
+        });
         loadPreview();
         loadPatientNote();
         loadProgression();
@@ -131,39 +137,59 @@ async function loadPatientInfo() {
     }
 }
 
-async function loadSeriesListForViewer() {
+async function loadSeriesListForViewer(searchQuery = "") {
     if (!viewerPatientId) return;
+    if (!stlSeq) {
+        console.error("stlSeq is missing from URL.");
+        return;
+    }
+    const queryText = String(searchQuery || "").trim();
+    const url = `/api/resource/series/list?patient_id=${encodeURIComponent(viewerPatientId)}`;
+    try{
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const data = await res.json();
+        if (data.code !== 200 || !data.context) return;
 
-    const res = await fetch(
-        `/api/resource/series/list?patient_id=${encodeURIComponent(viewerPatientId)}`
-    );
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data.code !== 200 || !data.context) return;
+        const tbody = document.getElementById("viewer_series_body");
+        if (!tbody) return;
 
-    const tbody = document.getElementById("viewer_series_body");
-    if (!tbody) return;
+        tbody.innerHTML = "";
+        let items = data.context || [];
 
-    tbody.innerHTML = "";
-    const items = data.context || [];
+        if (queryText !== "") {
+            const lowerQuery = queryText.toLowerCase();
+            items = items.filter(row => {
+                const diag = String(row.diagnosis_result || "");
+                return diag.toLowerCase().includes(lowerQuery);
+            });
+        }
 
-    items.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.dataset.srlSeq = row.srl_seq;
-        const dateStr = row.date ? String(row.date).replace("T", " ").substring(0, 10) : "";
-        const diagnosis = row.diagnosis_result || "-";
+        items.forEach(row => {
+            const tr = document.createElement("tr");
+            tr.dataset.srlSeq = row.srl_seq;
+            const dateStr = row.date ? String(row.date).replace("T", " ").substring(0, 10) : "";
+            const diagnosis = row.diagnosis_result || "-";
+            const instance = row.instance ?? 0;
 
-        tr.innerHTML = `
-            <td>${row.no}</td>
-            <td>${dateStr}</td>
-            <td class="diagnosis-col">${diagnosis}</td>
-            <td>${row.instance}</td>
-        `;  
-        if (String(row.srl_seq) === String(currentSrlSeq)) tr.classList.add("selected-row");
-        tbody.appendChild(tr);
-    });
-
-    attachViewerSeriesRowClickHandler();
+            tr.innerHTML = `
+                <td>${row.no}</td>
+                <td>${dateStr}</td>
+                <td class="diagnosis-col" title="${diagnosis}">${diagnosis}</td>
+                <td>${instance}</td>
+            `;
+            if (String(row.srl_seq) === String(currentSrlSeq)) {
+                tr.classList.add("selected-row");
+            }
+            tbody.appendChild(tr);
+        });
+        attachViewerSeriesRowClickHandler();
+    } catch (err) {
+        console.error("Failed to load series via SQL:", err);
+    }
 }
 
 function attachViewerSeriesRowClickHandler() {
@@ -178,13 +204,11 @@ function attachViewerSeriesRowClickHandler() {
         const srlSeq = tr.dataset.srlSeq;
         if (!srlSeq) return;
 
-        // 선택 하이라이트
         Array.from(tbody.querySelectorAll("tr")).forEach(row =>
             row.classList.remove("selected-row")
         );
         tr.classList.add("selected-row");
 
-        // srl_seq 만 변경 리다이렉트
         const url = `/app/viewer?stl_seq=${encodeURIComponent(stlSeq)}&srl_seq=${encodeURIComponent(srlSeq)}`;
         window.location.href = url;
     });
@@ -610,8 +634,23 @@ const fingerColumnMap = {
     rp: "srl_patient_r_p",
 };
 
+function toggleProgressButtons(disable) {
+    const buttons = document.querySelectorAll("button[onclick^='onClickFingerProgress']");
+    buttons.forEach(btn => {
+        btn.disabled = disable;
+        if (disable) {
+            btn.style.opacity = "0.5";
+            btn.style.cursor = "not-allowed";
+        } else {
+            btn.style.opacity = "1";
+            btn.style.cursor = "pointer";
+        }
+    });
+}
+
 async function onClickFingerProgress(fingerKey, fingerLabel) {
     if (!stlSeq) return;
+    toggleProgressButtons(true);
 
     const header = document.getElementById("progress_finger_header");
     if (header) header.textContent = fingerLabel;
@@ -620,201 +659,227 @@ async function onClickFingerProgress(fingerKey, fingerLabel) {
     if (overlay) overlay.style.display = "none";
 
     const tbody = document.getElementById("finger_progress_body");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-
-    const listRes = await fetch(`/api/resource/series/list?patient_id=${encodeURIComponent(viewerPatientId)}`);
-    const listData = await listRes.json();
-    if (listData.code !== 200 || !listData.context) return;
-
-    const listItems = [...listData.context].sort(
-        (a, b) => new Date(b.srl_patient_seriesdate) - new Date(a.srl_patient_seriesdate)
-    );
-
-    const colKey = fingerColumnMap[fingerKey];
-    if (!colKey) return;
-
-    const labels = [];
-    const aiSeries = [];
-    const napsiSeries = [];
-    const diseaseLabels = []; 
-
-    for (const item of listItems) {
-        const srlSeq = item.srl_seq;
-        const dateStr = item.date ? String(item.date).substring(0, 10) : "-";
-
-        const detailRes = await fetch(`/api/resource/series/detail?stl_seq=${encodeURIComponent(stlSeq)}&srl_seq=${encodeURIComponent(srlSeq)}`);
-        const detailData = await detailRes.json();
-        if (detailData.code !== 200 || !detailData.context) continue;
-        const ctx = detailData.context;
-
-        const noteRes = await fetch(`/api/resource/viewer/series_note?stl_seq=${encodeURIComponent(stlSeq)}&srl_seq=${encodeURIComponent(srlSeq)}`);
-        let patientNote = "-";
-        if (noteRes.ok) {
-            const noteData = await noteRes.json();
-            if (noteData.code === 200 && noteData.context != null) {
-                patientNote = noteData.context || "-";
-            }
-        }
-
-        const raw = ctx[colKey];
-
-        let diseaseName = null;
-        let cropUrl = null;
-        let extraUrl = null;
-        let plotUrl = null;
-        let diagHtml = "";
-
-        if (raw) {
-            try {
-                const nailObj = typeof raw === "string" ? JSON.parse(raw) : raw;
-                const name = (nailObj.name || "").split("/").pop();
-
-                if (name) {
-                    cropUrl = `/api/resource/image/dump?filename=${encodeURIComponent(name)}&filetype=1`;
-                    extraUrl = `/api/resource/image/dump?filename=${encodeURIComponent("extra_" + name)}&filetype=2`;
-                    plotUrl = `/api/resource/image/dump?filename=${encodeURIComponent("plot_" + name)}&filetype=2`;
-                }
-
-                const { ai, napsi } = getAiProbAndNapsiTotal(nailObj);
-
-                labels.push(dateStr);
-                aiSeries.push(ai);
-                napsiSeries.push(napsi);
-
-                // AI score
-                let aiObj = nailObj.ai;
-                if (aiObj && typeof aiObj === "string") aiObj = JSON.parse(aiObj);
-                if (aiObj) {
-                    const prob =
-                        aiObj.probability != null
-                        ? (aiObj.probability * 100).toFixed(2)
-                        : null;
-                    diagHtml += `<div>${aiObj.predicted_class} (${prob ?? "-"}%)</div>`;
-                    diseaseName = aiObj && aiObj.predicted_class ? aiObj.predicted_class: null;
-                }
-                diseaseLabels.push(diseaseName);
-
-                // NAPSI total
-                const psar = nailObj.psar || nailObj.psor || {};
-                const matrix = psar.matrix ?? 0;
-                const bed = psar.bed ?? 0;
-                const total = Number(matrix || 0) + Number(bed || 0);
-                napsiValue = total;
-
-                diagHtml += `<div>NAPSI Matrix: ${matrix}</div>`;
-                diagHtml += `<div>NAPSI Bed: ${bed}</div>`;
-                diagHtml += `<div>NAPSI Total: ${total}</div>`;
-            } catch (e) {
-                console.error("finger json parse error", e);
-            }
-        } else {
-            labels.push(dateStr);
-            aiSeries.push(null);
-            napsiSeries.push(null);
-            diseaseLabels.push(null);
-        }
-
-
-        const trMain = document.createElement("tr");
-        const trNote = document.createElement("tr");
-        const imgSize = 120;
-
-        // 1) Date
-        const tdDate = document.createElement("td");
-        tdDate.className = "p-1 fit-image";
-        tdDate.rowSpan = 2;
-        tdDate.textContent = dateStr || "-";
-        trMain.appendChild(tdDate);
-
-        // 2) Finger crop
-        const tdCrop = document.createElement("td");
-        tdCrop.className = "p-1 fit-image";
-        if (cropUrl) {
-            const img = document.createElement("img");
-            img.height = imgSize;
-            img.className = "js-detail-image";
-            img.src = getDynamicThumbUrl(cropUrl, img, imgSize);
-            tdCrop.appendChild(img);
-        } else {
-            tdCrop.textContent = "No image";
-        }
-        trMain.appendChild(tdCrop);
-
-        // 3) Extra
-        const tdExtra = document.createElement("td");
-        tdExtra.className = "p-1 fit-image";
-        if (extraUrl) {
-            const img = document.createElement("img");
-            img.height = imgSize;
-            img.className = "js-detail-image";
-            img.src = getDynamicThumbUrl(extraUrl, img, imgSize);
-            img.onerror = () => (tdExtra.textContent = "No extra");
-            tdExtra.appendChild(img);
-        } else {
-            tdExtra.textContent = "No extra";
-        }
-        trMain.appendChild(tdExtra);
-
-        // 4) Plot
-        const tdPlot = document.createElement("td");
-        tdPlot.className = "p-1 fit-image";
-        if (plotUrl) {
-            const img = document.createElement("img");
-            img.height = imgSize;
-            img.className = "js-detail-image";
-            img.src = getDynamicThumbUrl(plotUrl, img, imgSize);
-            img.onerror = () => (tdPlot.textContent = "No plot");
-            tdPlot.appendChild(img);
-        } else {
-            tdPlot.textContent = "No plot";
-        }
-        trMain.appendChild(tdPlot);
-
-        // 5) Diagnosis
-        const tdDiag = document.createElement("td");
-        tdDiag.className = "p-1 text-left";
-        tdDiag.innerHTML = diagHtml || "No diagnosis";
-        trMain.appendChild(tdDiag);
-
-        // 6) Patient Note
-        const tdNote = document.createElement("td");
-        tdNote.className = "p-1 text-left";
-        tdNote.colSpan = 4;
-
-        const span = document.createElement("span");
-        span.className = "progress-note-text";
-
-        const body = patientNote && patientNote.trim() ? patientNote : "-";
-        span.textContent = "Patient Note: " + body;
-        span.dataset.expanded = "false";
-        span.classList.add("collapsed");
-
-        span.addEventListener("click", () => {
-            const isExpanded = span.dataset.expanded === "true";
-            if (isExpanded) {
-                span.classList.add("collapsed");
-                span.dataset.expanded = "false";
-            } else {
-                span.classList.remove("collapsed");
-                span.dataset.expanded = "true";
-            }
-        });
-
-        tdNote.appendChild(span);
-        trNote.appendChild(tdNote);
-
-        tbody.appendChild(trMain);
-        tbody.appendChild(trNote);
+    if (!tbody) {
+        toggleProgressButtons(false);
+        return;
     }
 
-    // 날짜 과거 -> 최신 순서로 정렬
-    const revLabels = labels.slice().reverse();
-    const revAi = aiSeries.slice().reverse();
-    const revNapsi = napsiSeries.slice().reverse();
-    const revDisLabels = diseaseLabels.slice().reverse();
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center p-4" style="color: #00b894;">
+                <i class="fas fa-spinner fa-spin fa-2x mb-2"></i>
+                <div>Loading progress data...</div>
+            </td>
+        </tr>
+    `;
 
-    renderProgressLineChart("finger_progress_summary_chart", revLabels, revAi, revNapsi, revDisLabels);
+    try {
+        const listRes = await fetch(`/api/resource/series/list?patient_id=${encodeURIComponent(viewerPatientId)}`);
+        const listData = await listRes.json();
+        if (listData.code !== 200 || !listData.context) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">No data available.</td></tr>`;
+            return;
+        }
+
+        const listItems = [...listData.context].sort(
+            (a, b) => new Date(b.srl_patient_seriesdate) - new Date(a.srl_patient_seriesdate)
+        );
+
+        const colKey = fingerColumnMap[fingerKey];
+        if (!colKey) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">Invalid finger key.</td></tr>`;
+            return;
+        }
+
+        const labels = [];
+        const aiSeries = [];
+        const napsiSeries = [];
+        const diseaseLabels = []; 
+
+        tbody.innerHTML = "";
+
+        for (const item of listItems) {
+            const srlSeq = item.srl_seq;
+            const dateStr = item.date ? String(item.date).substring(0, 10) : "-";
+
+            const detailRes = await fetch(`/api/resource/series/detail?stl_seq=${encodeURIComponent(stlSeq)}&srl_seq=${encodeURIComponent(srlSeq)}`);
+            const detailData = await detailRes.json();
+            if (detailData.code !== 200 || !detailData.context) continue;
+            const ctx = detailData.context;
+
+            const noteRes = await fetch(`/api/resource/viewer/series_note?stl_seq=${encodeURIComponent(stlSeq)}&srl_seq=${encodeURIComponent(srlSeq)}`);
+            let patientNote = "-";
+            if (noteRes.ok) {
+                const noteData = await noteRes.json();
+                if (noteData.code === 200 && noteData.context != null) {
+                    patientNote = noteData.context || "-";
+                }
+            }
+
+            const raw = ctx[colKey];
+
+            let diseaseName = null;
+            let cropUrl = null;
+            let extraUrl = null;
+            let plotUrl = null;
+            let diagHtml = "";
+            let napsiValue = 0;
+
+            if (raw) {
+                try {
+                    const nailObj = typeof raw === "string" ? JSON.parse(raw) : raw;
+                    const name = (nailObj.name || "").split("/").pop();
+
+                    if (name) {
+                        cropUrl = `/api/resource/image/dump?filename=${encodeURIComponent(name)}&filetype=1`;
+                        extraUrl = `/api/resource/image/dump?filename=${encodeURIComponent("extra_" + name)}&filetype=2`;
+                        plotUrl = `/api/resource/image/dump?filename=${encodeURIComponent("plot_" + name)}&filetype=2`;
+                    }
+
+                    const { ai, napsi } = getAiProbAndNapsiTotal(nailObj);
+
+                    labels.push(dateStr);
+                    aiSeries.push(ai);
+                    napsiSeries.push(napsi);
+
+                    // AI score
+                    let aiObj = nailObj.ai;
+                    if (aiObj && typeof aiObj === "string") aiObj = JSON.parse(aiObj);
+                    if (aiObj) {
+                        const prob =
+                            aiObj.probability != null
+                            ? (aiObj.probability * 100).toFixed(2)
+                            : null;
+                        diagHtml += `<div>${aiObj.predicted_class} (${prob ?? "-"}%)</div>`;
+                        diseaseName = aiObj && aiObj.predicted_class ? aiObj.predicted_class: null;
+                    }
+                    diseaseLabels.push(diseaseName);
+
+                    // NAPSI total
+                    const psar = nailObj.psar || nailObj.psor || {};
+                    const matrix = psar.matrix ?? 0;
+                    const bed = psar.bed ?? 0;
+                    const total = Number(matrix || 0) + Number(bed || 0);
+                    napsiValue = total;
+
+                    diagHtml += `<div>NAPSI Matrix: ${matrix}</div>`;
+                    diagHtml += `<div>NAPSI Bed: ${bed}</div>`;
+                    diagHtml += `<div>NAPSI Total: ${total}</div>`;
+                } catch (e) {
+                    console.error("finger json parse error", e);
+                }
+            } else {
+                labels.push(dateStr);
+                aiSeries.push(null);
+                napsiSeries.push(null);
+                diseaseLabels.push(null);
+            }
+
+            const trMain = document.createElement("tr");
+            const trNote = document.createElement("tr");
+            const imgSize = 120;
+
+            // 1) Date
+            const tdDate = document.createElement("td");
+            tdDate.className = "p-1 fit-image";
+            tdDate.rowSpan = 2;
+            tdDate.textContent = dateStr || "-";
+            trMain.appendChild(tdDate);
+
+            // 2) Finger crop
+            const tdCrop = document.createElement("td");
+            tdCrop.className = "p-1 fit-image";
+            if (cropUrl) {
+                const img = document.createElement("img");
+                img.height = imgSize;
+                img.className = "js-detail-image";
+                img.src = getDynamicThumbUrl(cropUrl, img, imgSize);
+                tdCrop.appendChild(img);
+            } else {
+                tdCrop.textContent = "No image";
+            }
+            trMain.appendChild(tdCrop);
+
+            // 3) Extra
+            const tdExtra = document.createElement("td");
+            tdExtra.className = "p-1 fit-image";
+            if (extraUrl) {
+                const img = document.createElement("img");
+                img.height = imgSize;
+                img.className = "js-detail-image";
+                img.src = getDynamicThumbUrl(extraUrl, img, imgSize);
+                img.onerror = () => (tdExtra.textContent = "No extra");
+                tdExtra.appendChild(img);
+            } else {
+                tdExtra.textContent = "No extra";
+            }
+            trMain.appendChild(tdExtra);
+
+            // 4) Plot
+            const tdPlot = document.createElement("td");
+            tdPlot.className = "p-1 fit-image";
+            if (plotUrl) {
+                const img = document.createElement("img");
+                img.height = imgSize;
+                img.className = "js-detail-image";
+                img.src = getDynamicThumbUrl(plotUrl, img, imgSize);
+                img.onerror = () => (tdPlot.textContent = "No plot");
+                tdPlot.appendChild(img);
+            } else {
+                tdPlot.textContent = "No plot";
+            }
+            trMain.appendChild(tdPlot);
+
+            // 5) Diagnosis
+            const tdDiag = document.createElement("td");
+            tdDiag.className = "p-1 text-left";
+            tdDiag.innerHTML = diagHtml || "No diagnosis";
+            trMain.appendChild(tdDiag);
+
+            // 6) Patient Note
+            const tdNote = document.createElement("td");
+            tdNote.className = "p-1 text-left";
+            tdNote.colSpan = 4;
+
+            const span = document.createElement("span");
+            span.className = "progress-note-text";
+
+            const body = patientNote && patientNote.trim() ? patientNote : "-";
+            span.textContent = "Patient Note: " + body;
+            span.dataset.expanded = "false";
+            span.classList.add("collapsed");
+
+            span.addEventListener("click", () => {
+                const isExpanded = span.dataset.expanded === "true";
+                if (isExpanded) {
+                    span.classList.add("collapsed");
+                    span.dataset.expanded = "false";
+                } else {
+                    span.classList.remove("collapsed");
+                    span.dataset.expanded = "true";
+                }
+            });
+
+            tdNote.appendChild(span);
+            trNote.appendChild(tdNote);
+
+            tbody.appendChild(trMain);
+            tbody.appendChild(trNote);
+        }
+
+        // 날짜 과거 -> 최신 순서로 정렬
+        const revLabels = labels.slice().reverse();
+        const revAi = aiSeries.slice().reverse();
+        const revNapsi = napsiSeries.slice().reverse();
+        const revDisLabels = diseaseLabels.slice().reverse();
+
+        renderProgressLineChart("finger_progress_summary_chart", revLabels, revAi, revNapsi, revDisLabels);
+    } catch (err) {
+        console.error("Progress error:", err);
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading data.</td></tr>`;
+    } finally {
+        toggleProgressButtons(false);
+    }
 }
 
 function getAiProbAndNapsiTotal(nailJson) {
