@@ -1,0 +1,13 @@
+##docker - mysql 접근 방법##
+docker exec -it curaxel_db bash
+mysql -u curaxel_user -p
+curaxel_pass
+USE curaxel_skin;
+
+##docker 실행/종료##
+docker compose up --build
+docker compose down
+
+##series_list, upload_file 테이블 초기화##
+TRUNCATE TABLE series_list;
+TRUNCATE TABLE upload_file;

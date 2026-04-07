@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include "includes/head.html" %}
+<style>
+    tr.selected-row {
+        background-color: #00b894 !important;
+        color: #ffffff;
+    }
+
+    .image-container {
+    display: flex;
+    gap: 20px;
+    }
+
+    .hand-group {
+    flex: 1;
+    }
+
+    .finger-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    }
+
+    .finger-item {
+    display: flex;
+    gap: 10px;
+    }
+
+    .progress-note-text {
+        white-space: pre-line;
+    }
+
+    .progress-note-text.collapsed {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    #patient_note_textarea {
+        max-height: 180px;
+        min-height: 120px;
+        overflow-y: auto;
+        resize: vertical;
+    }
+
+    .tight-table-container .table {
+        table-layout: auto !important;
+        width: 100% !important;
+        min-width: 100%;
+        border-collapse: collapse;
+    }
+
+    .tight-table-container th, 
+    .tight-table-container td {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+    }
+
+    .diagnosis-col {
+        text-align: left !important;
+        padding-left: 10px !important;
+        width: auto !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        max-width: none !important;
+    }
+
+    .tight-table-container th:nth-child(1), .tight-table-container td:nth-child(1),
+    .tight-table-container th:nth-child(2), .tight-table-container td:nth-child(2),
+    .tight-table-container th:nth-child(4), .tight-table-container td:nth-child(4) {
+        overflow: hidden;
+    }
+</style>
+
+<body id="page-top" class="d-flex flex-column min-vh-100">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column h-100">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                {% include "includes/topbarviewer.html" %}
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid d-flex flex-column flex-grow-1 h-100">
+
+                    <!-- Content Row -->
+                    <div class="row container-fluid h-100">
+                        <div class="col-4 m-0" >
+                            <div class="col-lg-12 m-0 bg-bg2 card search-div d-flex h-100">
+                                <div class="h-100" style="overflow: auto;max-height: 700px">
+                                    <div class="preview-div">
+                                        <h4 class="sub-title">1. Patient Info</h4>
+                                        <form>
+                                            <table id="patient_info_table" class="table text-center text-white fa-xs" width="100%" cellspacing="0">
+                                                <tbody>
+                                                    <tr >
+                                                        <td class="bg-bg3">Type</td>
+                                                        <td class="m-0 p-1 font-sm-force"><select id="add_patient_type" class="form-control  m-0 p-0 font-sm-force text-center"><option>New</option><option selected>Exist</option></select></td>
+                                                        <td class="bg-bg3">ID</td>
+                                                        <td class="m-0 p-1 font-sm-force"><input id="add_patient_id" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="."/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="bg-bg3">Name</td>
+                                                        <td class="m-0 p-1"><input id="add_patient_name" type="text" class="form-control m-0 p-0 font-sm-force text-center" value="."/></td>
+                                                        <td class="bg-bg3">Gender</td>
+                                                        <td class="m-0 p-1">
+                                                        <select id="add_patient_gender" class="form-control m-0 p-0 font-sm-force text-center">
+                                                            <option>M</option>
+                                                            <option>F</option>
+                                                        </select>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="bg-bg3">Birthday</td>
+                                                        <td class="m-0 p-1"><input id="add_patient_birth" type="date" class="form-control m-0 p-0 font-sm-force text-center" value="2000-01-01"/></td>
+                                                        <td class="bg-bg3">Recent</td>
+                                                        <td id="add_patient_recent" class="m-0 p-1">.</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <div class="w-100">
+                                                <a class="btn btn-secondary w-100"><i class="fas fa-pen"></i> Patient Modifiy</a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="preview-div">
+                                        <h4 class="sub-title">2. Series List</h4>
+                                        <form
+                                            class="d-none d-sm-inline-block form-inline mr-auto mw-100 w-100 navbar-search">
+                                            <table class="text-white mw-100" style="width:80%">
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="width:120px;">Search</td>
+                                                        <td style="width:80%">
+                                                            <div class="input-group">
+                                                                <input type="text" id="main_search_input" class="form-control bg-bg2 text-white border-1 small" placeholder=""
+                                                                    aria-label="Search" aria-describedby="basic-addon2">
+                                                                <div class="input-group-append">
+                                                                    <button class="btn btn-accent" type="button">
+                                                                        <i class="fas fa-search fa-sm"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </form>
+                                        
+                                        <div class="tight-table-container" style="overflow-x: auto; width: 100%;">
+                                            <table id="viewer_series_table" class="table text-center text-white fa-xs" style="width: 100%; margin-bottom: 0;" cellspacing="0">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 50px;">No</th>
+                                                        <th style="width: 100px;">date</th>
+                                                        <th class="diagnosis-col">diagnosis result</th>
+                                                        <th style="width: 80px;">instance</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="viewer_series_body">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-4" >
+                            <div class="col-lg-12 m-0 bg-bg2 card search-div d-flex justify-content-between h-100">
+                                <div class="h-100" style="overflow: auto;max-height: 700px">
+                                    <div class="preview-div">
+                                        <h4 class="sub-title">3. Image Datas</h4>
+                                        <table class="table text-center text-white fa-xs" width="100%" cellspacing="0">
+                                            <tbody>
+                                                <tr class="bg-bg3">
+                                                    <th>L Thumb</th>
+                                                    <th>L Index</th>
+                                                    <th>L Middle</th>
+                                                    <th>L Ring</th>
+                                                    <th>L Pinky</th>
+                                                </tr>
+                                                <tr>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_thumb" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_index" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_middle" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_ring" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_l_pinky" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span id="extra_l_thumb">No extra</span></td>
+                                                    <td><span id="extra_l_index">No extra</span></td>
+                                                    <td><span id="extra_l_middle">No extra</span></td>
+                                                    <td><span id="extra_l_ring">No extra</span></td>
+                                                    <td><span id="extra_l_pinky">No extra</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('lt', 'Left Thumb')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('li', 'Left Index')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('lm', 'Left Middle')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('lR', 'Left Ring')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('lp', 'Left Pinky')"> Progress </button></td>
+                                                </tr>
+                                                <tr class="bg-bg3">
+                                                    <th>R Thumb</th>
+                                                    <th>R Index</th>
+                                                    <th>R Middle</th>
+                                                    <th>R Ring</th>
+                                                    <th>R Pinky</th>
+                                                </tr>
+                                                <tr>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_thumb" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_index" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_middle" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_ring" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                    <td style="width:20%;height:60px;">
+                                                    <img id="img_r_pinky" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><span id="extra_r_thumb">No extra</span></td>
+                                                    <td><span id="extra_r_index">No extra</span></td>
+                                                    <td><span id="extra_r_middle">No extra</span></td>
+                                                    <td><span id="extra_r_ring">No extra</span></td>
+                                                    <td><span id="extra_r_pinky">No extra</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('rt', 'Right Thumb')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('ri', 'Right Index')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('rm', 'Right Middle')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('rR', 'Right Ring')"> Progress </button></td>
+                                                    <td class="p-1" style="width:20"><button class="btn btn-sm btn-primary w-100 mt-1" onclick="onClickFingerProgress('rp', 'Right Pinky')"> Progress </button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="preview-div">
+                                        <h4 class="sub-title">4. Patient Note</h4>
+                                        <textarea id="patient_note_textarea" class="form-control w-100" rows="10"></textarea>
+                                    </div>
+                                </div>
+                                <div class="w-100">
+                                    <a class="btn btn-revise w-100"><i class="fas fa-pen"></i> Image & Note Modifiy</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-4" >
+                            <div class="col-lg-12 m-0 bg-bg2 card search-div d-flex justify-content-between h-100">
+                                <div class="h-100" style="overflow: auto;max-height: 700px">
+                                    <!-- 5. Progression of lesions -->
+                                    <div class="preview-div">
+                                    <h4 class="sub-title">5. Progression of lesions</h4>
+
+                                    <div class="position-relative">
+                                        <div id="progress_overlay" class="overlay-msg" style="
+                                        position:absolute; inset:0;
+                                        display:flex; align-items:center; justify-content:center;
+                                        background:#454545; color:#fff; z-index:10;
+                                        ">
+                                        Please select a finger to check the progress.
+                                        </div>
+
+                                        <table id="finger_progress_table"
+                                            class="table text-center text-white fa-xs vertical-item-middle table-bottom-line"
+                                            width="100%" cellspacing="0">
+                                        <thead>
+                                        <tr class="bg-bg3">
+                                            <th style="width:16%">Date</th>
+                                            <th style="width:16%" id="progress_finger_header">Finger</th>
+                                            <th style="width:16%">Extra</th>
+                                            <th style="width:16%">Plot</th>
+                                            <th style="width:36%">Diagnosis results</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="finger_progress_body"></tbody>
+                                        </table>
+
+                                        <div class="mt-2">
+                                            <div class="chart-area bg-white" style="height:220px;">
+                                                <canvas id="finger_progress_summary_chart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            {% include "includes/footer.html" %}
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+    
+    {% include "includes/scrollbutton.html" %}
+    {% include "includes/scripts.html" %}
+    <script src="{{ url_for('static', path='bootstrap/js/viewer.js') }}"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include "includes/head.html" %}
+<style>
+    tr.selected-row {
+        background-color: #00b894 !important;
+        color: #ffffff;
+    }
+
+    .table-container-fixed {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .overlay-wrapper {
+        position: relative;
+        width: 100%;
+        background-color: #454545;
+        overflow-x: hidden;
+    }
+
+    .overlay-msg {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        display: flex; align-items: center; justify-content: center;
+        background: #454545;
+        color: #fff;
+        z-index: 10;
+        white-space: nowrap;
+    }
+
+    .series-list-scroll {
+        max-height: 190px;
+        overflow-y: auto;
+        overflow-x: hidden !important;
+    }
+
+    .series-list-scroll table {
+        min-width: 0 !important;
+        width: 100%;
+        table-layout: fixed;
+        margin-bottom: 0;
+    }
+
+    .series-list-scroll td, .series-list-scroll th {
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    #preview-table {
+        min-width: 400px; 
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    img.thumb-image {
+        max-height: 60px;
+        max-width: 100%;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .tight-table-container {
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tight-table-container table.table {
+        table-layout: auto !important;
+        width: 100% !important;
+        min-width: max-content;
+        margin-bottom: 0;
+    }
+
+    .tight-table-container th,
+    .tight-table-container td {
+        white-space: nowrap !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        vertical-align: middle !important;
+    }
+
+    .tight-table-container th:not(.diagnosis-col),
+    .tight-table-container td:not(.diagnosis-col) {
+        width: 1%; 
+    }
+
+    .diagnosis-col {
+        text-align: left !important;
+        padding-left: 12px !important;
+        width: auto;
+    }
+</style>
+
+<body id="page-top" class="d-flex flex-column min-vh-100">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        {% include "includes/sidebar.html" %}
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                {% include "includes/topbar.html" %}
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid d-flex flex-column flex-grow-1" style="height: calc(100% - 70px) !important;">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-100 font-weight-bold project-title">Main Project</h1>
+                        <div class="text-gray-300 small">
+                           <i class="fa fa-clipboard-list"></i> Project > Main Project
+                        </div>
+                    </div>
+
+                    <!-- Content Row -->
+                    <div class="row container-fluid h-100">
+                        <div class="col-8 h-100" >
+                            <div class="row h-100" style="display:block;">
+                                <div class="container-fluid col-lg-12 mb-4 bg-bg2 card search-div " >
+                                    <form
+                                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 w-100 navbar-search">
+                                        <table class="text-white mw-100" style="width:80%">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="width:120px;">Search</td>
+                                                    <td style="width:80%">
+                                                        <div class="input-group">
+                                                            <input type="text" id="main_search_input" class="form-control bg-bg2 text-white border-1 small" placeholder=""
+                                                                aria-label="Search" aria-describedby="basic-addon2">
+                                                            <div class="input-group-append">
+                                                                <button class="btn btn-accent" type="button">
+                                                                    <i class="fas fa-search fa-sm"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </form>
+                                </div>
+
+                                <div class="container-fluid col-lg-12 mb-4 bg-bg2 card search-div" style="height: calc(100% - 100px);">
+                                    <div class="preview-div text-right">
+                                        <a class="btn btn-sm btn-secondary fa-xs"  href="/app/add" ><i class="fas fa-plus text-white"></i> Add</a>
+                                    </div>
+                                    <table class="table text-center text-white fa-xs" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th class="bg-bg3">No</th>
+                                                <th class="bg-bg3">Status</th>
+                                                <th class="bg-bg3">Patient ID</th>
+                                                <th class="bg-bg3">Patient Name</th>
+                                                <th class="bg-bg3">Gender</th>
+                                                <th class="bg-bg3">Birthday</th>
+                                                <th class="bg-bg3">Imported At</th>
+                                                <th class="bg-bg3">Study Date</th>
+                                                <th class="bg-bg3">Tags</th>
+                                                <th class="bg-bg3">Readdate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="main_resource_list">
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="col-4 h-100" >
+                            <div class="col-lg-12 mb-4 bg-bg2 card search-div d-flex justify-content-between" style="height: calc(100% - 20px);">
+                                <div>
+                                    <div class="preview-div">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h4 class="sub-title mb-0">Series List</h4>
+                                            <button id="btn_delete_patient" class="btn btn-danger btn-sm" onclick="onDeleteEmptyPatient()" title="Delete patient">
+                                                <i class="fas fa-user-minus"></i> Delete Patient
+                                            </button>
+                                        </div>
+
+                                        <div class="overlay-wrapper series-list-scroll tight-table-container">
+                                            <div id="series_overlay" class="overlay-msg">Please select a patient.</div>
+                                            <div class="series-table-container tight-table-container">
+                                                <table class="table text-center text-white fa-xs" cellspacing="0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 50px;">No</th>
+                                                            <th style="width: 100px;">date</th>
+                                                            <th class="diagnosis-col">diagnosis result</th>
+                                                            <th style="width: 80px;">instance</th>
+                                                        </tr>
+                                                    </thead>    
+                                                    <tbody id="series_list_body">
+                                                        <td>.</td>
+                                                        <td>.</td>
+                                                        <td>.</td>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="preview-div">
+                                        <h4 class="sub-title">Preview</h4>
+                                        <div id="preview-table-wrapper" class="overlay-wrapper">
+                                            <div id="preview_overlay" class="overlay-msg">Please select a patient.</div>
+                                            <table id="preview-table" class="table text-center text-white fa-xs" width="100%" cellspacing="0">
+                                                <tbody>
+                                                    <tr class="bg-bg3">
+                                                        <th>L Thumb</th>
+                                                        <th>L Index</th>
+                                                        <th>L Middle</th>
+                                                        <th>L Ring</th>
+                                                        <th>L Pinky</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_l_thumb" class="js-detail-image thumb-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_l_index" class="js-detail-image thumb-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_l_middle" class="js-detail-image thumb-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_l_ring" class="js-detail-image thumb-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_l_pinky" class="js-detail-image thumb-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td ><span id="extra_l_thumb">No extra</span></td>
+                                                        <td ><span id="extra_l_index">No extra</span></td>
+                                                        <td ><span id="extra_l_middle">No extra</span></td>
+                                                        <td ><span id="extra_l_ring">No extra</span></td>
+                                                        <td ><span id="extra_l_pinky">No extra</span></td>
+                                                    </tr>
+                                                    <tr class="bg-bg3">
+                                                        <th>R Thumb</th>
+                                                        <th>R Index</th>
+                                                        <th>R Middle</th>
+                                                        <th>R Ring</th>
+                                                        <th>R Pinky</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_r_thumb" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_r_index" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_r_middle" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_r_ring" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                        <td style="width:20%;height:60px;">
+                                                            <img id="img_r_pinky" class="js-detail-image" src="/static/imgs/Null.png" height="60px" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td ><span id="extra_r_thumb">No extra</span></td>
+                                                        <td ><span id="extra_r_index">No extra</span></td>
+                                                        <td ><span id="extra_r_middle">No extra</span></td>
+                                                        <td ><span id="extra_r_ring">No extra</span></td>
+                                                        <td ><span id="extra_r_pinky">No extra</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="w-100">
+                                    <button id="btn_open_viewer" class="btn btn-secondary w-100" type="button">Viewer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            {% include "includes/footer.html" %}
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    {% include "includes/scrollbutton.html" %}
+    {% include "includes/scripts.html" %}
+    <script src="{{ url_for('static', path='bootstrap/js/index.js') }}"></script>
+
+</body>
+
+</html>

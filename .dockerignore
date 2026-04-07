@@ -1,0 +1,12 @@
+.git
+.venv
+.vscode
+.codex
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+nail_front/node_modules
+nail_front/.next
+dist
+build
