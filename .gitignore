@@ -7,7 +7,23 @@ wheels/
 *.egg-info
 *.zip
 .idea
+
+# Next.js / Node
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+next-env.d.ts
+
 # Virtual environments
 .venv
 MedSigLIP
 .env
+
+# Local AI model weights
+ai_models/
