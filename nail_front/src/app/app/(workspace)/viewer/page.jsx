@@ -1,28 +1,26 @@
-function Panel({ title, children }) {
-  return (
-    <section className="workspace-panel p-4">
-      <h2 className="workspace-section-title mb-3">{title}</h2>
-      {children}
-    </section>
-  );
-}
+import {
+  WorkspacePage,
+  WorkspacePageHeader,
+  WorkspacePanel,
+  WorkspacePlaceholder,
+} from "@/components/layout/workspace-page";
 
 export default function ViewerPage() {
   return (
-    <div className="space-y-4">
-      <h1 className="workspace-page-title">Viewer</h1>
+    <WorkspacePage>
+      <WorkspacePageHeader title="Viewer" breadcrumb="Project > Viewer" />
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Panel title="1. Patient Info / 2. Series List">
-          <div className="h-[640px] rounded-sm border border-white/10 bg-[#2a2a2a]" />
-        </Panel>
-        <Panel title="3. Image Datas / 4. Patient Note">
-          <div className="h-[640px] rounded-sm border border-white/10 bg-[#2a2a2a]" />
-        </Panel>
-        <Panel title="5. Progression of lesions">
-          <div className="h-[640px] rounded-sm border border-white/10 bg-[#2a2a2a]" />
-        </Panel>
+      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-3">
+        <WorkspacePanel title="1. Patient Info / 2. Series List">
+          <WorkspacePlaceholder className="min-h-[32rem] xl:min-h-0" />
+        </WorkspacePanel>
+        <WorkspacePanel title="3. Image Datas / 4. Patient Note">
+          <WorkspacePlaceholder className="min-h-[32rem] xl:min-h-0" />
+        </WorkspacePanel>
+        <WorkspacePanel title="5. Progression of lesions">
+          <WorkspacePlaceholder className="min-h-[32rem] xl:min-h-0" />
+        </WorkspacePanel>
       </div>
-    </div>
+    </WorkspacePage>
   );
 }

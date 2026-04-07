@@ -1,4 +1,9 @@
-import Link from "next/link";
+import {
+  WorkspaceActionLink,
+  WorkspacePage,
+  WorkspacePageHeader,
+  WorkspacePanel,
+} from "@/components/layout/workspace-page";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -40,54 +45,35 @@ const previewRows = [
   ["R Thumb", "R Index", "R Middle", "R Ring", "R Pinky"],
 ];
 
-function Panel({ title, children, action }) {
-  return (
-    <section className="workspace-panel p-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="workspace-section-title">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  );
-}
-
 export default function AppHomePage() {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-        <h1 className="workspace-page-title">Main Project</h1>
-        <div className="text-sm text-white/50">Project &gt; Main Project</div>
-      </div>
+    <WorkspacePage>
+      <WorkspacePageHeader
+        title="Main Project"
+        breadcrumb="Project > Main Project"
+      />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)]">
-        <div className="space-y-4">
-          <Panel title="Search">
-            <div className="flex gap-2">
+      <div className="grid min-h-0 min-w-0 flex-1 gap-4 min-[1300px]:grid-cols-[minmax(0,1fr)_clamp(20rem,25vw,27rem)]">
+        <div className="grid min-h-0 min-w-0 gap-4 min-[1300px]:grid-rows-[auto_minmax(0,1fr)]">
+          <WorkspacePanel title="Search">
+            <div className="flex flex-wrap gap-2">
               <Input
-                className="workspace-input"
+                className="workspace-input min-w-[180px] flex-1"
                 placeholder="이름, 환자 ID, 이메일로 검색"
               />
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
                 <Search className="size-4" />
                 Search
               </Button>
             </div>
-          </Panel>
+          </WorkspacePanel>
 
-          <Panel
+          <WorkspacePanel
             title="Study List"
-            action={
-              <Button
-                asChild
-                className="h-8 bg-[#6c757d] px-3 text-xs text-white hover:bg-[#5e666d]"
-              >
-                <Link href="/app/add">Add</Link>
-              </Button>
-            }
+            action={<WorkspaceActionLink href="/app/add">Add</WorkspaceActionLink>}
           >
-            <div className="overflow-x-auto">
-              <table className="workspace-table min-w-[900px]">
+            <div className="min-h-0 min-w-0 overflow-x-auto overflow-y-auto">
+              <table className="workspace-table min-w-max min-[1800px]:min-w-[900px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
                 <thead>
                   <tr>
                     <th>No</th>
@@ -123,11 +109,11 @@ export default function AppHomePage() {
                 </tbody>
               </table>
             </div>
-          </Panel>
+          </WorkspacePanel>
         </div>
 
-        <div className="space-y-4">
-          <Panel
+        <div className="grid min-h-0 min-w-0 gap-4 min-[1300px]:grid-rows-[minmax(240px,0.42fr)_minmax(0,0.58fr)]">
+          <WorkspacePanel
             title="Series List"
             action={
               <Button
@@ -138,7 +124,7 @@ export default function AppHomePage() {
               </Button>
             }
           >
-            <div className="overflow-hidden rounded-sm border border-white/10">
+            <div className="min-h-0 overflow-auto rounded-sm border border-white/10">
               <table className="workspace-table">
                 <thead>
                   <tr>
@@ -160,12 +146,15 @@ export default function AppHomePage() {
                 </tbody>
               </table>
             </div>
-          </Panel>
+          </WorkspacePanel>
 
-          <Panel title="Preview">
-            <div className="space-y-4">
+          <WorkspacePanel title="Preview">
+            <div className="grid min-h-0 gap-4 md:grid-cols-2 2xl:grid-cols-1 2xl:grid-rows-2">
               {previewRows.map((row) => (
-                <div key={row[0]} className="overflow-hidden rounded-sm border border-white/10">
+                <div
+                  key={row[0]}
+                  className="min-h-0 overflow-auto rounded-sm border border-white/10"
+                >
                   <table className="workspace-table">
                     <thead>
                       <tr>
@@ -196,9 +185,9 @@ export default function AppHomePage() {
                 </div>
               ))}
             </div>
-          </Panel>
+          </WorkspacePanel>
         </div>
       </div>
-    </div>
+    </WorkspacePage>
   );
 }
