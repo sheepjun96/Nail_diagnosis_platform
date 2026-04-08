@@ -1,51 +1,244 @@
+"use client";
+
 import {
   WorkspaceActionLink,
   WorkspacePage,
   WorkspacePageHeader,
   WorkspacePanel,
 } from "@/components/layout/workspace-page";
+import { WorkspacePagination } from "@/components/layout/workspace-pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  EMPTY_PREVIEW_CELL,
+  PREVIEW_SECTIONS,
+  formatDate,
+  formatDateTime,
+  formatEmpty,
+  formatGender,
+  mapPreviewItems,
+} from "@utils";
+import { getJson } from "@utils/request";
+import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
 
-const studies = [
-  {
-    id: 1,
-    status: "Ready",
-    patientId: "PT-2026-001",
-    patientName: "Douglas McGee",
-    gender: "M",
-    birthday: "1980-01-04",
-    importedAt: "2026-04-06 10:40",
-    studyDate: "2026-04-05",
-    tags: "Psoriasis",
-    readDate: "2026-04-06",
-  },
-  {
-    id: 2,
-    status: "Pending",
-    patientId: "PT-2026-002",
-    patientName: "Emily Fowler",
-    gender: "F",
-    birthday: "1979-09-12",
-    importedAt: "2026-04-06 09:20",
-    studyDate: "2026-04-04",
-    tags: "Onycholysis",
-    readDate: "-",
-  },
+const STUDY_ROWS = 20;
+const studyTableColumns = [
+  "No",
+  "Status",
+  "Patient ID",
+  "Patient Name",
+  "Gender",
+  "Birthday",
+  "Imported At",
+  "Study Date",
+  "Tags",
+  "Readdate",
 ];
 
-const series = [
-  { id: 1, date: "2026-04-05", diagnosis: "Psoriasis / Moderate", instance: 10 },
-  { id: 2, date: "2026-02-11", diagnosis: "Healthy / Mild", instance: 10 },
+const seriesTableColumns = [
+  { key: "no", label: "No", className: "w-12" },
+  { key: "date", label: "Date", className: "w-24" },
+  { key: "diagnosis", label: "Diagnosis Result", className: "text-left" },
+  { key: "instance", label: "Instance", className: "w-16" },
 ];
 
-const previewRows = [
-  ["L Thumb", "L Index", "L Middle", "L Ring", "L Pinky"],
-  ["R Thumb", "R Index", "R Middle", "R Ring", "R Pinky"],
-];
+function mapStudyRow(item) {
+  return {
+    id: item.stl_seq,
+    status: formatEmpty(item.stl_patient_status),
+    patientId: formatEmpty(item.stl_patient_id),
+    patientName: formatEmpty(item.stl_patient_name),
+    gender: formatGender(item.stl_patient_gender),
+    birthday: formatDate(item.stl_patient_birthdate),
+    importedAt: formatDateTime(item.stl_patient_recentdate),
+    studyDate: formatDate(item.stl_patient_studydate),
+    tags: formatEmpty(item.stl_patient_tag),
+    readDate: formatDateTime(item.stl_patient_recentdate),
+  };
+}
+
+function mapSeriesRow(item) {
+  return {
+    id: item.srl_seq,
+    no: formatEmpty(item.no),
+    date: formatDate(item.date),
+    diagnosis: formatEmpty(item.diagnosis_result),
+    instance: formatEmpty(item.instance),
+  };
+}
 
 export default function AppHomePage() {
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [studies, setStudies] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedStudy, setSelectedStudy] = useState(null);
+  const [seriesItems, setSeriesItems] = useState([]);
+  const [selectedSeries, setSelectedSeries] = useState(null);
+  const [previewItems, setPreviewItems] = useState({});
+  const [studyTotal, setStudyTotal] = useState(0);
+  const [isLoadingStudies, setIsLoadingStudies] = useState(false);
+  const [isLoadingSeries, setIsLoadingSeries] = useState(false);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [studyError, setStudyError] = useState("");
+  const [seriesError, setSeriesError] = useState("");
+  const [previewError, setPreviewError] = useState("");
+  const totalPages = Math.max(1, Math.ceil(studyTotal / STUDY_ROWS));
+
+  useEffect(() => {
+    async function loadStudies() {
+      setIsLoadingStudies(true);
+      setStudyError("");
+      setSelectedStudy(null);
+      setSeriesItems([]);
+      setSelectedSeries(null);
+      setPreviewItems({});
+      setSeriesError("");
+      setPreviewError("");
+
+      try {
+        const data = await getJson("/api/resource/study/list", {
+          query: {
+            page: currentPage,
+            rows: STUDY_ROWS,
+            search: searchKeyword || undefined,
+          },
+        });
+
+        const nextStudies = Array.isArray(data?.context)
+          ? data.context.map(mapStudyRow)
+          : [];
+        const nextTotal = Number(data?.total ?? nextStudies.length ?? 0);
+
+        setStudies(nextStudies);
+        setStudyTotal(nextTotal);
+      } catch (error) {
+        console.error("Failed to load studies", error);
+        setStudies([]);
+        setStudyTotal(0);
+        setStudyError("스터디 목록을 불러오지 못했습니다.");
+      } finally {
+        setIsLoadingStudies(false);
+      }
+    }
+
+    loadStudies();
+  }, [currentPage, searchKeyword]);
+
+  useEffect(() => {
+    if (!selectedStudy?.patientId) {
+      return;
+    }
+
+    setSelectedSeries(null);
+    setPreviewItems({});
+    setPreviewError("");
+
+    async function loadSeries() {
+      setIsLoadingSeries(true);
+      setSeriesError("");
+
+      try {
+        const data = await getJson("/api/resource/series/list", {
+          query: {
+            patient_id: selectedStudy.patientId,
+          },
+        });
+
+        const nextSeriesItems = Array.isArray(data?.context)
+          ? data.context.map(mapSeriesRow)
+          : [];
+
+        setSeriesItems(nextSeriesItems);
+      } catch (error) {
+        console.error("Failed to load series", error);
+        setSeriesItems([]);
+        setSeriesError("시리즈 목록을 불러오지 못했습니다.");
+      } finally {
+        setIsLoadingSeries(false);
+      }
+    }
+
+    loadSeries();
+  }, [selectedStudy]);
+
+  useEffect(() => {
+    if (!selectedStudy?.id || !selectedSeries?.id) {
+      return;
+    }
+
+    async function loadPreview() {
+      setIsLoadingPreview(true);
+      setPreviewError("");
+
+      try {
+        const data = await getJson("/api/resource/series/detail", {
+          query: {
+            stl_seq: selectedStudy.id,
+            srl_seq: selectedSeries.id,
+          },
+        });
+
+        setPreviewItems(mapPreviewItems(data?.context));
+      } catch (error) {
+        console.error("Failed to load preview", error);
+        setPreviewItems({});
+        setPreviewError("프리뷰를 불러오지 못했습니다.");
+      } finally {
+        setIsLoadingPreview(false);
+      }
+    }
+
+    loadPreview();
+  }, [selectedSeries, selectedStudy]);
+
+  function handleStudySelect(study) {
+    setSelectedStudy(study);
+    setSelectedSeries(null);
+    setPreviewItems({});
+    setPreviewError("");
+  }
+
+  function handleSeriesSelect(series) {
+    setSelectedSeries(series);
+    setPreviewItems({});
+    setPreviewError("");
+  }
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    setCurrentPage(1);
+    setSearchKeyword(searchInput.trim());
+  }
+
+  function openImageDetailBySrc(imageSrc) {
+    if (!imageSrc || typeof window === "undefined") {
+      return;
+    }
+
+    const url = new URL(imageSrc, window.location.origin);
+    url.searchParams.delete("width");
+
+    window.open(
+      `/app/image${url.search}`,
+      "_blank",
+      "width=900,height=900,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes"
+    );
+  }
+
+  function handleOpenViewer() {
+    if (!selectedStudy?.id || !selectedSeries?.id) {
+      return;
+    }
+
+    router.push(
+      `/app/viewer?stl_seq=${encodeURIComponent(selectedStudy.id)}&srl_seq=${encodeURIComponent(selectedSeries.id)}`
+    );
+  }
+
   return (
     <WorkspacePage>
       <WorkspacePageHeader
@@ -55,57 +248,110 @@ export default function AppHomePage() {
 
       <div className="grid min-h-0 min-w-0 flex-1 gap-4 min-[1300px]:grid-cols-[minmax(0,1fr)_clamp(20rem,25vw,27rem)]">
         <div className="grid min-h-0 min-w-0 gap-4 min-[1300px]:grid-rows-[auto_minmax(0,1fr)]">
+          {/* 검색 섹션 */}
           <WorkspacePanel title="Search">
-            <div className="flex flex-wrap gap-2">
+            <form className="flex flex-wrap gap-2" onSubmit={handleSearchSubmit}>
               <Input
                 className="workspace-input min-w-[180px] flex-1"
-                placeholder="이름, 환자 ID, 이메일로 검색"
+                placeholder="이름, 환자 ID 검색"
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
               />
-              <Button className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button
+                className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+                type="submit"
+              >
                 <Search className="size-4" />
                 Search
               </Button>
-            </div>
+            </form>
           </WorkspacePanel>
 
+          {/* study 목록 */}
           <WorkspacePanel
             title="Study List"
             action={<WorkspaceActionLink href="/app/add">Add</WorkspaceActionLink>}
+            contentClassName="flex min-h-0 flex-1 flex-col"
+            footer={
+              <WorkspacePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                disabled={isLoadingStudies}
+                onPageChange={setCurrentPage}
+              />
+            }
           >
-            <div className="min-h-0 min-w-0 overflow-x-auto overflow-y-auto">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
+              <span>
+                Total <span className="font-semibold text-white">{studyTotal}</span>
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span>
+                  Page <span className="font-semibold text-white">{currentPage}</span> /{" "}
+                  <span className="font-semibold text-white">{totalPages}</span>
+                </span>
+                {searchKeyword ? (
+                  <span>
+                    Search: <span className="font-semibold text-white">{searchKeyword}</span>
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            <div className="min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-auto">
               <table className="workspace-table min-w-max min-[1800px]:min-w-[900px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
                 <thead>
                   <tr>
-                    <th>No</th>
-                    <th>Status</th>
-                    <th>Patient ID</th>
-                    <th>Patient Name</th>
-                    <th>Gender</th>
-                    <th>Birthday</th>
-                    <th>Imported At</th>
-                    <th>Study Date</th>
-                    <th>Tags</th>
-                    <th>Readdate</th>
+                    {studyTableColumns.map((column) => (
+                      <th key={column}>{column}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {studies.map((study, index) => (
-                    <tr
-                      key={study.id}
-                      className={index === 0 ? "bg-primary/20 text-white" : undefined}
-                    >
-                      <td>{study.id}</td>
-                      <td>{study.status}</td>
-                      <td>{study.patientId}</td>
-                      <td>{study.patientName}</td>
-                      <td>{study.gender}</td>
-                      <td>{study.birthday}</td>
-                      <td>{study.importedAt}</td>
-                      <td>{study.studyDate}</td>
-                      <td>{study.tags}</td>
-                      <td>{study.readDate}</td>
+                  {isLoadingStudies ? (
+                    <tr>
+                      <td className="py-8 text-center text-white/60" colSpan={studyTableColumns.length}>
+                        스터디 목록을 불러오는 중입니다.
+                      </td>
                     </tr>
-                  ))}
+                  ) : null}
+                  {!isLoadingStudies && studyError ? (
+                    <tr>
+                      <td className="py-8 text-center text-red-300" colSpan={studyTableColumns.length}>
+                        {studyError}
+                      </td>
+                    </tr>
+                  ) : null}
+                  {!isLoadingStudies && !studyError && studies.length === 0 ? (
+                    <tr>
+                      <td className="py-8 text-center text-white/60" colSpan={studyTableColumns.length}>
+                        조회된 스터디가 없습니다.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {!isLoadingStudies && !studyError
+                    ? studies.map((study) => (
+                        <tr
+                          key={study.id}
+                          className={
+                            selectedStudy?.id === study.id
+                              ? "cursor-pointer bg-primary/20 text-white"
+                              : "cursor-pointer hover:bg-white/5"
+                          }
+                          onClick={() => handleStudySelect(study)}
+                        >
+                          <td>{study.id}</td>
+                          <td>{study.status}</td>
+                          <td>{study.patientId}</td>
+                          <td>{study.patientName}</td>
+                          <td>{study.gender}</td>
+                          <td>{study.birthday}</td>
+                          <td>{study.importedAt}</td>
+                          <td>{study.studyDate}</td>
+                          <td>{study.tags}</td>
+                          <td>{study.readDate}</td>
+                        </tr>
+                      ))
+                    : null}
                 </tbody>
               </table>
             </div>
@@ -113,78 +359,196 @@ export default function AppHomePage() {
         </div>
 
         <div className="grid min-h-0 min-w-0 gap-4 min-[1300px]:grid-rows-[minmax(240px,0.42fr)_minmax(0,0.58fr)]">
+          {/* series 목록 */}
           <WorkspacePanel
             title="Series List"
             action={
               <Button
                 className="h-8 bg-destructive px-3 text-xs text-white hover:bg-destructive/90"
+                disabled={!selectedStudy}
                 type="button"
               >
                 Delete Patient
               </Button>
             }
+            contentClassName="flex min-h-0 flex-1 flex-col"
           >
-            <div className="min-h-0 overflow-auto rounded-sm border border-white/10">
-              <table className="workspace-table">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
+              <span>
+                {selectedStudy
+                  ? `Patient ID: ${selectedStudy.patientId}`
+                  : "환자를 선택하면 series가 표시됩니다."}
+              </span>
+              {selectedStudy ? (
+                <span>
+                  {selectedStudy.patientName} / {selectedStudy.studyDate}
+                </span>
+              ) : null}
+            </div>
+            <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto rounded-sm border border-white/10">
+              <table className="workspace-table w-full table-fixed">
                 <thead>
                   <tr>
-                    <th>No</th>
-                    <th>Date</th>
-                    <th>Diagnosis Result</th>
-                    <th>Instance</th>
+                    {seriesTableColumns.map((column) => (
+                      <th key={column.key} className={column.className}>
+                        {column.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {series.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.id}</td>
-                      <td>{item.date}</td>
-                      <td className="text-left">{item.diagnosis}</td>
-                      <td>{item.instance}</td>
+                  {!selectedStudy ? (
+                    <tr>
+                      <td className="py-8 text-center text-white/50" colSpan={seriesTableColumns.length}>
+                        Please select a patient.
+                      </td>
                     </tr>
-                  ))}
+                  ) : null}
+                  {selectedStudy && isLoadingSeries ? (
+                    <tr>
+                      <td className="py-8 text-center text-white/60" colSpan={seriesTableColumns.length}>
+                        시리즈 목록을 불러오는 중입니다.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {selectedStudy && !isLoadingSeries && seriesError ? (
+                    <tr>
+                      <td className="py-8 text-center text-red-300" colSpan={seriesTableColumns.length}>
+                        {seriesError}
+                      </td>
+                    </tr>
+                  ) : null}
+                  {selectedStudy &&
+                  !isLoadingSeries &&
+                  !seriesError &&
+                  seriesItems.length === 0 ? (
+                    <tr>
+                      <td className="py-8 text-center text-white/60" colSpan={seriesTableColumns.length}>
+                        등록된 시리즈가 없습니다.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {selectedStudy && !isLoadingSeries && !seriesError
+                    ? seriesItems.map((item) => (
+                        <tr
+                          key={item.id}
+                          className={
+                            selectedSeries?.id === item.id
+                              ? "cursor-pointer bg-primary/20 text-white"
+                              : "cursor-pointer hover:bg-white/5"
+                          }
+                          onClick={() => handleSeriesSelect(item)}
+                        >
+                          <td className="whitespace-nowrap">{item.no}</td>
+                          <td className="whitespace-nowrap">{item.date}</td>
+                          <td className="max-w-0 truncate text-left" title={item.diagnosis}>
+                            {item.diagnosis}
+                          </td>
+                          <td className="whitespace-nowrap">{item.instance}</td>
+                        </tr>
+                      ))
+                    : null}
                 </tbody>
               </table>
             </div>
           </WorkspacePanel>
 
-          <WorkspacePanel title="Preview">
+          {/* preview 섹션 */}
+          <WorkspacePanel title="Preview"
+          action={
+            <Button
+                className="h-9 bg-primary px-3 text-xs text-white hover:bg-primary/90"
+                disabled={!selectedSeries}
+                type="button"
+                onClick={handleOpenViewer}
+              >
+                Viewer
+              </Button>
+          }
+          >
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
+              <span>
+                {selectedSeries
+                  ? `Series: ${selectedSeries.date}`
+                  : "시리즈를 선택하면 preview가 표시됩니다."}
+              </span>
+              {selectedSeries ? <span>{selectedSeries.diagnosis}</span> : null}
+            </div>
             <div className="grid min-h-0 gap-4 md:grid-cols-2 2xl:grid-cols-1 2xl:grid-rows-2">
-              {previewRows.map((row) => (
+              {PREVIEW_SECTIONS.map((section) => (
                 <div
-                  key={row[0]}
+                  key={section[0].key}
                   className="min-h-0 overflow-auto rounded-sm border border-white/10"
                 >
                   <table className="workspace-table">
                     <thead>
                       <tr>
-                        {row.map((label) => (
-                          <th key={label}>{label}</th>
+                        {section.map((finger) => (
+                          <th key={finger.key}>{finger.label}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        {row.map((label) => (
-                          <td key={`${label}-image`}>
-                            <div className="mx-auto flex h-16 w-full max-w-[84px] items-center justify-center rounded-sm bg-[#2a2a2a] text-[11px] text-white/40">
-                              No Image
-                            </div>
-                          </td>
-                        ))}
+                        {section.map((finger) => {
+                          const previewItem = previewItems[finger.key] ?? EMPTY_PREVIEW_CELL;
+
+                          return (
+                            <td key={`${finger.key}-image`}>
+                              {previewItem.hasImage ? (
+                                <>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    alt={finger.label}
+                                    className="mx-auto block h-[60px] max-w-full cursor-zoom-in object-contain"
+                                    onClick={() => openImageDetailBySrc(previewItem.imageSrc)}
+                                    src={previewItem.imageSrc}
+                                  />
+                                </>
+                              ) : (
+                                <div className="mx-auto flex h-16 w-full max-w-[84px] items-center justify-center rounded-sm bg-[#2a2a2a] text-[11px] text-white/40">
+                                  No Image
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
                       </tr>
                       <tr>
-                        {row.map((label) => (
-                          <td key={`${label}-extra`} className="text-[11px] text-white/60">
-                            No extra
-                          </td>
-                        ))}
+                        {section.map((finger) => {
+                          const previewItem = previewItems[finger.key] ?? EMPTY_PREVIEW_CELL;
+
+                          return (
+                            <td
+                              key={`${finger.key}-extra`}
+                              className="text-[11px] text-white/60"
+                              title={previewItem.extraText}
+                            >
+                              {previewItem.extraText}
+                            </td>
+                          );
+                        })}
                       </tr>
                     </tbody>
                   </table>
                 </div>
               ))}
             </div>
+            {isLoadingPreview ? (
+              <div className="mt-3 text-center text-xs text-white/60">
+                프리뷰를 불러오는 중입니다.
+              </div>
+            ) : null}
+            {!isLoadingPreview && previewError ? (
+              <div className="mt-3 text-center text-xs text-red-300">
+                {previewError}
+              </div>
+            ) : null}
+            {!selectedSeries && !previewError && !isLoadingPreview ? (
+              <div className="mt-3 text-center text-xs text-white/50">
+                Please select a series.
+              </div>
+            ) : null}
           </WorkspacePanel>
         </div>
       </div>

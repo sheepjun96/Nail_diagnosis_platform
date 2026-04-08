@@ -1,4 +1,5 @@
-import { Geist_Mono, Nunito } from "next/font/google";
+import { JetBrains_Mono, Nunito } from "next/font/google";
+import { MuiThemeProvider } from "@/components/providers/mui-theme-provider";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -6,7 +7,7 @@ const nunito = Nunito({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
@@ -22,7 +23,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${nunito.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <MuiThemeProvider>{children}</MuiThemeProvider>
+      </body>
     </html>
   );
 }

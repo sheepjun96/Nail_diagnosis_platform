@@ -17,7 +17,14 @@ export function WorkspacePageHeader({ title, breadcrumb, action }) {
   );
 }
 
-export function WorkspacePanel({ title, action, children, className, contentClassName }) {
+export function WorkspacePanel({
+  title,
+  action,
+  children,
+  footer,
+  className,
+  contentClassName,
+}) {
   return (
     <section
       className={cn(
@@ -30,6 +37,7 @@ export function WorkspacePanel({ title, action, children, className, contentClas
         {action}
       </div>
       <div className={cn("min-h-0 flex-1", contentClassName)}>{children}</div>
+      {footer ? <div className="mt-4 border-t border-white/10 pt-3">{footer}</div> : null}
     </section>
   );
 }

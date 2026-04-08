@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, UploadFile, File, Form, HTTPException, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
@@ -38,6 +39,19 @@ app = FastAPI(
     title="OpenEMR Dermatology AI Integration", 
     lifespan=lifespan, 
     docs_url="/docs",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3007",
+        "http://127.0.0.1:3007",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

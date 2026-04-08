@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { verifyEmail } from "@utils/verify";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -20,6 +21,11 @@ export default function LoginPage() {
       return;
     }
 
+    if (!verifyEmail(email)) {
+      setError("올바른 이메일 형식을 입력해주세요.");
+      return;
+    }
+
     setError("");
     console.log("submit", { email, password });
   }
@@ -28,7 +34,7 @@ export default function LoginPage() {
     <Card className="border-white/10 bg-card/95 text-card-foreground shadow-2xl shadow-black/20">
       <CardHeader className="space-y-2 text-center">
         <CardTitle className="text-2xl font-semibold text-primary">
-          Nail Platform
+          Login
         </CardTitle>
         <CardDescription>계정 정보를 입력해 로그인하세요.</CardDescription>
       </CardHeader>
