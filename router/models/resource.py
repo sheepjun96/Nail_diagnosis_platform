@@ -9,13 +9,52 @@ from config import CONFIG_DIR
 from typing import List, Optional
 import aiomysql
 from db import get_conn
-from router.services.resource import get_study_list, get_study_List_patientId, add_study, add_seires, get_series_list, get_series_detail
+from router.services.resource import get_study_list, get_study_List_patientId, add_study, add_seires, get_series_list, get_series_detail, update_series_data
 from router.services.resource import get_image_origin_list, get_image_origin_detail, update_study_recentdate
 from router.services.resource import delete_series_data, delete_study_if_empty
+from router.services.resource_viewer import update_study_patient
 
 router = APIRouter(prefix="/resource", tags=["resource"])
 SAVE_NAIL_DIR = CONFIG_DIR["nail"]
 SAVE_EXTRA_DIR = CONFIG_DIR["extra"]
+
+
+async def apply_uploaded_extras(data: dict, file_map: dict):
+    nail_dict = data.get("nail", {})
+
+    def build_extra_url(filename: str) -> str:
+        return f"/api/resource/image/dump?filename={filename}&filetype=2"
+
+    for nail_key, files in file_map.items():
+        if not files:
+            continue
+
+        saved_urls: list[str] = []
+
+        for upload in files:
+            if not upload.filename:
+                continue
+
+            _, ext = os.path.splitext(upload.filename)
+            if not ext:
+                ext = ".png"
+            cvt_filename = f"extra_{upload.filename}"
+            safe_filename = f"{cvt_filename}"
+            save_path = os.path.join(SAVE_EXTRA_DIR, safe_filename)
+
+            content = await upload.read()
+            with open(save_path, "wb") as f:
+                f.write(content)
+
+            saved_urls.append(build_extra_url(safe_filename))
+
+        if nail_key not in nail_dict:
+            nail_dict[nail_key] = {}
+
+        nail_dict[nail_key]["extra"] = saved_urls
+
+    data["nail"] = nail_dict
+    return data
 
 @router.get("/health", response_class=JSONResponse)
 def health_check(
@@ -184,47 +223,7 @@ async def add_patient(
         "patient_r_p": patient_r_p,
     }
 
-    nail_dict = data.get("nail", {})
-    
-    def build_extra_url(filename: str) -> str:
-        return f"/api/resource/image/dump?filename={filename}&filetype=2"
-    
-    for nail_key, files in file_map.items():
-        if not files:  
-            continue
-
-        saved_urls: list[str] = []
-
-        for idx, upload in enumerate(files):
-            if not upload.filename:
-                continue
-
-            # 확장자 추출
-            _, ext = os.path.splitext(upload.filename)
-            if not ext:
-                ext = ".png"
-            cvt_filename = f"extra_{upload.filename}"
-            safe_filename = f"{cvt_filename}"
-            save_path = os.path.join(SAVE_EXTRA_DIR, safe_filename)
-
-            print("file save", save_path)
-
-            # 실제 파일 저장
-            content = await upload.read()
-            with open(save_path, "wb") as f:
-                f.write(content)
-
-            # URL 생성
-            file_url = build_extra_url(safe_filename)
-            saved_urls.append(file_url)
-
-        # body.nail[nail_key].extra 를 새 URL 리스트로 교체
-        if nail_key not in nail_dict:
-            nail_dict[nail_key] = {}
-
-        nail_dict[nail_key]["extra"] = saved_urls
-
-    data["nail"] = nail_dict
+    data = await apply_uploaded_extras(data, file_map)
 
     add_type = data.get("addType", "new")  # "exist" 또는 그 외
     project_seq = data.get("projectSeq", 1)
@@ -293,6 +292,79 @@ async def add_patient(
         "data": {
             stl_seq : stl_seq,
             srl_seq : srl_seq
+        },
+    }
+
+@router.post("/series/modify")
+async def modify_series(
+    request: Request,
+    body: str = Form(...),
+    patient_l_t: List[UploadFile] = File([]),
+    patient_l_i: List[UploadFile] = File([]),
+    patient_l_m: List[UploadFile] = File([]),
+    patient_l_r: List[UploadFile] = File([]),
+    patient_l_p: List[UploadFile] = File([]),
+    patient_r_t: List[UploadFile] = File([]),
+    patient_r_i: List[UploadFile] = File([]),
+    patient_r_m: List[UploadFile] = File([]),
+    patient_r_r: List[UploadFile] = File([]),
+    patient_r_p: List[UploadFile] = File([]),
+    conn: aiomysql.Connection = Depends(get_conn),
+):
+    data = json.loads(body)
+
+    file_map = {
+        "patient_l_t": patient_l_t,
+        "patient_l_i": patient_l_i,
+        "patient_l_m": patient_l_m,
+        "patient_l_r": patient_l_r,
+        "patient_l_p": patient_l_p,
+        "patient_r_t": patient_r_t,
+        "patient_r_i": patient_r_i,
+        "patient_r_m": patient_r_m,
+        "patient_r_r": patient_r_r,
+        "patient_r_p": patient_r_p,
+    }
+
+    data = await apply_uploaded_extras(data, file_map)
+
+    stl_seq = data.get("stl_seq")
+    srl_seq = data.get("srl_seq")
+
+    if not stl_seq or not srl_seq:
+      raise HTTPException(status_code=400, detail="stl_seq and srl_seq are required")
+
+    patient_id = data.get("patientId", "")
+    patient_name = data.get("patientName", "")
+    patient_gender = data.get("patientGender", "")
+    patient_birth = data.get("patientBirth") or None
+    patient_visit = data.get("patientVisit") or None
+    series_note = data.get("patientNote", "")
+    nail_data = data.get("nail", {})
+
+    await update_study_patient(
+        conn=conn,
+        stl_seq=stl_seq,
+        patient_id=patient_id,
+        patient_name=patient_name,
+        patient_gender=patient_gender,
+        patient_birthdate=patient_birth,
+    )
+
+    series_result = await update_series_data(
+        conn=conn,
+        stl_seq=stl_seq,
+        srl_seq=srl_seq,
+        series_dt=patient_visit,
+        series_note=series_note,
+        nail_data=nail_data,
+    )
+
+    return {
+        "ok": True,
+        "data": {
+            "stl_seq": stl_seq,
+            "srl_seq": series_result["srl_seq"],
         },
     }
 

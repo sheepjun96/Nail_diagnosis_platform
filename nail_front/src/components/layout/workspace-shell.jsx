@@ -100,7 +100,7 @@ export function WorkspaceShell({ children }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-svh bg-background text-foreground">
+    <div className="flex h-svh overflow-hidden bg-background text-foreground">
       <aside className="hidden w-[17.5rem] shrink-0 border-r border-white/10 bg-sidebar lg:flex lg:flex-col">
         <Link
           href="/app"
@@ -123,7 +123,7 @@ export function WorkspaceShell({ children }) {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col bg-background">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
         <header className="border-b border-white/10 bg-[#303030] px-4 py-3 shadow-sm lg:px-5">
           <div className="flex items-center justify-end gap-4">
             <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white">
@@ -135,7 +135,7 @@ export function WorkspaceShell({ children }) {
           </div>
         </header>
 
-        <main className="flex min-h-0 flex-1 flex-col p-4 lg:p-6">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 lg:p-6">{children}</main>
       </div>
     </div>
   );

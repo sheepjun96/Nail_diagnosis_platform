@@ -18,9 +18,10 @@ import {
   formatGender,
   mapPreviewItems,
 } from "@utils";
-import { getJson } from "@utils/request";
+import { getJson, postJson } from "@utils/request";
+import useConfirmDialog from "@utils/useConfirmDialog";
 import { useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Loader2, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const STUDY_ROWS = 20;
@@ -42,6 +43,7 @@ const seriesTableColumns = [
   { key: "date", label: "Date", className: "w-24" },
   { key: "diagnosis", label: "Diagnosis Result", className: "text-left" },
   { key: "instance", label: "Instance", className: "w-16" },
+  { key: "delete", label: "", className: "w-12" },
 ];
 
 function mapStudyRow(item) {
@@ -71,6 +73,7 @@ function mapSeriesRow(item) {
 
 export default function AppHomePage() {
   const router = useRouter();
+  const { showAlert, showConfirm } = useConfirmDialog();
   const [searchInput, setSearchInput] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [studies, setStudies] = useState([]);
@@ -83,6 +86,10 @@ export default function AppHomePage() {
   const [isLoadingStudies, setIsLoadingStudies] = useState(false);
   const [isLoadingSeries, setIsLoadingSeries] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isDeletingPatient, setIsDeletingPatient] = useState(false);
+  const [deletingSeriesId, setDeletingSeriesId] = useState(null);
+  const [studyRefreshKey, setStudyRefreshKey] = useState(0);
+  const [seriesRefreshKey, setSeriesRefreshKey] = useState(0);
   const [studyError, setStudyError] = useState("");
   const [seriesError, setSeriesError] = useState("");
   const [previewError, setPreviewError] = useState("");
@@ -115,6 +122,10 @@ export default function AppHomePage() {
 
         setStudies(nextStudies);
         setStudyTotal(nextTotal);
+
+        if (currentPage > 1 && nextStudies.length === 0) {
+          setCurrentPage((previousPage) => Math.max(1, previousPage - 1));
+        }
       } catch (error) {
         console.error("Failed to load studies", error);
         setStudies([]);
@@ -126,7 +137,7 @@ export default function AppHomePage() {
     }
 
     loadStudies();
-  }, [currentPage, searchKeyword]);
+  }, [currentPage, searchKeyword, studyRefreshKey]);
 
   useEffect(() => {
     if (!selectedStudy?.patientId) {
@@ -163,7 +174,7 @@ export default function AppHomePage() {
     }
 
     loadSeries();
-  }, [selectedStudy]);
+  }, [selectedStudy, seriesRefreshKey]);
 
   useEffect(() => {
     if (!selectedStudy?.id || !selectedSeries?.id) {
@@ -203,6 +214,12 @@ export default function AppHomePage() {
   }
 
   function handleSeriesSelect(series) {
+    if(selectedSeries == series){
+      setSelectedSeries(null);
+      setPreviewItems({});
+      setPreviewError("");
+      return;
+    }
     setSelectedSeries(series);
     setPreviewItems({});
     setPreviewError("");
@@ -212,6 +229,122 @@ export default function AppHomePage() {
     event.preventDefault();
     setCurrentPage(1);
     setSearchKeyword(searchInput.trim());
+  }
+
+  async function handleDeleteSeries(event, series) {
+    event.stopPropagation();
+
+    if (!selectedStudy?.id || !series?.id || deletingSeriesId) {
+      return;
+    }
+
+    const confirmed = await showConfirm({
+      title: "Delete Series",
+      text: "이 시리즈를 삭제하시겠습니까?",
+      confirmText: "삭제",
+      cancelText: "취소",
+      icon: "warning",
+      width: "360px",
+      isCustom: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingSeriesId(series.id);
+    setSeriesError("");
+
+    try {
+      const result = await postJson("/api/resource/series/delete", {
+        srl_seq: series.id,
+        stl_seq: selectedStudy.id,
+      });
+
+      if (!result?.ok) {
+        throw new Error(result?.msg || "시리즈 삭제에 실패했습니다.");
+      }
+
+      setSelectedSeries(null);
+      setPreviewItems({});
+      setPreviewError("");
+      setSeriesRefreshKey((value) => value + 1);
+      await showAlert({
+        title: "삭제 완료",
+        text: "시리즈가 삭제되었습니다.",
+        icon: "success",
+        confirmText: "확인",
+        width: "340px",
+        isCustom: true,
+      });
+    } catch (error) {
+      console.error("Failed to delete series", error);
+      setSeriesError(error.message || "시리즈 삭제에 실패했습니다.");
+      await showAlert({
+        title: "삭제 실패",
+        text: error.message || "시리즈 삭제에 실패했습니다.",
+        icon: "error",
+        confirmText: "확인",
+        width: "360px",
+        isCustom: true,
+      });
+    } finally {
+      setDeletingSeriesId(null);
+    }
+  }
+
+  async function handleDeletePatient() {
+    if (!selectedStudy?.id || isDeletingPatient) {
+      return;
+    }
+
+    const confirmed = await showConfirm({
+      title: "Delete Patient",
+      html: "이 환자 레코드를 삭제하시겠습니까?<br />시리즈가 남아 있으면 삭제되지 않습니다.",
+      confirmText: "삭제",
+      cancelText: "취소",
+      icon: "warning",
+      width: "400px",
+      isCustom: true,
+    });
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeletingPatient(true);
+    setSeriesError("");
+
+    try {
+      const result = await postJson("/api/resource/patient/delete_empty", {
+        stl_seq: selectedStudy.id,
+      });
+
+      if (!result?.ok) {
+        throw new Error(result?.msg || "환자 삭제에 실패했습니다.");
+      }
+
+      setStudyRefreshKey((value) => value + 1);
+      await showAlert({
+        title: "삭제 완료",
+        text: "환자 레코드가 삭제되었습니다.",
+        icon: "success",
+        confirmText: "확인",
+        width: "340px",
+        isCustom: true,
+      });
+    } catch (error) {
+      console.error("Failed to delete patient", error);
+      setSeriesError(error.message || "환자 삭제에 실패했습니다.");
+      await showAlert({
+        title: "삭제 실패",
+        text: error.message || "환자 삭제에 실패했습니다.",
+        icon: "error",
+        confirmText: "확인",
+        width: "360px",
+        isCustom: true,
+      });
+    } finally {
+      setIsDeletingPatient(false);
+    }
   }
 
   function openImageDetailBySrc(imageSrc) {
@@ -373,14 +506,25 @@ export default function AppHomePage() {
           <WorkspacePanel
             title="Series List"
             action={
-              <Button
-                className="h-8 px-3 text-xs text-white"
-                color="error"
-                disabled={!selectedStudy}
-                type="button"
-              >
-                Delete Patient
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  className="h-8 bg-[#6c757d] px-3 text-xs text-white hover:bg-[#5e666d]"
+                  disabled={!selectedSeries}
+                  type="button"
+                  onClick={handleOpenEdit}
+                >
+                  Edit Series
+                </Button>
+                <Button
+                  className="h-8 px-3 text-xs text-white"
+                  color="error"
+                  disabled={!selectedStudy || isDeletingPatient}
+                  type="button"
+                  onClick={handleDeletePatient}
+                >
+                  {isDeletingPatient ? "Deleting..." : "Delete Patient"}
+                </Button>
+              </div>
             }
             contentClassName="flex min-h-0 flex-1 flex-col"
           >
@@ -456,6 +600,21 @@ export default function AppHomePage() {
                             {item.diagnosis}
                           </td>
                           <td className="whitespace-nowrap">{item.instance}</td>
+                          <td className="whitespace-nowrap px-2 text-center">
+                            <button
+                              aria-label="Delete series"
+                              className="inline-flex size-7 items-center justify-center rounded-sm text-red-500 transition hover:bg-destructive/15 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                              disabled={Boolean(deletingSeriesId)}
+                              type="button"
+                              onClick={(event) => handleDeleteSeries(event, item)}
+                            >
+                              {deletingSeriesId === item.id ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="size-4" />
+                              )}
+                            </button>
+                          </td>
                         </tr>
                       ))
                     : null}
@@ -467,24 +626,14 @@ export default function AppHomePage() {
           {/* preview 섹션 */}
           <WorkspacePanel title="Preview"
           action={
-            <div className="flex items-center gap-2">
-              <Button
-                className="h-9 bg-[#6c757d] px-3 text-xs text-white hover:bg-[#5e666d]"
-                disabled={!selectedSeries}
-                type="button"
-                onClick={handleOpenEdit}
-              >
-                Edit
-              </Button>
-              <Button
-                className="h-9 bg-primary px-3 text-xs text-white hover:bg-primary/90"
-                disabled={!selectedSeries}
-                type="button"
-                onClick={handleOpenViewer}
-              >
-                Viewer
-              </Button>
-            </div>
+            <Button
+              className="h-9 bg-primary px-3 text-xs text-white hover:bg-primary/90"
+              disabled={!selectedSeries}
+              type="button"
+              onClick={handleOpenViewer}
+            >
+              Viewer
+            </Button>
           }
           >
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">

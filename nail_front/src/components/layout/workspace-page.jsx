@@ -2,7 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function WorkspacePage({ children, className }) {
-  return <div className={cn("flex min-h-0 flex-1 flex-col gap-4", className)}>{children}</div>;
+  return <div className={cn("flex min-h-0 flex-1 flex-col gap-4 overflow-hidden", className)}>{children}</div>;
 }
 
 export function WorkspacePageHeader({ title, breadcrumb, action }) {

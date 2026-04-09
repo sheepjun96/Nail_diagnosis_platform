@@ -14,10 +14,12 @@
     "@mui/material": "^7.0.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
+    "moment": "^2.30.1",
     "next": "14.2.33",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "rsuite": "^5.83.1",
+    "sweetalert2": "^11.26.24",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {

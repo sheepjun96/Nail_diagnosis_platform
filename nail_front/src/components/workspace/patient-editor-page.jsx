@@ -40,6 +40,12 @@ function mapSeriesRow(item) {
   };
 }
 
+function formatProgressNote(note) {
+  const text = String(note ?? "").trim();
+
+  return text || "-";
+}
+
 function normalizeStoredImageSrc(rawValue, fallbackFiletype) {
   if (!rawValue) {
     return "";
@@ -152,7 +158,14 @@ function buildProgressionRow(seriesItem, fingerKey) {
           filetype: 2,
         })
       : "";
-  const plotSrc = nail?.plot ? normalizeStoredImageSrc(nail.plot, 2) : "";
+  const plotSrc = nail?.plot
+    ? normalizeStoredImageSrc(nail.plot, 4)
+    : cropFilename
+      ? buildApiUrl("/api/resource/image/dump", {
+          filename: `plot_${cropFilename}`,
+          filetype: 4,
+        })
+      : "";
 
   return {
     id: seriesItem.id,
@@ -210,6 +223,7 @@ export function PatientEditorPage({
   const [isLoadingProgression, setIsLoadingProgression] = useState(false);
   const [progressionError, setProgressionError] = useState("");
   const [brokenProgressImages, setBrokenProgressImages] = useState({});
+  const [expandedProgressNotes, setExpandedProgressNotes] = useState({});
 
   const selectedProgressFinger =
     PREVIEW_SECTIONS.flat().find((finger) => finger.key === selectedProgressFingerKey) ?? null;
@@ -218,6 +232,13 @@ export function PatientEditorPage({
         buildProgressionRow(seriesItem, selectedProgressFingerKey)
       )
     : [];
+
+  function handleToggleProgressNote(rowId) {
+    setExpandedProgressNotes((prev) => ({
+      ...prev,
+      [rowId]: !prev[rowId],
+    }));
+  }
 
   useEffect(() => {
     if (!stlSeq) {
@@ -395,6 +416,14 @@ export function PatientEditorPage({
     loadProgressionHistory();
   }, [patientInfo?.patient_id, progressionHistory, selectedProgressFingerKey, stlSeq]);
 
+  useEffect(() => {
+    setExpandedProgressNotes({});
+  }, [selectedProgressFingerKey]);
+
+  useEffect(() => {
+    setBrokenProgressImages({});
+  }, [selectedProgressFingerKey, progressionHistory]);
+
   function handleSeriesSearchSubmit(event) {
     event.preventDefault();
     setSeriesSearchKeyword(seriesSearchInput.trim());
@@ -532,17 +561,12 @@ export function PatientEditorPage({
               <ArrowLeft className="size-4" />
               Back
             </Button>
-            <span className="rounded-sm border border-white/10 bg-black/10 px-3 py-1.5">
-              Study: <span className="font-semibold text-white">{stlSeq ?? "-"}</span>
-            </span>
-            <span className="rounded-sm border border-white/10 bg-black/10 px-3 py-1.5">
-              Series: <span className="font-semibold text-white">{selectedSeriesId ?? "-"}</span>
-            </span>
+            
           </div>
         }
       />
 
-      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-3">
+      <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-3 xl:grid-rows-[minmax(0,1fr)]">
         <WorkspacePanel
           title="1. Patient Info / 2. Series List"
           contentClassName="flex min-h-0 flex-1 flex-col gap-4"
@@ -786,8 +810,8 @@ export function PatientEditorPage({
                             <button
                               className={
                                 isSelected
-                                  ? "h-6 w-full rounded bg-primary text-[10px] font-semibold text-white"
-                                  : "h-6 w-full rounded bg-[#6c757d] text-[10px] font-semibold text-white transition-colors hover:bg-[#5e666d]"
+                                  ? "h-6 w-full rounded bg-primary text-[12px] font-semibold text-white"
+                                  : "h-6 w-full rounded bg-[#6c757d] text-[12px] font-semibold text-white transition-colors hover:bg-[#5e666d]"
                               }
                               type="button"
                               onClick={() => setSelectedProgressFingerKey(finger.key)}
@@ -824,7 +848,8 @@ export function PatientEditorPage({
 
         <WorkspacePanel
           title="5. Progression of lesions"
-          contentClassName="flex min-h-0 flex-1 flex-col gap-4"
+          className="min-h-0"
+          contentClassName="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden"
         >
           {!selectedProgressFinger ? (
             <div className="flex min-h-0 flex-1 items-center justify-center rounded-sm border border-white/10 bg-black/10 px-6 text-center text-sm text-white/50">
@@ -833,8 +858,8 @@ export function PatientEditorPage({
           ) : null}
 
           {selectedProgressFinger ? (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-white/10 bg-black/10 px-4 py-3 text-xs text-white/70">
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+              <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 rounded-sm border border-white/10 bg-black/10 px-4 py-3 text-xs text-white/70">
                 <span>
                   Finger: <span className="font-semibold text-white">{selectedProgressFinger.label}</span>
                 </span>
@@ -856,106 +881,143 @@ export function PatientEditorPage({
               ) : null}
 
               {!isLoadingProgression && !progressionError ? (
-                <>
-                  <div className="min-h-0 flex-1 overflow-auto rounded-sm border border-white/10">
-                    <table className="workspace-table w-full">
-                      <thead>
-                        <tr>
-                          <th className="w-20">Date</th>
-                          <th className="w-24">{selectedProgressFinger.label}</th>
-                          <th className="w-24">Extra</th>
-                          <th className="w-24">Plot</th>
-                          <th>Diagnosis results</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {progressionRows.length === 0 ? (
+                <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_240px] gap-4 overflow-hidden">
+                  <div className="min-h-0 overflow-hidden rounded-sm border border-white/10 bg-black/10">
+                    <div className="h-full overflow-x-hidden overflow-y-auto">
+                      <table className="workspace-table w-full table-fixed text-[11px]">
+                        <thead className="sticky top-0 z-10">
                           <tr>
-                            <td className="py-8 text-center text-white/50" colSpan={5}>
-                              선택한 손가락의 progression 이력이 없습니다.
-                            </td>
+                            <th className="w-[16%] !px-1 !py-1">Date</th>
+                            <th className="w-[16%] !px-1 !py-1">{selectedProgressFinger.label}</th>
+                            <th className="w-[16%] !px-1 !py-1">Extra</th>
+                            <th className="w-[16%] !px-1 !py-1">Plot</th>
+                            <th className="w-[36%] !px-1 !py-1 text-left">Diagnosis results</th>
                           </tr>
-                        ) : null}
-                        {progressionRows.map((row) => (
-                          <Fragment key={row.id}>
-                            <tr key={`${row.id}-main`}>
-                              <td className="whitespace-nowrap align-middle">{row.dateLabel}</td>
-                              <td>
-                                {row.cropSrc && !brokenProgressImages[row.cropSrc] ? (
-                                  <>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      alt={selectedProgressFinger.label}
-                                      className="mx-auto block h-16 max-w-full cursor-zoom-in object-contain"
-                                      onError={() => handleProgressImageError(row.cropSrc)}
-                                      onClick={() => openImageDetailBySrc(row.cropSrc)}
-                                      src={row.cropSrc}
-                                    />
-                                  </>
-                                ) : (
-                                  <span className="text-white/40">No image</span>
-                                )}
-                              </td>
-                              <td>
-                                {row.extraSrc && !brokenProgressImages[row.extraSrc] ? (
-                                  <>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      alt={`${selectedProgressFinger.label} extra`}
-                                      className="mx-auto block h-16 max-w-full cursor-zoom-in object-contain"
-                                      onError={() => handleProgressImageError(row.extraSrc)}
-                                      onClick={() => openImageDetailBySrc(row.extraSrc)}
-                                      src={row.extraSrc}
-                                    />
-                                  </>
-                                ) : (
-                                  <span className="text-white/40">No extra</span>
-                                )}
-                              </td>
-                              <td>
-                                {row.plotSrc && !brokenProgressImages[row.plotSrc] ? (
-                                  <>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      alt={`${selectedProgressFinger.label} plot`}
-                                      className="mx-auto block h-16 max-w-full cursor-zoom-in object-contain"
-                                      onError={() => handleProgressImageError(row.plotSrc)}
-                                      onClick={() => openImageDetailBySrc(row.plotSrc)}
-                                      src={row.plotSrc}
-                                    />
-                                  </>
-                                ) : (
-                                  <span className="text-white/40">No plot</span>
-                                )}
-                              </td>
-                              <td className="text-left">
-                                <div>{row.diagnosisText}</div>
-                                <div className="mt-1 text-[11px] text-white/60">
-                                  AI score: {row.aiSeverityScore !== null ? `${row.aiSeverityScore.toFixed(2)} %` : "-"}
-                                </div>
-                                <div className="text-[11px] text-white/60">
-                                  NAPSI Matrix: {row.napsiMatrix} / Bed: {row.napsiBed} / Total: {row.napsiTotal}
-                                </div>
+                        </thead>
+                        <tbody>
+                          {progressionRows.length === 0 ? (
+                            <tr>
+                              <td className="py-8 text-center text-white/50" colSpan={5}>
+                                선택한 손가락의 progression 이력이 없습니다.
                               </td>
                             </tr>
-                            <tr key={`${row.id}-note`}>
-                              <td className="bg-black/10 text-xs text-white/50">Note</td>
-                              <td className="bg-black/10 px-3 py-2 text-left text-xs text-white/70" colSpan={4}>
-                                {row.note}
-                              </td>
-                            </tr>
-                          </Fragment>
-                        ))}
-                      </tbody>
-                    </table>
+                          ) : null}
+                          {progressionRows.map((row) => {
+                            const isExpanded = Boolean(expandedProgressNotes[row.id]);
+
+                            return (
+                              <Fragment key={row.id}>
+                                <tr>
+                                  <td
+                                    className="!px-1 !py-1 align-middle text-[11px] text-white/80"
+                                    rowSpan={2}
+                                  >
+                                    <span className="whitespace-normal">{row.dateLabel}</span>
+                                  </td>
+                                  <td className="!px-1 !py-1 align-middle">
+                                    {row.cropSrc && !brokenProgressImages[row.cropSrc] ? (
+                                      <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          alt={selectedProgressFinger.label}
+                                          className="mx-auto block h-12 max-w-full cursor-zoom-in object-contain"
+                                          onError={() => handleProgressImageError(row.cropSrc)}
+                                          onClick={() => openImageDetailBySrc(row.cropSrc)}
+                                          src={row.cropSrc}
+                                        />
+                                      </>
+                                    ) : (
+                                      <span className="text-[12px] text-white/40">No image</span>
+                                    )}
+                                  </td>
+                                  <td className="!px-1 !py-1 align-middle">
+                                    {row.extraSrc && !brokenProgressImages[row.extraSrc] ? (
+                                      <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          alt={`${selectedProgressFinger.label} extra`}
+                                          className="mx-auto block h-12 max-w-full cursor-zoom-in object-contain"
+                                          onError={() => handleProgressImageError(row.extraSrc)}
+                                          onClick={() => openImageDetailBySrc(row.extraSrc)}
+                                          src={row.extraSrc}
+                                        />
+                                      </>
+                                    ) : (
+                                      <span className="text-[12px] text-white/40">No extra</span>
+                                    )}
+                                  </td>
+                                  <td className="!px-1 !py-1 align-middle">
+                                    {row.plotSrc && !brokenProgressImages[row.plotSrc] ? (
+                                      <>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          alt={`${selectedProgressFinger.label} plot`}
+                                          className="mx-auto block h-12 max-w-full cursor-zoom-in object-contain"
+                                          onError={() => handleProgressImageError(row.plotSrc)}
+                                          onClick={() => openImageDetailBySrc(row.plotSrc)}
+                                          src={row.plotSrc}
+                                        />
+                                      </>
+                                    ) : (
+                                      <span className="text-[12px] text-white/40">No plot</span>
+                                    )}
+                                  </td>
+                                  <td className="!px-1 !py-1 text-left align-middle">
+                                    <div className="leading-4 text-white">{row.diagnosisText}</div>
+                                    <div className="text-[12px] leading-4 text-white/60">
+                                      AI score: {row.aiSeverityScore !== null ? `${row.aiSeverityScore.toFixed(2)} %` : "-"}
+                                    </div>
+                                    <div className="text-[12px] leading-4 text-white/60">
+                                      NAPSI Matrix: {row.napsiMatrix} / Bed: {row.napsiBed} / Total: {row.napsiTotal}
+                                    </div>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  {/* <td className="!px-1 !py-1 flex bg-black/10 text-left text-[12px] text-white/50">
+                                    Patient Note:
+                                  </td> */}
+                                  <td className="!px-1 !py-1 bg-black/10 text-left text-[12px] text-white/70" colSpan={4}>
+                                    <div
+                                      className="w-full cursor-pointer whitespace-pre-line text-left leading-4 text-white/70"
+                                      title={formatProgressNote(row.note)}
+                                      role="button"
+                                      tabIndex={0}
+                                      style={
+                                        isExpanded
+                                          ? undefined
+                                          : {
+                                              display: "-webkit-box",
+                                              WebkitBoxOrient: "vertical",
+                                              WebkitLineClamp: 3,
+                                              overflow: "hidden",
+                                            }
+                                      }
+                                      onClick={() => handleToggleProgressNote(row.id)}
+                                      onKeyDown={(event) => {
+                                        if (event.key === "Enter" || event.key === " ") {
+                                          event.preventDefault();
+                                          handleToggleProgressNote(row.id);
+                                        }
+                                      }}
+                                    >
+                                      <span className="font-semibold">Patient Note: </span>{formatProgressNote(row.note)}
+                                    </div>
+                                  </td>
+                                </tr>
+                              </Fragment>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
 
-                  <div className="h-[240px] rounded-sm border border-white/10 bg-black/10 p-4">
+                  <div className="min-h-0 rounded-sm border border-white/10 bg-black/10 p-4">
                     <ProgressionChart rows={progressionRows} />
                   </div>
-                </>
+                </div>
               ) : null}
-            </>
+            </div>
           ) : null}
         </WorkspacePanel>
       </div>

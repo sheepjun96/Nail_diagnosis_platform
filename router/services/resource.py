@@ -328,6 +328,60 @@ async def add_seires(
         "srl_seq": srl_seq,
     }
 
+async def update_series_data(
+    conn: aiomysql.Connection,
+    stl_seq: int,
+    srl_seq: int,
+    series_dt: datetime,
+    series_note: str,
+    nail_data: Dict[str, Any],
+) -> Dict[str, Any]:
+    def nail_json(key: str) -> str:
+        return json.dumps(nail_data.get(key, {}), ensure_ascii=False)
+
+    update_series_sql = """
+        UPDATE series_list
+        SET
+            srl_patient_seriesdate = %s,
+            srl_patient_note = %s,
+            srl_patient_l_t = %s,
+            srl_patient_l_i = %s,
+            srl_patient_l_m = %s,
+            srl_patient_l_R = %s,
+            srl_patient_l_p = %s,
+            srl_patient_r_t = %s,
+            srl_patient_r_i = %s,
+            srl_patient_r_m = %s,
+            srl_patient_r_R = %s,
+            srl_patient_r_p = %s
+        WHERE stl_seq = %s
+          AND srl_seq = %s
+    """
+    update_value = (
+        series_dt,
+        series_note,
+        nail_json("patient_l_t"),
+        nail_json("patient_l_i"),
+        nail_json("patient_l_m"),
+        nail_json("patient_l_r"),
+        nail_json("patient_l_p"),
+        nail_json("patient_r_t"),
+        nail_json("patient_r_i"),
+        nail_json("patient_r_m"),
+        nail_json("patient_r_r"),
+        nail_json("patient_r_p"),
+        stl_seq,
+        srl_seq,
+    )
+
+    async with conn.cursor(aiomysql.DictCursor) as cur:
+        await cur.execute(update_series_sql, update_value)
+        await conn.commit()
+
+    return {
+        "srl_seq": srl_seq,
+    }
+
 async def add_file_origin(
     conn: aiomysql.Connection,
     upload_type: str,

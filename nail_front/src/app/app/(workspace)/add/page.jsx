@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  WorkspaceActionLink,
   WorkspacePage,
   WorkspacePageHeader,
   WorkspacePanel,
@@ -10,6 +9,7 @@ import {
 import { WorkspacePagination } from "@/components/layout/workspace-pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import useConfirmDialog from "@utils/useConfirmDialog";
 import {
   buildApiUrl,
   formatDate,
@@ -17,9 +17,10 @@ import {
   formatEmpty,
   formatGender,
   getJson,
+  parseNailField,
   postForm,
 } from "@utils";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   CheckCircle2,
@@ -100,6 +101,7 @@ function createEmptySlot() {
     plotSrc: "",
     aiRaw: "",
     extraFile: null,
+    extraUrls: [],
     extraPreviewUrl: "",
     psar: createEmptyPsar(),
   };
@@ -161,6 +163,7 @@ function buildOriginDetailPayload(detailData, originFilename) {
   const base = detailData?.base ?? "/api/resource/image/dump";
   const nextCandidates = {};
   let originPreviewSrc = "";
+  const plotByFingerKey = {};
 
   for (const item of detailData?.context ?? []) {
     if (item.uf_filetype === 0) {
@@ -171,6 +174,19 @@ function buildOriginDetailPayload(detailData, originFilename) {
       continue;
     }
 
+    if (item.uf_filetype === 4) {
+      const fingerKey = String(item.uf_memo_1 ?? "").toLowerCase();
+
+      if (SLOT_TO_FIELD[fingerKey]) {
+        plotByFingerKey[fingerKey] = buildApiUrl(base, {
+          filename: item.uf_uri,
+          filetype: item.uf_filetype,
+        });
+      }
+    }
+  }
+
+  for (const item of detailData?.context ?? []) {
     if (item.uf_filetype !== 1) {
       continue;
     }
@@ -187,10 +203,12 @@ function buildOriginDetailPayload(detailData, originFilename) {
         filename: item.uf_uri,
         filetype: item.uf_filetype,
       }),
-      plotSrc: buildApiUrl(base, {
-        filename: `plot_${item.uf_uri}`,
-        filetype: 4,
-      }),
+      plotSrc:
+        plotByFingerKey[fingerKey] ||
+        buildApiUrl(base, {
+          filename: `plot_${item.uf_uri}`,
+          filetype: 4,
+        }),
       aiRaw: item.uf_memo_4 ?? "",
     };
   }
@@ -210,10 +228,106 @@ function getImagePathFromUrl(rawUrl) {
   return `${url.pathname}${url.search}`;
 }
 
-export default function AddPage() {
+function normalizeStoredImageUrl(rawValue, filetype) {
+  if (!rawValue) {
+    return "";
+  }
+
+  const text = String(rawValue).trim();
+  if (!text) {
+    return "";
+  }
+
+  if (text.startsWith("/")) {
+    return text;
+  }
+
+  const filename = text.split("/").pop();
+  if (!filename) {
+    return "";
+  }
+
+  return buildApiUrl("/api/resource/image/dump", {
+    filename,
+    filetype,
+  });
+}
+
+function formatDateTimeLocalValue(value) {
+  if (!value) {
+    return getLocalDateTime();
+  }
+
+  return String(value).replace(" ", "T").substring(0, 16);
+}
+
+function buildImageSlotsFromSeriesDetail(detail) {
+  const slots = createInitialSlots();
+  const fieldMap = {
+    lt: "srl_patient_l_t",
+    li: "srl_patient_l_i",
+    lm: "srl_patient_l_m",
+    lr: "srl_patient_l_R",
+    lp: "srl_patient_l_p",
+    rt: "srl_patient_r_t",
+    ri: "srl_patient_r_i",
+    rm: "srl_patient_r_m",
+    rr: "srl_patient_r_R",
+    rp: "srl_patient_r_p",
+  };
+
+  for (const [fingerKey, detailKey] of Object.entries(fieldMap)) {
+    const nail = parseNailField(detail?.[detailKey]);
+    if (!nail) {
+      continue;
+    }
+
+    const cropFilename = String(nail.name ?? "").split("/").pop();
+    const originFilename = String(nail.origin ?? "").split("/").pop();
+    const plotFilename = String(nail.plot ?? "").split("/").pop();
+    const extraUrls = Array.isArray(nail.extra) ? nail.extra.filter(Boolean) : [];
+
+    slots[fingerKey] = {
+      ...createEmptySlot(),
+      previewUrl: cropFilename
+        ? buildApiUrl("/api/resource/image/dump", {
+            filename: cropFilename,
+            filetype: 1,
+          })
+        : "",
+      originFilename,
+      cropFilename,
+      plotSrc: plotFilename
+        ? buildApiUrl("/api/resource/image/dump", {
+            filename: plotFilename,
+            filetype: 4,
+          })
+        : "",
+      aiRaw:
+        typeof nail.ai === "string"
+          ? nail.ai
+          : nail.ai
+            ? JSON.stringify(nail.ai)
+            : "",
+      extraUrls,
+      extraPreviewUrl: extraUrls[0] ? normalizeStoredImageUrl(extraUrls[0], 2) : "",
+      psar: nail.psar ?? nail.psor ?? createEmptyPsar(),
+    };
+  }
+
+  return slots;
+}
+
+export function AddOrEditPatientPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { showConfirm } = useConfirmDialog();
   const uploadInputRef = useRef(null);
   const extraInputRefs = useRef({});
+  const editStudySeq = searchParams.get("stl_seq");
+  const editSeriesSeq = searchParams.get("srl_seq");
+  const isEditMode = pathname.includes("/edit") && Boolean(editStudySeq) && Boolean(editSeriesSeq);
 
   const [patientSearchInput, setPatientSearchInput] = useState("");
   const [patientSearchKeyword, setPatientSearchKeyword] = useState("");
@@ -269,6 +383,13 @@ export default function AddPage() {
   }, [originUploadStatus]);
 
   useEffect(() => {
+    if (isEditMode) {
+      setPatients([]);
+      setPatientTotal(0);
+      setPatientError("");
+      return;
+    }
+
     async function loadPatients() {
       setIsLoadingPatients(true);
       setPatientError("");
@@ -301,7 +422,95 @@ export default function AddPage() {
     }
 
     loadPatients();
-  }, [patientPage, patientSearchKeyword]);
+  }, [isEditMode, patientPage, patientSearchKeyword]);
+
+  useEffect(() => {
+    if (!isEditMode || !editStudySeq) {
+      return;
+    }
+
+    async function loadEditPatientInfo() {
+      setPatientError("");
+
+      try {
+        const data = await getJson("/api/resource/viewer/info", {
+          query: {
+            stl_seq: editStudySeq,
+          },
+        });
+
+        const info = data?.context;
+        if (!info) {
+          return;
+        }
+
+        const nextSelectedPatient = {
+          id: Number(editStudySeq),
+          patientId: info.patient_id ?? "",
+          patientName: info.patient_name ?? "",
+          patientGenderRaw: info.patient_gender ?? "M",
+          gender: formatGender(info.patient_gender),
+          patientBirthRaw: info.patient_birthdate
+            ? String(info.patient_birthdate).substring(0, 10)
+            : "",
+          birthday: formatDate(info.patient_birthdate),
+          studyDate: formatDateTime(info.patient_recentdate),
+          recentVisit: formatDateTime(info.patient_recentdate),
+        };
+
+        setSelectedPatient(nextSelectedPatient);
+        setPatientForm((current) => ({
+          ...current,
+          type: "exist",
+          patientId: nextSelectedPatient.patientId,
+          patientName: nextSelectedPatient.patientName,
+          patientGender: nextSelectedPatient.patientGenderRaw,
+          patientBirthdate: nextSelectedPatient.patientBirthRaw,
+        }));
+      } catch (error) {
+        console.error("Failed to load edit patient info", error);
+        setPatientError("수정 대상 환자 정보를 불러오지 못했습니다.");
+      }
+    }
+
+    loadEditPatientInfo();
+  }, [editStudySeq, isEditMode]);
+
+  useEffect(() => {
+    if (!isEditMode || !editStudySeq || !editSeriesSeq) {
+      return;
+    }
+
+    async function loadEditSeriesDetail() {
+      setSubmitError("");
+
+      try {
+        const data = await getJson("/api/resource/series/detail", {
+          query: {
+            stl_seq: editStudySeq,
+            srl_seq: editSeriesSeq,
+          },
+        });
+
+        const detail = data?.context;
+        if (!detail) {
+          return;
+        }
+
+        setNoteText(detail.srl_patient_note ?? "");
+        setImageSlots(buildImageSlotsFromSeriesDetail(detail));
+        setPatientForm((current) => ({
+          ...current,
+          visitDate: formatDateTimeLocalValue(detail.srl_patient_seriesdate),
+        }));
+      } catch (error) {
+        console.error("Failed to load edit series detail", error);
+        setSubmitError("수정 대상 시리즈를 불러오지 못했습니다.");
+      }
+    }
+
+    loadEditSeriesDetail();
+  }, [editSeriesSeq, editStudySeq, isEditMode]);
 
   useEffect(() => {
     async function loadOriginList() {
@@ -362,12 +571,20 @@ export default function AddPage() {
   }, [originPage, originReloadKey]);
 
   function handlePatientSearchSubmit(event) {
+    if (isEditMode) {
+      return;
+    }
+
     event.preventDefault();
     setPatientPage(1);
     setPatientSearchKeyword(patientSearchInput.trim());
   }
 
   function handlePatientTypeChange(value) {
+    if (isEditMode) {
+      return;
+    }
+
     if (value === "new") {
       setSelectedPatient(null);
       setPatientForm((current) => ({
@@ -388,6 +605,10 @@ export default function AddPage() {
   }
 
   function handlePatientSelect(patient) {
+    if (isEditMode) {
+      return;
+    }
+
     setSelectedPatient(patient);
     setPatientForm((current) => ({
       ...current,
@@ -582,7 +803,7 @@ export default function AddPage() {
         crop: slot.previewUrl ? getImagePathFromUrl(slot.previewUrl) : "",
         plot: slot.plotSrc ? getImagePathFromUrl(slot.plotSrc) : "",
         psar: slot.psar ?? createEmptyPsar(),
-        extra: slot.extraFile ? ["local-extra"] : [],
+        extra: slot.extraFile ? ["local-extra"] : slot.extraUrls ?? [],
         ai: slot.aiRaw || "",
       };
 
@@ -627,7 +848,19 @@ export default function AddPage() {
         );
       }
 
-      await postForm("/api/resource/patient/add", formData);
+      if (isEditMode) {
+        formData.set(
+          "body",
+          JSON.stringify({
+            ...body,
+            stl_seq: Number(editStudySeq),
+            srl_seq: Number(editSeriesSeq),
+          })
+        );
+        await postForm("/api/resource/series/modify", formData);
+      } else {
+        await postForm("/api/resource/patient/add", formData);
+      }
       router.push("/app");
     } catch (error) {
       console.error("Failed to add patient", error);
@@ -814,111 +1047,176 @@ export default function AddPage() {
     );
   }
 
+  async function handleCancel() {
+    const confirmed = await showConfirm({
+      title: "목록으로 돌아가시겠습니까?",
+      html: "진행 중인 작업이 저장되지 않을 수 있습니다.<br />정말 이동하시겠습니까?",
+      confirmText: "이동",
+      cancelText: "취소",
+      icon: "warning",
+      width: "400px",
+      isCustom: true,
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    router.push("/app");
+  }
+
   return (
     <WorkspacePage>
       <WorkspacePageHeader
-        title="Add Patient"
-        breadcrumb="Project > Add Patient"
+        title={isEditMode ? "Edit Series" : "Add Patient"}
+        breadcrumb={isEditMode ? "Project > Edit Series" : "Project > Add Patient"}
         action={
-          <WorkspaceActionLink href="/app" variant="danger">
+          <Button
+            className="h-8 bg-destructive px-3 text-xs text-white hover:bg-destructive/90"
+            type="button"
+            color="error"
+            onClick={handleCancel}
+          >
             Cancel
-          </WorkspaceActionLink>
+          </Button>
         }
       />
 
       <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)]">
         <div className="grid min-h-0 gap-4 xl:grid-rows-[minmax(260px,0.42fr)_minmax(0,0.58fr)]">
           <WorkspacePanel
-            title="Search Patient"
+            title={isEditMode ? "Current Patient" : "Search Patient"}
             contentClassName="flex min-h-0 flex-1 flex-col"
-            footer={
+            footer={!isEditMode ? (
               <WorkspacePagination
                 currentPage={patientPage}
                 totalPages={patientTotalPages}
                 disabled={isLoadingPatients}
                 onPageChange={setPatientPage}
               />
-            }
+            ) : null}
           >
-            <form className="mb-3 flex flex-wrap gap-2" onSubmit={handlePatientSearchSubmit}>
-              <Input
-                className="workspace-input min-w-[180px] flex-1"
-                placeholder="이름, 환자 ID 검색"
-                value={patientSearchInput}
-                onChange={(event) => setPatientSearchInput(event.target.value)}
-              />
-              <Button type="submit">
-                <Search className="size-4" />
-                Search
-              </Button>
-            </form>
+            {isEditMode ? (
+              <div className="flex min-h-0 flex-1 flex-col rounded-sm border border-white/10 bg-black/10 p-4">
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-white">Editing Current Series</h4>
+                  <p className="mt-1 text-xs text-white/50">
+                    원본 이미지를 다시 선택하거나 업로드해서 현재 시리즈 이미지를 수정하세요.
+                  </p>
+                </div>
+                <div className="grid gap-1 rounded-sm border border-white/10 bg-[#2f2f2f]/70 p-4 text-sm text-white/80 md:grid-cols-2">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/40">Patient ID</div>
+                    <div className="mt-1 font-semibold text-white">{patientForm.patientId || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/40">Patient Name</div>
+                    <div className="mt-1 font-semibold text-white">{patientForm.patientName || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/40">Study Seq</div>
+                    <div className="mt-1 font-semibold text-white">{editStudySeq || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/40">Series Seq</div>
+                    <div className="mt-1 font-semibold text-white">{editSeriesSeq || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/40">Recent Visit</div>
+                    <div className="mt-1 font-semibold text-white">{selectedPatient?.recentVisit || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.14em] text-white/40">Assigned Images</div>
+                    <div className="mt-1 font-semibold text-white">
+                      {assignedImageCount} / {ALL_FINGERS.length}
+                    </div>
+                  </div>
+                </div>
+                {patientError ? <div className="mt-3 text-xs text-red-300">{patientError}</div> : null}
+              </div>
+            ) : (
+              <>
+                <form className="mb-3 flex flex-wrap gap-2" onSubmit={handlePatientSearchSubmit}>
+                  <Input
+                    className="workspace-input min-w-[180px] flex-1"
+                    placeholder="이름, 환자 ID 검색"
+                    value={patientSearchInput}
+                    onChange={(event) => setPatientSearchInput(event.target.value)}
+                  />
+                  <Button type="submit">
+                    <Search className="size-4" />
+                    Search
+                  </Button>
+                </form>
 
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
-              <span>
-                Total <span className="font-semibold text-white">{patientTotal}</span>
-              </span>
-              {patientSearchKeyword ? (
-                <span>
-                  Search: <span className="font-semibold text-white">{patientSearchKeyword}</span>
-                </span>
-              ) : null}
-            </div>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">
+                  <span>
+                    Total <span className="font-semibold text-white">{patientTotal}</span>
+                  </span>
+                  {patientSearchKeyword ? (
+                    <span>
+                      Search: <span className="font-semibold text-white">{patientSearchKeyword}</span>
+                    </span>
+                  ) : null}
+                </div>
 
-            <div className="min-h-0 flex-1 overflow-auto rounded-sm border border-white/10">
-              <table className="workspace-table w-full">
-                <thead>
-                  <tr>
-                    {patientTableColumns.map((column) => (
-                      <th key={column}>{column}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoadingPatients ? (
-                    <tr>
-                      <td className="py-8 text-center text-white/60" colSpan={patientTableColumns.length}>
-                        환자 목록을 불러오는 중입니다.
-                      </td>
-                    </tr>
-                  ) : null}
-                  {!isLoadingPatients && patientError ? (
-                    <tr>
-                      <td className="py-8 text-center text-red-300" colSpan={patientTableColumns.length}>
-                        {patientError}
-                      </td>
-                    </tr>
-                  ) : null}
-                  {!isLoadingPatients && !patientError && patients.length === 0 ? (
-                    <tr>
-                      <td className="py-8 text-center text-white/60" colSpan={patientTableColumns.length}>
-                        조회된 환자가 없습니다.
-                      </td>
-                    </tr>
-                  ) : null}
-                  {!isLoadingPatients && !patientError
-                    ? patients.map((patient) => (
-                        <tr
-                          key={patient.id}
-                          className={
-                            selectedPatient?.id === patient.id
-                              ? "cursor-pointer bg-primary/20 text-white"
-                              : "cursor-pointer hover:bg-white/5"
-                          }
-                          onClick={() => handlePatientSelect(patient)}
-                        >
-                          <td>{patient.no}</td>
-                          <td>{patient.patientId}</td>
-                          <td>{patient.patientName}</td>
-                          <td>{patient.gender}</td>
-                          <td>{patient.birthday}</td>
-                          <td>{patient.studyDate}</td>
-                          <td>{patient.recentVisit}</td>
+                <div className="min-h-0 flex-1 overflow-auto rounded-sm border border-white/10">
+                  <table className="workspace-table w-full">
+                    <thead>
+                      <tr>
+                        {patientTableColumns.map((column) => (
+                          <th key={column}>{column}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {isLoadingPatients ? (
+                        <tr>
+                          <td className="py-8 text-center text-white/60" colSpan={patientTableColumns.length}>
+                            환자 목록을 불러오는 중입니다.
+                          </td>
                         </tr>
-                      ))
-                    : null}
-                </tbody>
-              </table>
-            </div>
+                      ) : null}
+                      {!isLoadingPatients && patientError ? (
+                        <tr>
+                          <td className="py-8 text-center text-red-300" colSpan={patientTableColumns.length}>
+                            {patientError}
+                          </td>
+                        </tr>
+                      ) : null}
+                      {!isLoadingPatients && !patientError && patients.length === 0 ? (
+                        <tr>
+                          <td className="py-8 text-center text-white/60" colSpan={patientTableColumns.length}>
+                            조회된 환자가 없습니다.
+                          </td>
+                        </tr>
+                      ) : null}
+                      {!isLoadingPatients && !patientError
+                        ? patients.map((patient) => (
+                            <tr
+                              key={patient.id}
+                              className={
+                                selectedPatient?.id === patient.id
+                                  ? "cursor-pointer bg-primary/20 text-white"
+                                  : "cursor-pointer hover:bg-white/5"
+                              }
+                              onClick={() => handlePatientSelect(patient)}
+                            >
+                              <td>{patient.no}</td>
+                              <td>{patient.patientId}</td>
+                              <td>{patient.patientName}</td>
+                              <td>{patient.gender}</td>
+                              <td>{patient.birthday}</td>
+                              <td>{patient.studyDate}</td>
+                              <td>{patient.recentVisit}</td>
+                            </tr>
+                          ))
+                        : null}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </WorkspacePanel>
 
           <WorkspacePanel
@@ -1090,7 +1388,7 @@ export default function AddPage() {
         </div>
 
         <WorkspacePanel
-          title="Patient Registration"
+          title={isEditMode ? "Patient Edit" : "Patient Registration"}
           action={
             <div className="flex flex-wrap items-center gap-2">
               {REGISTRATION_TABS.map((tab) => {
@@ -1129,7 +1427,7 @@ export default function AddPage() {
                 onClick={handleSubmit}
               >
                 <Plus className="size-4" />
-                {isSubmitting ? "Adding..." : "Add Patient"}
+                {isSubmitting ? (isEditMode ? "Saving..." : "Adding...") : (isEditMode ? "Save Changes" : "Add Patient")}
               </Button>
             </div>
           }
@@ -1139,7 +1437,9 @@ export default function AddPage() {
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-white">1. Patient Info</h4>
                 <p className="mt-1 text-xs text-white/50">
-                  기존 환자를 선택하거나 신규 환자 정보를 입력하세요.
+                  {isEditMode
+                    ? "현재 환자 정보와 방문 정보를 수정하세요."
+                    : "기존 환자를 선택하거나 신규 환자 정보를 입력하세요."}
                 </p>
               </div>
 
@@ -1151,6 +1451,7 @@ export default function AddPage() {
                       <td className="p-1">
                         <select
                           className="workspace-input w-full rounded border border-white/10 bg-[#454545] px-2 py-1 text-center text-xs text-white"
+                          disabled={isEditMode}
                           value={patientForm.type}
                           onChange={(event) => handlePatientTypeChange(event.target.value)}
                         >
@@ -1262,4 +1563,8 @@ export default function AddPage() {
       </div>
     </WorkspacePage>
   );
+}
+
+export default function AddPage() {
+  return <AddOrEditPatientPage />;
 }
