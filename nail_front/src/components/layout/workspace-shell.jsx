@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   ChevronDown,
+  FilePenLine,
   Folder,
   ImageIcon,
   LayoutDashboard,
@@ -21,8 +22,9 @@ const navigationSections = [
     defaultOpen: true,
     items: [
       { href: "/app", label: "Main Project", icon: LayoutDashboard },
-      { href: "/app/add", label: "Add Patient", icon: Stethoscope },
-      { href: "/app/viewer", label: "Viewer", icon: ImageIcon },
+      // { href: "/app/add", label: "Add Patient", icon: Stethoscope },
+      // { href: "/app/edit", label: "Edit Patient", icon: FilePenLine },
+      // { href: "/app/viewer", label: "Viewer", icon: ImageIcon },
     ],
   },
   {
@@ -30,7 +32,7 @@ const navigationSections = [
     icon: Settings,
     items: [
       { href: "/app/login", label: "회원 관리", icon: UserRound },
-      { href: "/app/image", label: "이미지 상세", icon: ImageIcon },
+      // { href: "/app/image", label: "이미지 상세", icon: ImageIcon },
     ],
   },
 ];

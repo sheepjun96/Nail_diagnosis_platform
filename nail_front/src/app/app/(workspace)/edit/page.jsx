@@ -3,20 +3,20 @@
 import { PatientEditorPage } from "@/components/workspace/patient-editor-page";
 import { Suspense } from "react";
 
-function ViewerPageContent() {
+function EditPageContent() {
   return (
     <PatientEditorPage
-      breadcrumb="Project > Viewer"
-      seriesRouteBase="/app/viewer"
-      title="Viewer"
+      breadcrumb="Project > Edit Patient"
+      seriesRouteBase="/app/edit"
+      title="Edit Patient"
     />
   );
 }
 
-export default function ViewerPage() {
+export default function EditPage() {
   return (
     <Suspense>
-      <ViewerPageContent />
+      <EditPageContent />
     </Suspense>
   );
 }

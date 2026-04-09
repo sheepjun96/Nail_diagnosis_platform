@@ -239,6 +239,16 @@ export default function AppHomePage() {
     );
   }
 
+  function handleOpenEdit() {
+    if (!selectedStudy?.id || !selectedSeries?.id) {
+      return;
+    }
+
+    router.push(
+      `/app/edit?stl_seq=${encodeURIComponent(selectedStudy.id)}&srl_seq=${encodeURIComponent(selectedSeries.id)}`
+    );
+  }
+
   return (
     <WorkspacePage>
       <WorkspacePageHeader
@@ -364,7 +374,8 @@ export default function AppHomePage() {
             title="Series List"
             action={
               <Button
-                className="h-8 bg-destructive px-3 text-xs text-white hover:bg-destructive/90"
+                className="h-8 px-3 text-xs text-white"
+                color="error"
                 disabled={!selectedStudy}
                 type="button"
               >
@@ -456,7 +467,16 @@ export default function AppHomePage() {
           {/* preview 섹션 */}
           <WorkspacePanel title="Preview"
           action={
-            <Button
+            <div className="flex items-center gap-2">
+              <Button
+                className="h-9 bg-[#6c757d] px-3 text-xs text-white hover:bg-[#5e666d]"
+                disabled={!selectedSeries}
+                type="button"
+                onClick={handleOpenEdit}
+              >
+                Edit
+              </Button>
+              <Button
                 className="h-9 bg-primary px-3 text-xs text-white hover:bg-primary/90"
                 disabled={!selectedSeries}
                 type="button"
@@ -464,6 +484,7 @@ export default function AppHomePage() {
               >
                 Viewer
               </Button>
+            </div>
           }
           >
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">

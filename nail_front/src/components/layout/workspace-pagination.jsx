@@ -25,6 +25,22 @@ function WorkspacePaginationButton({
   );
 }
 
+function getVisiblePages(currentPage, totalPages) {
+  if (totalPages <= 3) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 2) {
+    return [1, 2, 3];
+  }
+
+  if (currentPage >= totalPages - 1) {
+    return [totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [currentPage - 1, currentPage, currentPage + 1];
+}
+
 export function WorkspacePagination({
   currentPage = 1,
   totalPages = 1,
@@ -39,6 +55,7 @@ export function WorkspacePagination({
   );
   const isAtFirstPage = safeCurrentPage === 1;
   const isAtLastPage = safeCurrentPage === safeTotalPages;
+  const visiblePages = getVisiblePages(safeCurrentPage, safeTotalPages);
 
   function changePage(nextPage) {
     if (disabled || nextPage === safeCurrentPage) {
@@ -64,14 +81,26 @@ export function WorkspacePagination({
       >
         <ChevronLeft className="size-5" />
       </WorkspacePaginationButton>
-      <button
-        aria-current="page"
-        className="flex h-9 min-w-9 items-center justify-center rounded-md border border-[#1fd5c0] px-3 text-sm font-semibold text-[#1fd5c0]"
-        disabled
-        type="button"
-      >
-        {safeCurrentPage}
-      </button>
+      {visiblePages.map((pageNumber) => {
+        const isCurrentPage = pageNumber === safeCurrentPage;
+
+        return (
+          <button
+            key={pageNumber}
+            aria-current={isCurrentPage ? "page" : undefined}
+            className={
+              isCurrentPage
+                ? "flex h-9 min-w-9 items-center justify-center rounded-md border border-[#1fd5c0] px-3 text-sm font-semibold text-[#1fd5c0]"
+                : "flex h-9 min-w-9 items-center justify-center rounded-md border border-transparent px-3 text-sm font-semibold text-white/55 transition-colors hover:border-white/10 hover:text-white disabled:cursor-not-allowed disabled:hover:border-transparent"
+            }
+            disabled={disabled || isCurrentPage}
+            type="button"
+            onClick={() => changePage(pageNumber)}
+          >
+            {pageNumber}
+          </button>
+        );
+      })}
       <WorkspacePaginationButton
         disabled={disabled || isAtLastPage}
         label="다음 페이지"

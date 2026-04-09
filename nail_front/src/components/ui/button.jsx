@@ -13,6 +13,7 @@ function Button({
   type = "button",
   onClick,
   children,
+  color,
   ...props
 }) {
   return (
@@ -20,6 +21,7 @@ function Button({
       className={className}
       variant={variant === "default" ? "contained" : variant}
       size={size === "default" ? "medium" : size}
+      color={color}
       disabled={disabled}
       type={type}
       onClick={onClick}
