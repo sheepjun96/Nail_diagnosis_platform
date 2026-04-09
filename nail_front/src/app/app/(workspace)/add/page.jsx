@@ -239,7 +239,16 @@ function normalizeStoredImageUrl(rawValue, filetype) {
   }
 
   if (text.startsWith("/")) {
-    return text;
+    return buildApiUrl(text);
+  }
+
+  if (text.startsWith("http://") || text.startsWith("https://")) {
+    try {
+      const url = new URL(text);
+      return buildApiUrl(`${url.pathname}${url.search}`);
+    } catch (error) {
+      console.error("Failed to normalize stored image url", error);
+    }
   }
 
   const filename = text.split("/").pop();
@@ -713,8 +722,19 @@ export function AddOrEditPatientPage() {
     }));
   }
 
-  function handleApplyAll() {
+  async function handleApplyAll() {
     if (!Object.keys(cropCandidates).length) {
+      return;
+    }
+
+    const confirmed = await showConfirm({
+      title: "모든 이미지 슬롯에 적용하시겠습니까?",
+      html: "현재 선택된 원본 이미지의 crop 결과를 Image Datas 전체 슬롯에 반영합니다.",
+      confirmButtonText: "적용",
+      cancelButtonText: "취소",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -740,6 +760,8 @@ export function AddOrEditPatientPage() {
 
       return next;
     });
+
+    setRegistrationTab("images");
   }
 
   function handleExtraUpload(fingerKey) {
@@ -817,6 +839,19 @@ export function AddOrEditPatientPage() {
       return;
     }
 
+    const confirmed = await showConfirm({
+      title: isEditMode ? "변경사항을 저장하시겠습니까?" : "환자를 등록하시겠습니까?",
+      html: isEditMode
+        ? "현재 수정한 환자 정보와 이미지 데이터가 저장됩니다."
+        : "현재 입력한 환자 정보와 이미지 데이터로 새 환자를 등록합니다.",
+      confirmButtonText: isEditMode ? "저장" : "등록",
+      cancelButtonText: "취소",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError("");
 
@@ -864,7 +899,7 @@ export function AddOrEditPatientPage() {
       router.push("/app");
     } catch (error) {
       console.error("Failed to add patient", error);
-      setSubmitError("환자 등록에 실패했습니다.");
+      setSubmitError(isEditMode ? "환자 수정에 실패했습니다." : "환자 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }

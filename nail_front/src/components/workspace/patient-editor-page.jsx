@@ -22,6 +22,7 @@ import { ArrowLeft, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { ProgressionChart } from "./progression-chart";
+import useConfirmDialog from "@utils/useConfirmDialog";
 
 const seriesTableColumns = [
   { key: "no", label: "No", className: "w-12" },
@@ -57,13 +58,13 @@ function normalizeStoredImageSrc(rawValue, fallbackFiletype) {
   }
 
   if (text.startsWith("/")) {
-    return text;
+    return buildApiUrl(text);
   }
 
   if (text.startsWith("http://") || text.startsWith("https://")) {
     try {
       const url = new URL(text);
-      return `${url.pathname}${url.search}`;
+      return buildApiUrl(`${url.pathname}${url.search}`);
     } catch (error) {
       console.error("Failed to normalize image url", error);
     }
@@ -195,6 +196,7 @@ export function PatientEditorPage({
   const searchParams = useSearchParams();
   const stlSeq = searchParams.get("stl_seq");
   const selectedSeriesId = searchParams.get("srl_seq");
+  const { showConfirm } = useConfirmDialog();
 
   const [patientInfo, setPatientInfo] = useState(null);
   const [patientForm, setPatientForm] = useState({
@@ -520,13 +522,17 @@ export function PatientEditorPage({
     );
   }
 
-  function handleGoBack() {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
+  async function handleGoBack() {
+    const confirmed = await showConfirm({
+      title: "목록으로 돌아가시겠습니까?",
+      text: "저장되지 않은 변경사항이 있다면 유실될 수 있습니다.",
+      confirmButtonText: "돌아가기",
+      cancelButtonText: "취소",
+    });
 
-    router.push("/app");
+    if (confirmed) {
+      router.push("/app");
+    }
   }
 
   function handleProgressImageError(imageSrc) {

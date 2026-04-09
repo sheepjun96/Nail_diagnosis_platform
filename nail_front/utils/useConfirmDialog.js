@@ -10,35 +10,35 @@ const useConfirmDialog = () => {
     const footer = popup.querySelector(".swal2-footer");
     const actions = popup.querySelector(".swal2-actions");
 
-    popup.style.padding = "1.1rem";
-    popup.style.borderRadius = "10px";
+    popup.style.padding = "0.95rem";
+    popup.style.borderRadius = "9px";
 
     if (title) {
-      title.style.fontSize = "1.25rem";
+      title.style.fontSize = "1.1rem";
       title.style.fontWeight = "700";
       title.style.padding = "0";
-      title.style.marginBottom = "0.5rem";
+      title.style.marginBottom = "0.4rem";
     }
     if (htmlContainer) {
-      htmlContainer.style.fontSize = "0.95rem";
-      htmlContainer.style.lineHeight = "1.5";
+      htmlContainer.style.fontSize = "0.875rem";
+      htmlContainer.style.lineHeight = "1.45";
       htmlContainer.style.margin = "0";
     }
     if (confirmBtn) {
-      confirmBtn.style.fontSize = "0.9rem";
-      confirmBtn.style.padding = "9px 18px";
-      confirmBtn.style.borderRadius = "8px";
+      confirmBtn.style.fontSize = "0.85rem";
+      confirmBtn.style.padding = "8px 14px";
+      confirmBtn.style.borderRadius = "7px";
     }
     if (cancelBtn) {
-      cancelBtn.style.fontSize = "0.9rem";
-      cancelBtn.style.padding = "9px 18px";
-      cancelBtn.style.borderRadius = "8px";
+      cancelBtn.style.fontSize = "0.85rem";
+      cancelBtn.style.padding = "8px 14px";
+      cancelBtn.style.borderRadius = "7px";
     }
     if (actions) {
-      actions.style.gap = "0.5rem";
-      actions.style.marginTop = "1rem";
+      actions.style.gap = "0.45rem";
+      actions.style.marginTop = "0.8rem";
     }
-    if (footer) footer.style.fontSize = "0.85rem";
+    if (footer) footer.style.fontSize = "0.8rem";
   };
 
   // 🚩 1. 입력창 전용 함수 추가
@@ -53,8 +53,8 @@ const useConfirmDialog = () => {
     cancelText = "취소",
     background = "#454545",
     color = "#fff",
-    width = "420px",
-    isCustom = false,
+    width = "380px",
+    isCustom = true,
   }) => {
     const { value } = await Swal.fire({
       title,
@@ -85,8 +85,8 @@ const useConfirmDialog = () => {
     icon = "question",
     background = "#454545",
     color = "#fff",
-    width,
-    isCustom = false,
+    width = "360px",
+    isCustom = true,
   }) => {
     const result = await Swal.fire({
       title,
@@ -116,8 +116,8 @@ const useConfirmDialog = () => {
     showCancelButton = false,
     background = "#454545",
     color = "#fff",
-    width,
-    isCustom = false,
+    width = "340px",
+    isCustom = true,
     ...rest
   }) => {
     return await Swal.fire({
