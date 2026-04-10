@@ -61,7 +61,13 @@ export function WorkspaceActionLink({ href, children, variant = "secondary" }) {
         "inline-flex h-8 shrink-0 items-center rounded-sm px-3 text-xs font-semibold whitespace-nowrap text-white transition-colors",
         variant === "danger"
           ? "bg-destructive hover:bg-destructive/90"
-          : "bg-[#6c757d] hover:bg-[#5e666d]"
+          : variant === "primary"
+            ? "bg-primary hover:bg-primary/90"
+            : variant === "secondary"
+              ? "bg-secondary hover:bg-secondary/90"
+              : variant === "outlined"
+                ? "bg-transparent border border-secondary text-secondary hover:bg-secondary/10"
+                : "bg-[#6c757d] hover:bg-[#5e666d]"
       )}
     >
       {children}

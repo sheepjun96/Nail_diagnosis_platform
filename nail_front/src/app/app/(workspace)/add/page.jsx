@@ -82,6 +82,22 @@ const REGISTRATION_TABS = [
   { key: "note", label: "Patient Note" },
 ];
 
+const PSAR_EDIT_INDEX_ORDER = [1, 2, 4, 3];
+const PSAR_SUMMARY_INDEX_ORDER = [1, 2, 3, 4];
+const PSAR_MATRIX_OPTIONS = [
+  "pitting",
+  "leukonychia",
+  "red spots in the lunula",
+  "nail plate crumbling",
+];
+const PSAR_BED_OPTIONS = [
+  "onycholysis",
+  "splinter hemorrhages",
+  "oil drop discoloration",
+  "nail bed hyperkeratosis",
+];
+const AI_OPTIONS = ["Melanoma", "Normal Nail", "Onychomycosis", "Psoriasis"];
+
 function createEmptyPsar() {
   return {
     index1: { matrix: "", bed: "" },
@@ -91,6 +107,104 @@ function createEmptyPsar() {
     matrix: 0,
     bed: 0,
   };
+}
+
+function splitPsarValues(value) {
+  return String(value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizePsar(psar) {
+  const next = createEmptyPsar();
+
+  if (!psar || typeof psar !== "object") {
+    return next;
+  }
+
+  for (const index of PSAR_SUMMARY_INDEX_ORDER) {
+    const indexKey = `index${index}`;
+    next[indexKey] = {
+      matrix: String(psar[indexKey]?.matrix ?? "").trim(),
+      bed: String(psar[indexKey]?.bed ?? "").trim(),
+    };
+  }
+
+  next.matrix = PSAR_SUMMARY_INDEX_ORDER.reduce(
+    (count, index) => count + (next[`index${index}`].matrix ? 1 : 0),
+    0
+  );
+  next.bed = PSAR_SUMMARY_INDEX_ORDER.reduce(
+    (count, index) => count + (next[`index${index}`].bed ? 1 : 0),
+    0
+  );
+
+  return next;
+}
+
+function hasPsarSelections(psar) {
+  const normalized = normalizePsar(psar);
+
+  return PSAR_SUMMARY_INDEX_ORDER.some((index) => {
+    const indexKey = `index${index}`;
+    return normalized[indexKey].matrix || normalized[indexKey].bed;
+  });
+}
+
+function parseAiResult(aiRaw) {
+  if (!aiRaw) {
+    return null;
+  }
+
+  try {
+    return typeof aiRaw === "string" ? JSON.parse(aiRaw) : aiRaw;
+  } catch (error) {
+    console.error("Failed to parse ai result", error);
+    return null;
+  }
+}
+
+function normalizeAiClass(className) {
+  if (!className) {
+    return "Normal Nail";
+  }
+
+  const map = {
+    Healthy_Nail: "Normal Nail",
+    Acral_Lentiginous_Melanoma: "Melanoma",
+    psoriasis: "Psoriasis",
+  };
+
+  return map[className] || className;
+}
+
+function getAiEditorState(aiRaw) {
+  const aiResult = parseAiResult(aiRaw);
+  const normalizedClass = normalizeAiClass(aiResult?.predicted_class);
+  const probability = Number(aiResult?.probability);
+  const normalizedProbability = Number.isFinite(probability)
+    ? Math.round(probability * 10000) / 100
+    : 100;
+  const isStandard = AI_OPTIONS.includes(normalizedClass);
+
+  return {
+    aiResult,
+    predictedClass: normalizedClass,
+    probabilityPercent: normalizedProbability,
+    isStandard,
+    customClass: isStandard ? "" : normalizedClass,
+  };
+}
+
+function isPsoriasisSlot(slot) {
+  const { predictedClass } = getAiEditorState(slot?.aiRaw);
+  return predictedClass === "Psoriasis" || hasPsarSelections(slot?.psar);
+}
+
+function formatAiSummary(aiRaw) {
+  const { predictedClass, probabilityPercent } = getAiEditorState(aiRaw);
+  return `${predictedClass} (${probabilityPercent.toFixed(2)}%)`;
 }
 
 function createEmptySlot() {
@@ -293,8 +407,8 @@ function buildImageSlotsFromSeriesDetail(detail) {
 
     const cropFilename = String(nail.name ?? "").split("/").pop();
     const originFilename = String(nail.origin ?? "").split("/").pop();
-    const plotFilename = String(nail.plot ?? "").split("/").pop();
     const extraUrls = Array.isArray(nail.extra) ? nail.extra.filter(Boolean) : [];
+    const normalizedPsar = normalizePsar(nail.psar ?? nail.psor);
 
     slots[fingerKey] = {
       ...createEmptySlot(),
@@ -306,12 +420,14 @@ function buildImageSlotsFromSeriesDetail(detail) {
         : "",
       originFilename,
       cropFilename,
-      plotSrc: plotFilename
-        ? buildApiUrl("/api/resource/image/dump", {
-            filename: plotFilename,
-            filetype: 4,
-          })
-        : "",
+      plotSrc: nail.plot
+        ? normalizeStoredImageUrl(nail.plot, 4)
+        : cropFilename
+          ? buildApiUrl("/api/resource/image/dump", {
+              filename: `plot_${cropFilename}`,
+              filetype: 4,
+            })
+          : "",
       aiRaw:
         typeof nail.ai === "string"
           ? nail.ai
@@ -320,7 +436,7 @@ function buildImageSlotsFromSeriesDetail(detail) {
             : "",
       extraUrls,
       extraPreviewUrl: extraUrls[0] ? normalizeStoredImageUrl(extraUrls[0], 2) : "",
-      psar: nail.psar ?? nail.psor ?? createEmptyPsar(),
+      psar: normalizedPsar,
     };
   }
 
@@ -374,6 +490,8 @@ export function AddOrEditPatientPage() {
     visitDate: getLocalDateTime(),
   });
   const [imageSlots, setImageSlots] = useState(createInitialSlots);
+  const [isPsoriasisEnabled, setIsPsoriasisEnabled] = useState(false);
+  const [psarEditor, setPsarEditor] = useState(null);
   const [noteText, setNoteText] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -507,7 +625,9 @@ export function AddOrEditPatientPage() {
         }
 
         setNoteText(detail.srl_patient_note ?? "");
-        setImageSlots(buildImageSlotsFromSeriesDetail(detail));
+        const nextSlots = buildImageSlotsFromSeriesDetail(detail);
+        setImageSlots(nextSlots);
+        setIsPsoriasisEnabled(Object.values(nextSlots).some((slot) => hasPsarSelections(slot.psar)));
         setPatientForm((current) => ({
           ...current,
           visitDate: formatDateTimeLocalValue(detail.srl_patient_seriesdate),
@@ -795,6 +915,127 @@ export function AddOrEditPatientPage() {
     }));
   }
 
+  function handlePsoriasisToggle(checked) {
+    setIsPsoriasisEnabled(checked);
+  }
+
+  function handleOpenPsarEditor(fingerKey, index) {
+    const slot = imageSlots[fingerKey];
+    if (!slot?.previewUrl) {
+      return;
+    }
+
+    const normalizedPsar = normalizePsar(slot.psar);
+    const indexKey = `index${index}`;
+
+    setPsarEditor({
+      fingerKey,
+      index,
+      matrixSelections: splitPsarValues(normalizedPsar[indexKey].matrix),
+      bedSelections: splitPsarValues(normalizedPsar[indexKey].bed),
+    });
+  }
+
+  function handleTogglePsarSelection(type, value) {
+    setPsarEditor((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const selectionKey = type === "matrix" ? "matrixSelections" : "bedSelections";
+      const alreadySelected = current[selectionKey].includes(value);
+
+      return {
+        ...current,
+        [selectionKey]: alreadySelected
+          ? current[selectionKey].filter((item) => item !== value)
+          : [...current[selectionKey], value],
+      };
+    });
+  }
+
+  function handleClosePsarEditor() {
+    setPsarEditor(null);
+  }
+
+  function handleSavePsarEditor() {
+    if (!psarEditor) {
+      return;
+    }
+
+    const { bedSelections, fingerKey, index, matrixSelections } = psarEditor;
+    const indexKey = `index${index}`;
+
+    setImageSlots((current) => {
+      const slot = current[fingerKey] ?? createEmptySlot();
+      const nextPsar = normalizePsar(slot.psar);
+
+      nextPsar[indexKey] = {
+        matrix: matrixSelections.join(","),
+        bed: bedSelections.join(","),
+      };
+      nextPsar.matrix = PSAR_SUMMARY_INDEX_ORDER.reduce(
+        (count, currentIndex) => count + (nextPsar[`index${currentIndex}`].matrix ? 1 : 0),
+        0
+      );
+      nextPsar.bed = PSAR_SUMMARY_INDEX_ORDER.reduce(
+        (count, currentIndex) => count + (nextPsar[`index${currentIndex}`].bed ? 1 : 0),
+        0
+      );
+
+      return {
+        ...current,
+        [fingerKey]: {
+          ...slot,
+          psar: nextPsar,
+        },
+      };
+    });
+
+    setIsPsoriasisEnabled(true);
+    setPsarEditor(null);
+  }
+
+  function handleAiClassChange(fingerKey, nextValue) {
+    setImageSlots((current) => {
+      const slot = current[fingerKey] ?? createEmptySlot();
+      const currentAi = getAiEditorState(slot.aiRaw);
+      const predictedClass =
+        nextValue === "Custom"
+          ? currentAi.customClass || currentAi.predictedClass
+          : nextValue;
+
+      return {
+        ...current,
+        [fingerKey]: {
+          ...slot,
+          aiRaw: JSON.stringify({
+            predicted_class: predictedClass,
+            probability: currentAi.probabilityPercent / 100,
+          }),
+        },
+      };
+    });
+  }
+
+  function handleAiCustomClassChange(fingerKey, nextValue) {
+    setImageSlots((current) => {
+      const slot = current[fingerKey] ?? createEmptySlot();
+      const currentAi = getAiEditorState(slot.aiRaw);
+
+      return {
+        ...current,
+        [fingerKey]: {
+          ...slot,
+          aiRaw: JSON.stringify({
+            predicted_class: nextValue || "Custom",
+            probability: currentAi.probabilityPercent / 100,
+          }),
+        },
+      };
+    });
+  }
+
   function openImageDetail(rawUrl) {
     if (!rawUrl || typeof window === "undefined") {
       return;
@@ -906,6 +1147,8 @@ export function AddOrEditPatientPage() {
   }
 
   function renderAssignedRows(fingers, sideLabel) {
+    const sideHasPsoriasis = fingers.some((finger) => isPsoriasisSlot(imageSlots[finger.key]));
+
     return (
       <>
         <tr>
@@ -932,6 +1175,58 @@ export function AddOrEditPatientPage() {
                   <div className="mx-auto flex h-[60px] w-full max-w-[84px] items-center justify-center rounded-sm bg-[#2a2a2a] text-[10px] text-white/35">
                     No Image
                   </div>
+                )}
+              </td>
+            );
+          })}
+        </tr>
+        <tr>
+          {fingers.map((finger) => {
+            const slot = imageSlots[finger.key];
+            const aiState = getAiEditorState(slot.aiRaw);
+            const hasImage = Boolean(slot.previewUrl);
+
+            return (
+              <td
+                key={`${finger.key}-ai`}
+                className="border-b border-white/5 px-1 py-1.5 align-top"
+                title={hasImage ? formatAiSummary(slot.aiRaw) : "No AI"}
+              >
+                {hasImage ? (
+                  <div className="space-y-1">
+                    <select
+                      className="h-7 w-full rounded border border-white/10 bg-[#454545] px-1.5 text-[10px] text-white"
+                      value={aiState.isStandard ? aiState.predictedClass : "Custom"}
+                      onChange={(event) => handleAiClassChange(finger.key, event.target.value)}
+                    >
+                      {AI_OPTIONS.map((option) => (
+                        <option key={`${finger.key}-${option}`} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      <option value="Custom">Others...</option>
+                    </select>
+
+                    {!aiState.isStandard ? (
+                      <input
+                        className="h-7 w-full rounded border border-white/10 bg-[#454545] px-1.5 text-[10px] text-white placeholder:text-white/30"
+                        placeholder="Type here..."
+                        type="text"
+                        value={aiState.customClass}
+                        onChange={(event) => handleAiCustomClassChange(finger.key, event.target.value)}
+                      />
+                    ) : null}
+
+                    <div className="flex items-center justify-between gap-1 text-[10px] text-white/60">
+                      <span className="whitespace-nowrap">[auc]</span>
+                      <span className="inline-flex h-6 min-w-14 items-center justify-end rounded border border-white/10 bg-[#454545] px-2 text-right text-[10px] text-white">
+                        {aiState.probabilityPercent.toFixed(2)}
+                      </span>
+                      <span>%</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-3 text-center text-[10px] text-white/30">No AI</div>
                 )}
               </td>
             );
@@ -1007,6 +1302,120 @@ export function AddOrEditPatientPage() {
             );
           })}
         </tr>
+        {isPsoriasisEnabled && sideHasPsoriasis ? (
+          <>
+            <tr>
+              {fingers.map((finger) => {
+                const isEligible = isPsoriasisSlot(imageSlots[finger.key]);
+
+                return (
+                  <td
+                    key={`${finger.key}-psar-title`}
+                    className={
+                      isEligible
+                        ? "border-t border-b border-white/10 bg-accent/70 px-1 py-1 text-center text-[10px] font-semibold text-white"
+                        : "border-t border-b border-white/10 bg-accent/20 px-1 py-1 text-center text-[10px] font-semibold text-white/25"
+                    }
+                  >
+                    NAPSI
+                  </td>
+                );
+              })}
+            </tr>
+            <tr>
+              {fingers.map((finger) => {
+                const slot = imageSlots[finger.key];
+                const isEligible = isPsoriasisSlot(slot);
+
+                return (
+                  <td key={`${finger.key}-psar-actions`} className="border-b border-white/5 px-1 py-1.5">
+                    <div className={isEligible ? "flex justify-center gap-1" : "flex justify-center gap-1 opacity-30"}>
+                      {PSAR_EDIT_INDEX_ORDER.map((index) => (
+                        <button
+                          key={`${finger.key}-psar-${index}`}
+                          className="inline-flex h-6 w-6 items-center justify-center rounded bg-[#6c757d] text-[10px] font-semibold text-white transition-colors hover:bg-[#5e666d] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/30"
+                          disabled={!isEligible}
+                          type="button"
+                          onClick={() => handleOpenPsarEditor(finger.key, index)}
+                        >
+                          {index}
+                        </button>
+                      ))}
+                    </div>
+                  </td>
+                );
+              })}
+            </tr>
+            <tr>
+              {fingers.map((finger) => {
+                const slot = imageSlots[finger.key];
+                const isEligible = isPsoriasisSlot(slot);
+                const psar = normalizePsar(slot.psar);
+
+                return (
+                  <td key={`${finger.key}-psar-summary`} className="border-b border-white/5 p-1 align-top">
+                    {isEligible ? (
+                      <table className="w-full text-[10px] text-white/75">
+                        <thead>
+                          <tr className="text-white/45">
+                            <th className="px-1 py-0.5">Ind</th>
+                            <th className="px-1 py-0.5">M</th>
+                            <th className="px-1 py-0.5">B</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {PSAR_SUMMARY_INDEX_ORDER.map((index) => {
+                            const indexKey = `index${index}`;
+
+                            return (
+                              <tr key={`${finger.key}-psar-summary-${index}`}>
+                                <td className="px-1 py-0.5 text-white/60">{index}</td>
+                                <td
+                                  className="px-1 py-0.5"
+                                  title={psar[indexKey].matrix || ""}
+                                >
+                                  {psar[indexKey].matrix ? "1" : "0"}
+                                </td>
+                                <td
+                                  className="px-1 py-0.5"
+                                  title={psar[indexKey].bed || ""}
+                                >
+                                  {psar[indexKey].bed ? "1" : "0"}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="border-t border-white/10 text-white/70">
+                          <tr>
+                            <td className="px-1 py-0.5 text-left" colSpan={2}>
+                              Matrix
+                            </td>
+                            <td className="px-1 py-0.5">{psar.matrix}</td>
+                          </tr>
+                          <tr>
+                            <td className="px-1 py-0.5 text-left" colSpan={2}>
+                              Bed
+                            </td>
+                            <td className="px-1 py-0.5">{psar.bed}</td>
+                          </tr>
+                          <tr>
+                            <td className="px-1 py-0.5 text-left" colSpan={2}>
+                              Total
+                            </td>
+                            <td className="px-1 py-0.5">{psar.matrix + psar.bed}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    ) : (
+                      <div className="py-3 text-center text-[10px] text-white/25">Normal</div>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          </>
+        ) : null}
       </>
     );
   }
@@ -1099,6 +1508,12 @@ export function AddOrEditPatientPage() {
 
     router.push("/app");
   }
+
+  const psarEditorSlot = psarEditor ? imageSlots[psarEditor.fingerKey] : null;
+  const psarEditorFinger = psarEditor
+    ? ALL_FINGERS.find((finger) => finger.key === psarEditor.fingerKey) ?? null
+    : null;
+  const psarPreviewSrc = psarEditorSlot?.plotSrc || psarEditorSlot?.previewUrl || "";
 
   return (
     <WorkspacePage>
@@ -1560,12 +1975,29 @@ export function AddOrEditPatientPage() {
 
           {registrationTab === "images" ? (
             <section className="flex min-h-0 flex-1 flex-col rounded-sm border border-white/10 bg-black/10 p-4">
-              <div className="mb-3">
-                <h4 className="text-sm font-semibold text-white">2. Image Datas</h4>
-                <p className="mt-1 text-xs text-white/50">
-                  선택된 crop 이미지를 손가락별로 확인하고 extra 이미지를 추가하세요.
-                </p>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-white">2. Image Datas</h4>
+                  <p className="mt-1 text-xs text-white/50">
+                    선택된 crop 이미지를 손가락별로 확인하고 extra 이미지를 추가하세요.
+                  </p>
+                </div>
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-sm border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/80">
+                  <input
+                    checked={isPsoriasisEnabled}
+                    className="size-3.5 accent-primary"
+                    type="checkbox"
+                    onChange={(event) => handlePsoriasisToggle(event.target.checked)}
+                  />
+                  <span>nail psoriasis</span>
+                </label>
               </div>
+
+              {isPsoriasisEnabled ? (
+                <div className="mb-3 text-[11px] text-white/45">
+                  AI 결과가 <span className="font-semibold text-white/70">Psoriasis</span>인 손가락과 기존 NAPSI 값이 있는 손가락만 편집할 수 있습니다.
+                </div>
+              ) : null}
 
               <div className="min-h-0 flex-1 overflow-auto rounded-sm border border-white/10">
                 <table className="w-full text-center text-xs text-white">
@@ -1596,6 +2028,162 @@ export function AddOrEditPatientPage() {
           ) : null}
         </WorkspacePanel>
       </div>
+
+      {psarEditor ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={handleClosePsarEditor}
+        >
+          <div
+            className="w-full max-w-4xl rounded-sm border border-white/10 bg-[#3c3c3c] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Psoriasis</h3>
+                <p className="mt-1 text-sm text-white/55">
+                  {psarEditorFinger
+                    ? `${psarEditorFinger.sideLabel} ${psarEditorFinger.label} · Position ${psarEditor.index}`
+                    : `Position ${psarEditor.index}`}
+                </p>
+              </div>
+              <button
+                className="inline-flex h-8 w-8 items-center justify-center rounded bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                type="button"
+                onClick={handleClosePsarEditor}
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="grid gap-4 p-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+              <div className="space-y-3">
+                <div className="flex h-[220px] items-center justify-center rounded-sm border border-white/10 bg-black/15">
+                  {psarPreviewSrc ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt="psoriasis plot"
+                        className="max-h-full max-w-full cursor-zoom-in object-contain"
+                        src={psarPreviewSrc}
+                        onClick={() => openImageDetail(psarPreviewSrc)}
+                      />
+                    </>
+                  ) : (
+                    <span className="text-xs text-white/35">No plot image</span>
+                  )}
+                </div>
+                <Button
+                  className="w-full bg-[#6c757d] text-white hover:bg-[#5e666d]"
+                  disabled={!psarPreviewSrc}
+                  type="button"
+                  onClick={() => openImageDetail(psarPreviewSrc)}
+                >
+                  <ZoomIn className="size-4" />
+                  Detail
+                </Button>
+              </div>
+
+              <div className="grid gap-4">
+                <div className="rounded-sm border border-white/10 bg-black/10 p-4">
+                  <div className="mb-3 text-sm font-semibold text-white">Matrix</div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {PSAR_MATRIX_OPTIONS.map((option) => {
+                      const isSelected = psarEditor.matrixSelections.includes(option);
+
+                      return (
+                        <button
+                          key={`matrix-${option}`}
+                          className={
+                            isSelected
+                              ? "rounded-sm border border-primary bg-primary/20 px-3 py-2 text-left text-xs font-semibold text-white"
+                              : "rounded-sm border border-white/10 bg-white/5 px-3 py-2 text-left text-xs text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                          }
+                          type="button"
+                          onClick={() => handleTogglePsarSelection("matrix", option)}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 flex min-h-10 flex-wrap gap-2">
+                    {psarEditor.matrixSelections.length > 0 ? (
+                      psarEditor.matrixSelections.map((value) => (
+                        <button
+                          key={`matrix-chip-${value}`}
+                          className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/15 px-2.5 py-1 text-[11px] text-white"
+                          type="button"
+                          onClick={() => handleTogglePsarSelection("matrix", value)}
+                        >
+                          <span>{value}</span>
+                          <X className="size-3" />
+                        </button>
+                      ))
+                    ) : (
+                      <span className="text-xs text-white/35">선택된 Matrix 항목이 없습니다.</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-sm border border-white/10 bg-black/10 p-4">
+                  <div className="mb-3 text-sm font-semibold text-white">Bed</div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {PSAR_BED_OPTIONS.map((option) => {
+                      const isSelected = psarEditor.bedSelections.includes(option);
+
+                      return (
+                        <button
+                          key={`bed-${option}`}
+                          className={
+                            isSelected
+                              ? "rounded-sm border border-primary bg-primary/20 px-3 py-2 text-left text-xs font-semibold text-white"
+                              : "rounded-sm border border-white/10 bg-white/5 px-3 py-2 text-left text-xs text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                          }
+                          type="button"
+                          onClick={() => handleTogglePsarSelection("bed", option)}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-3 flex min-h-10 flex-wrap gap-2">
+                    {psarEditor.bedSelections.length > 0 ? (
+                      psarEditor.bedSelections.map((value) => (
+                        <button
+                          key={`bed-chip-${value}`}
+                          className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/15 px-2.5 py-1 text-[11px] text-white"
+                          type="button"
+                          onClick={() => handleTogglePsarSelection("bed", value)}
+                        >
+                          <span>{value}</span>
+                          <X className="size-3" />
+                        </button>
+                      ))
+                    ) : (
+                      <span className="text-xs text-white/35">선택된 Bed 항목이 없습니다.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-white/10 px-5 py-4">
+              <Button
+                className="bg-[#6c757d] text-white hover:bg-[#5e666d]"
+                type="button"
+                onClick={handleClosePsarEditor}
+              >
+                Close
+              </Button>
+              <Button type="button" onClick={handleSavePsarEditor}>
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </WorkspacePage>
   );
 }

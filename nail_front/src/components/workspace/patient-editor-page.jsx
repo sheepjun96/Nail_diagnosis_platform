@@ -443,6 +443,17 @@ export function PatientEditorPage({
       return;
     }
 
+    const confirmed = await showConfirm({
+      title: "환자 정보를 저장하시겠습니까?",
+      text: "현재 수정한 환자 기본 정보가 저장됩니다.",
+      confirmButtonText: "저장",
+      cancelButtonText: "취소",
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
     setIsSavingPatient(true);
     setViewerError("");
 
@@ -477,6 +488,17 @@ export function PatientEditorPage({
 
   async function handleSaveNote() {
     if (!stlSeq || !selectedSeriesId) {
+      return;
+    }
+
+    const confirmed = await showConfirm({
+      title: "노트를 저장하시겠습니까?",
+      text: "현재 시리즈의 Patient Note 변경사항이 저장됩니다.",
+      confirmButtonText: "저장",
+      cancelButtonText: "취소",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -560,8 +582,9 @@ export function PatientEditorPage({
         action={
           <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
             <Button
-              className="h-9 bg-[#6c757d] px-3 text-xs text-white hover:bg-[#5e666d]"
+              className="h-9 px-3 text-xs text-white hover:bg-[#5e666d]"
               type="button"
+              color="error"
               onClick={handleGoBack}
             >
               <ArrowLeft className="size-4" />
@@ -581,6 +604,7 @@ export function PatientEditorPage({
               className="w-full bg-[#6c757d] text-white hover:bg-[#5e666d]"
               disabled={!stlSeq || isSavingPatient}
               type="button"
+              color="secondary"
               onClick={handleSavePatient}
             >
               {isSavingPatient ? "Saving..." : "Patient Modify"}
@@ -746,6 +770,7 @@ export function PatientEditorPage({
               className="w-full bg-[#6c757d] text-white hover:bg-[#5e666d]"
               disabled={!selectedSeriesId || isSavingNote}
               type="button"
+              color="secondary"
               onClick={handleSaveNote}
             >
               {isSavingNote ? "Saving..." : "Image & Note Modify"}

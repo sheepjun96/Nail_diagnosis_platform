@@ -401,7 +401,9 @@ export default function AppHomePage() {
                 onChange={(event) => setSearchInput(event.target.value)}
               />
               <Button
-                className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
+                className="shrink-0"
+                color="primary"
+                variant="outlined"
                 type="submit"
               >
                 <Search className="size-4" />
@@ -413,7 +415,7 @@ export default function AppHomePage() {
           {/* study 목록 */}
           <WorkspacePanel
             title="Study List"
-            action={<WorkspaceActionLink href="/app/add">Add</WorkspaceActionLink>}
+            action={<WorkspaceActionLink href="/app/add" variant="secondary" >+ Add</WorkspaceActionLink>}
             contentClassName="flex min-h-0 flex-1 flex-col"
             footer={
               <WorkspacePagination
@@ -508,9 +510,10 @@ export default function AppHomePage() {
             action={
               <div className="flex items-center gap-2">
                 <Button
-                  className="h-8 bg-[#6c757d] px-3 text-xs text-white hover:bg-[#5e666d]"
+                  className="h-8 px-3 text-xs text-white hover:bg-[#5e666d]"
                   disabled={!selectedSeries}
                   type="button"
+                  color="secondary"
                   onClick={handleOpenEdit}
                 >
                   Edit Series
