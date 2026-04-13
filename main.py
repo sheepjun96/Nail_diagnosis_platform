@@ -9,6 +9,7 @@ from typing import Optional
 import json, os, shutil, pymysql
 from pathlib import Path
 
+from auth import close_auth_resources, init_auth_resources, require_login
 from config import CONFIG_DIR, ensure_directories
 from db import init_db, close_db
 
@@ -20,12 +21,14 @@ async def lifespan(app: FastAPI):
     # --- 앱 시작 시 실행 (startup 대체) ---
     ensure_directories()
     await init_db(app)
+    await init_auth_resources(app)
 
     try:
         yield
     finally:
         # 앱 종료 시
         print("[SHUTDOWN] FastAPI 서버 종료 중...")
+        await close_auth_resources(app)
         await close_db(app)    
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -66,15 +69,12 @@ from router.app_private import router as app_private
 from router.app_public import router as app_public
 
 from router.api_ai import router as api_ai
+from router.api_auth import router as api_auth
 from router.api_public import router as api_public
 from router.api_private import router as api_private
 
-def require_login():
-    # 로그인 쿠키/세션 검사 로직
-    # if not ok: raise HTTPException(status_code=401)
-    return True
-
 app.include_router(api_private, dependencies=[Depends(require_login)])
+app.include_router(api_auth)
 app.include_router(api_public)
 
 app.include_router(app_private, dependencies=[Depends(require_login)])

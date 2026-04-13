@@ -647,13 +647,13 @@ export default function AppHomePage() {
               </span>
               {selectedSeries ? <span>{selectedSeries.diagnosis}</span> : null}
             </div>
-            <div className="grid min-h-0 gap-4 md:grid-cols-2 2xl:grid-cols-1 2xl:grid-rows-2">
+            <div className="flex min-h-0 flex-1 flex-col gap-4">
               {PREVIEW_SECTIONS.map((section) => (
                 <div
                   key={section[0].key}
-                  className="min-h-0 overflow-auto rounded-sm border border-white/10"
+                  className="w-full min-h-0 overflow-x-auto rounded-sm border border-white/10"
                 >
-                  <table className="workspace-table">
+                  <table className="workspace-table min-w-[420px]">
                     <thead>
                       <tr>
                         {section.map((finger) => (
@@ -673,13 +673,13 @@ export default function AppHomePage() {
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
                                     alt={finger.label}
-                                    className="mx-auto block h-[60px] max-w-full cursor-zoom-in object-contain"
+                                    className="mx-0 block h-[60px] max-w-full cursor-zoom-in object-contain"
                                     onClick={() => openImageDetailBySrc(previewItem.imageSrc)}
                                     src={previewItem.imageSrc}
                                   />
                                 </>
                               ) : (
-                                <div className="mx-auto flex h-16 w-full max-w-[84px] items-center justify-center rounded-sm bg-[#2a2a2a] text-[11px] text-white/40">
+                                <div className="mx-0 flex h-[60px] w-full max-w-[60px] items-center justify-center rounded-sm bg-[#2a2a2a] text-[11px] text-white/40">
                                   No Image
                                 </div>
                               )}

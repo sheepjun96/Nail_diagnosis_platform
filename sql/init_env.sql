@@ -1,59 +1,5 @@
 USE curaxel_skin;
 
-CREATE TABLE `member` (
-  `m_seq` int NOT NULL AUTO_INCREMENT COMMENT 'member sequence number',
-  `mr_seq` int NOT NULL COMMENT 'FK: member_role sequence number',
-  `m_name` varchar(10) NOT NULL COMMENT '이름',
-  `m_email` varchar(100) NOT NULL COMMENT '이메일',
-  `m_password` varchar(200) NOT NULL COMMENT '패스워드',
-  `m_salt` varchar(35) NOT NULL COMMENT 'salt',
-  `m_allow` varchar(2) NOT NULL DEFAULT 'N',
-  `m_description` varchar(1000) DEFAULT '',
-  `m_reg_date` datetime DEFAULT NULL COMMENT '등록일',
-  `m_upd_date` datetime DEFAULT NULL COMMENT '수정일',
-  `m_del_yn` char(1) DEFAULT 'N',
-  `m_last_login_date` datetime DEFAULT NULL,
-  `m_password_expiry_date` datetime DEFAULT NULL,
-  `m_must_change_password` TINYINT(1) NULL DEFAULT NULL COMMENT '비밀번호 변경 필요 여부 (1: 변경 필요, 0: 변경 완료)',
-  PRIMARY KEY (`m_seq`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO member 
-(mr_seq, m_name, m_email, m_password, m_salt, m_allow, m_description, m_reg_date, m_upd_date, m_del_yn, m_last_login_date, m_password_expiry_date, m_must_change_password)
-VALUES
-(0, 'admin', 'admin@gachon.ac.kr', 'sha:123456789', 'asd15a63sd', 'Y', 'Admin only', '2025-01-17 10:12:00', '2025-01-17 10:12:00', 'N', '2025-01-17 10:12:00', '2026-01-17 10:12:00', 0);
-
-/*
-Role
-0 : Root - Just One
-1 : System Admin - Any
-2 : Project Manager
-3 : Reader
-4 : Researcher
-99 : User
-*/
-CREATE TABLE `member_role` (
-  `mr_index` int NOT NULL AUTO_INCREMENT COMMENT 'member role index',
-  `mr_seq` int NOT NULL COMMENT 'FK: member role number',
-  `mr_name` varchar(30) NOT NULL COMMENT '권한명',
-  `mr_reg_date` datetime DEFAULT NULL COMMENT '등록일',
-  `mr_upd_date` datetime DEFAULT NULL COMMENT '수정일',
-  `description` varchar(1000) DEFAULT '',
-  `del_yn` char(1) DEFAULT 'N',
-  PRIMARY KEY (`mr_index`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT INTO member_role 
-(mr_seq, mr_name, mr_reg_date, mr_upd_date, description, del_yn)
-VALUES
-(0, 'Admin', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '관리자 Only', 'N'),
-(1, 'Project Admin', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '시스템 관리자', 'N'),
-(2, 'Project Manager', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '프로젝트 관리자', 'N'),
-(3, 'Reader', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '팀장', 'N'),
-(4, 'Researcher', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '연구원', 'N'),
-(99, 'User', '2025-11-26 09:00:00', '2025-11-26 09:00:00', '유저', 'N')
-;
-
 
 CREATE TABLE `project_list` (
 	`project_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',

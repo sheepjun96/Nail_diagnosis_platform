@@ -32,6 +32,8 @@ dependencies = [
      "requests>=2.31.0",
      "scipy>=1.11.0",
      "cryptography>=46.0.3",
+     "PyJWT>=2.10.1",
+     "redis>=6.4.0",
 ]
 
 [tool.setuptools.packages.find]

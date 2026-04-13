@@ -6,6 +6,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+ai_models
+static
+nail_front
+run
+test
+patient_data.json
 nail_front/node_modules
 nail_front/.next
 dist

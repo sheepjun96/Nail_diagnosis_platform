@@ -8,12 +8,8 @@ from config import CONFIG_DIR
 router = APIRouter(prefix="/api", tags=["api-private"])
 SAVE_NAIL_DIR = CONFIG_DIR["nail"]
 
-from router.models.member import router as member_api
 from router.models.resource import router as resource_api
 from router.models.resource_viewer import router as resource_viewer_api 
-
-# Member : list(add, del, mod), member role
-router.include_router(member_api)
 
 # Resource : study, series, detail, (file upload)
 router.include_router(resource_api)

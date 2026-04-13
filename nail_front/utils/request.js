@@ -1,7 +1,7 @@
 import { appendQueryString } from "@utils/query";
 
 // 기본 API 기본 URL을 설정합니다.
-const DEFAULT_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const DEFAULT_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
 
 // API URL을 생성합니다.
 export function buildApiUrl(path, query = {}, baseUrl = DEFAULT_API_BASE_URL) {
@@ -12,7 +12,11 @@ export function buildApiUrl(path, query = {}, baseUrl = DEFAULT_API_BASE_URL) {
     return url;
   }
 
-  return `${baseUrl.replace(/\/$/, "")}${url}`;
+  const normalizedBase = baseUrl.replace(/\/$/, "");
+  if (normalizedBase.endsWith("/api") && normalizedPath.startsWith("/api/")) {
+    return `${normalizedBase}${url.replace(/^\/api/, "")}`;
+  }
+  return `${normalizedBase}${url}`;
 }
 
 // 응답 본문을 파싱합니다.

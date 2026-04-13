@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { LogoutButton } from "@/components/auth/logout-button";
 import {
   ChevronDown,
   FilePenLine,
@@ -96,8 +97,10 @@ function SidebarSection({ title, items, icon: SectionIcon, pathname, defaultOpen
   );
 }
 
-export function WorkspaceShell({ children }) {
+export function WorkspaceShell({ children, member }) {
   const pathname = usePathname();
+  const roleLabel = member?.role_name || member?.code || "사용자";
+  const displayName = member?.name || member?.email || "Unknown User";
 
   return (
     <div className="flex h-svh overflow-hidden bg-background text-foreground">
@@ -128,10 +131,11 @@ export function WorkspaceShell({ children }) {
           <div className="flex items-center justify-end gap-4">
             <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white">
               <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">
-                임상의
+                {roleLabel}
               </span>
-              <span>Douglas McGee</span>
+              <span>{displayName}</span>
             </div>
+            <LogoutButton />
           </div>
         </header>
 
