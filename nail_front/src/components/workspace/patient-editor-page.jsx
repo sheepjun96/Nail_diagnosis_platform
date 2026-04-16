@@ -773,7 +773,7 @@ export function PatientEditorPage({
               color="secondary"
               onClick={handleSaveNote}
             >
-              {isSavingNote ? "Saving..." : "Image & Note Modify"}
+              {isSavingNote ? "Saving..." : "Note Modify"}
             </Button>
           }
         >
@@ -859,7 +859,7 @@ export function PatientEditorPage({
             ))}
           </div>
 
-          <div className="grid min-h-0 flex-1 gap-2 rounded-sm border border-white/10 bg-black/10 p-4">
+          <div className="grid overflow-y-auto min-h-0 flex-1 gap-2 rounded-sm border border-white/10 bg-black/10 p-4">
             <div className="text-sm font-semibold text-white">Patient Note</div>
             <textarea
               className="workspace-input min-h-[12rem] w-full resize-y rounded-md border px-3 py-2 text-sm outline-none"

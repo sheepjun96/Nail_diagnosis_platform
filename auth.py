@@ -29,7 +29,7 @@ GACHON_AUTH_DB_CONFIG = {
     "charset": "utf8mb4",
 }
 
-
+# 인증 설정 확인
 def _auth_is_configured() -> bool:
     required_values = [
         os.getenv("GACHON_AUTH_DB_USER"),
@@ -39,35 +39,35 @@ def _auth_is_configured() -> bool:
     ]
     return all(required_values)
 
-
+# 쿠키 보안 설정
 def _cookie_secure(request: Request) -> bool:
     forwarded_proto = request.headers.get("x-forwarded-proto", request.url.scheme)
     scheme = forwarded_proto.split(",")[0].strip()
     return scheme == "https"
 
-
+# 인증 에러
 def _auth_error(detail: str, status_code: int = status.HTTP_401_UNAUTHORIZED) -> HTTPException:
     return HTTPException(status_code=status_code, detail=detail)
 
-
+# 레디스 클라이언트
 def _get_redis(request: Request) -> Redis:
     redis_client = getattr(request.app.state, "gachon_redis", None)
     if redis_client is None:
         raise _auth_error("Gachon shared auth is not configured.", status.HTTP_500_INTERNAL_SERVER_ERROR)
     return redis_client
 
-
+# 레디스 클라이언트 (옵션)
 def _get_optional_redis(request: Request) -> Optional[Redis]:
     return getattr(request.app.state, "gachon_redis", None)
 
-
+# 인증 DB 풀
 def _get_auth_pool(request: Request) -> aiomysql.Pool:
     pool = getattr(request.app.state, "gachon_auth_db_pool", None)
     if pool is None:
         raise _auth_error("Gachon shared auth is not configured.", status.HTTP_500_INTERNAL_SERVER_ERROR)
     return pool
 
-
+# 인증 리소스 초기화
 async def init_auth_resources(app) -> None:
     app.state.gachon_auth_db_pool = None
     app.state.gachon_redis = None
@@ -82,7 +82,7 @@ async def init_auth_resources(app) -> None:
         decode_responses=True,
     )
 
-
+# 인증 리소스 해제
 async def close_auth_resources(app) -> None:
     auth_pool = getattr(app.state, "gachon_auth_db_pool", None)
     if auth_pool is not None:
@@ -93,7 +93,7 @@ async def close_auth_resources(app) -> None:
     if redis_client is not None:
         await redis_client.aclose()
 
-
+# 시퀀스로 회원 정보 조회
 async def _get_member_by_seq(request: Request, m_seq: int) -> Optional[dict[str, Any]]:
     pool = _get_auth_pool(request)
     query = """
@@ -127,7 +127,7 @@ async def _get_member_by_seq(request: Request, m_seq: int) -> Optional[dict[str,
             await cur.execute(query, (m_seq,))
             return await cur.fetchone()
 
-
+# 캐시된 토큰 디코딩
 async def _decode_cached_token(
     request: Request,
     token_type: str,
@@ -159,7 +159,7 @@ async def _decode_cached_token(
         "member": member_data,
     }
 
-
+# 회원 정보 반환
 def _sanitize_member(member: dict[str, Any]) -> dict[str, Any]:
     return {
         "m_seq": member.get("m_seq"),
@@ -179,7 +179,7 @@ def _sanitize_member(member: dict[str, Any]) -> dict[str, Any]:
         ),
     }
 
-
+# 인증된 회원 정보 반환
 async def get_authenticated_member(request: Request) -> dict[str, Any]:
     access_token_code = request.cookies.get("access_token") or request.headers.get("access_token")
     token_payload = await _decode_cached_token(request, "access", access_token_code)
@@ -197,23 +197,23 @@ async def get_authenticated_member(request: Request) -> dict[str, Any]:
     }
     return member
 
-
+# 인증된 회원 정보 반환 (옵션)
 async def get_optional_member(request: Request) -> Optional[dict[str, Any]]:
     try:
         return await get_authenticated_member(request)
     except HTTPException:
         return None
 
-
+# 로그인 필수
 async def require_login(request: Request) -> dict[str, Any]:
     return await get_authenticated_member(request)
 
-
+# 인증 쿠키 삭제
 def clear_auth_cookies(response) -> None:
     response.delete_cookie("access_token", path="/")
     response.delete_cookie("refresh_token", path="/")
 
-
+# 공유 세션 삭제
 async def clear_shared_session(request: Request, member: Optional[dict[str, Any]] = None) -> None:
     redis_client = _get_optional_redis(request)
     if redis_client is None:
@@ -239,11 +239,11 @@ async def clear_shared_session(request: Request, member: Optional[dict[str, Any]
     if delete_keys:
         await redis_client.delete(*delete_keys)
 
-
+# SSO 티켓 조회 후 티켓 삭제
 async def consume_sso_ticket(request: Request, ticket: str) -> Optional[dict[str, Any]]:
     if not ticket:
         return None
-
+    
     redis_client = _get_optional_redis(request)
     if redis_client is None:
         return None
@@ -265,7 +265,7 @@ async def consume_sso_ticket(request: Request, ticket: str) -> Optional[dict[str
 
     return decoded
 
-
+# 쿠키 옵션 빌드
 def build_cookie_options(request: Request, max_age: int) -> dict[str, Any]:
     return {
         "httponly": True,
@@ -275,7 +275,7 @@ def build_cookie_options(request: Request, max_age: int) -> dict[str, Any]:
         "path": "/",
     }
 
-
+# 가천 SSO 시작 URL 빌드
 def build_gachon_sso_start_url(request: Request) -> str:
     base_url = os.getenv("GACHON_BASE_URL", "http://10.2.52.209").rstrip("/")
     public_base_url = os.getenv("NAIL_PUBLIC_BASE_URL", "").rstrip("/")

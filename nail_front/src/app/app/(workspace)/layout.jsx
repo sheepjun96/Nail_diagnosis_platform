@@ -5,6 +5,5 @@ export const dynamic = "force-dynamic";
 
 export default async function WorkspaceLayout({ children }) {
   const member = await getSessionOrRedirect();
-
   return <WorkspaceShell member={member}>{children}</WorkspaceShell>;
 }

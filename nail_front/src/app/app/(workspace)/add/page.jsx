@@ -479,6 +479,13 @@ export function AddOrEditPatientPage() {
     message: "",
     filename: "",
   });
+  const [multiUploadState, setMultiUploadState] = useState({
+    isActive: false,
+    files: [],
+    completedCount: 0,
+    totalCount: 0,
+    currentFileName: "",
+  });
   const originUploadStatusRef = useRef(originUploadStatus);
 
   const [patientForm, setPatientForm] = useState({
@@ -779,47 +786,147 @@ export function AddOrEditPatientPage() {
     }
   }
 
-  async function handleOriginUploadChange(event) {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    setIsUploadingOrigin(true);
-    setOriginError("");
-    setOriginUploadStatus({
-      type: "uploading",
-      message: "이미지를 업로드하는 중입니다. 잠시만 기다려주세요.",
-      filename: file.name,
-    });
-
-    try {
+  function uploadSingleFileWithProgress(file, apiBaseUrl) {
+    return new Promise((resolve, reject) => {
       const formData = new FormData();
       formData.append("type", "gcubme");
       formData.append("file", file);
 
-      const data = await postForm("/api/upload", formData);
-      const uploadedFilename = data?.filename ?? file.name;
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", buildApiUrl("/api/upload"), true);
+      xhr.withCredentials = true;
 
-      setOriginUploadStatus({
-        type: "refreshing",
-        message: "업로드가 완료되었습니다. 목록에 반영하는 중입니다.",
-        filename: uploadedFilename,
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable) {
+          const percent = Math.round((event.loaded / event.total) * 100);
+          setMultiUploadState((prev) => ({
+            ...prev,
+            files: prev.files.map((f) =>
+              f.name === file.name ? { ...f, progress: percent } : f
+            ),
+          }));
+        }
       });
-      setOriginPage(1);
-      setOriginReloadKey((current) => current + 1);
-    } catch (error) {
-      console.error("Failed to upload origin image", error);
-      setOriginError("이미지 업로드에 실패했습니다.");
+
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch {
+            resolve({ filename: file.name });
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener("error", () => reject(new Error("Network error during upload")));
+      xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+
+      xhr.send(formData);
+    });
+  }
+
+  async function handleOriginUploadChange(event) {
+    const fileList = event.target.files;
+    if (!fileList || fileList.length === 0) {
+      return;
+    }
+
+    const files = Array.from(fileList);
+    const fileEntries = files.map((f) => ({
+      name: f.name,
+      progress: 0,
+      status: "pending",
+    }));
+
+    setIsUploadingOrigin(true);
+    setOriginError("");
+    setMultiUploadState({
+      isActive: true,
+      files: fileEntries,
+      completedCount: 0,
+      totalCount: files.length,
+      currentFileName: files[0].name,
+    });
+    setOriginUploadStatus({
+      type: "uploading",
+      message: `${files.length}개의 이미지를 업로드하는 중입니다.`,
+      filename: "",
+    });
+
+    let lastUploadedFilename = "";
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      setMultiUploadState((prev) => ({
+        ...prev,
+        currentFileName: file.name,
+        files: prev.files.map((f) =>
+          f.name === file.name ? { ...f, status: "uploading", progress: 0 } : f
+        ),
+      }));
+
+      try {
+        const data = await uploadSingleFileWithProgress(file);
+        lastUploadedFilename = data?.filename ?? file.name;
+        successCount++;
+
+        setMultiUploadState((prev) => ({
+          ...prev,
+          completedCount: prev.completedCount + 1,
+          files: prev.files.map((f) =>
+            f.name === file.name ? { ...f, status: "success", progress: 100 } : f
+          ),
+        }));
+      } catch (error) {
+        console.error(`Failed to upload ${file.name}`, error);
+        failCount++;
+
+        setMultiUploadState((prev) => ({
+          ...prev,
+          completedCount: prev.completedCount + 1,
+          files: prev.files.map((f) =>
+            f.name === file.name ? { ...f, status: "error", progress: 0 } : f
+          ),
+        }));
+      }
+    }
+
+    event.target.value = "";
+
+    if (failCount === files.length) {
+      setOriginError("모든 이미지 업로드에 실패했습니다.");
       setOriginUploadStatus({
         type: "error",
-        message: "이미지 업로드에 실패했습니다.",
-        filename: file.name,
+        message: "모든 이미지 업로드에 실패했습니다.",
+        filename: "",
       });
-    } finally {
-      event.target.value = "";
+      setMultiUploadState((prev) => ({ ...prev, isActive: false }));
       setIsUploadingOrigin(false);
+      return;
     }
+
+    const summaryMsg = failCount > 0
+      ? `${successCount}개 성공, ${failCount}개 실패`
+      : `${successCount}개 업로드 완료`;
+
+    setOriginUploadStatus({
+      type: "refreshing",
+      message: `${summaryMsg}. 목록에 반영하는 중입니다.`,
+      filename: lastUploadedFilename,
+    });
+    setOriginPage(1);
+    setOriginReloadKey((current) => current + 1);
+
+    setTimeout(() => {
+      setMultiUploadState((prev) => ({ ...prev, isActive: false }));
+      setIsUploadingOrigin(false);
+    }, 1500);
   }
 
   function handleAssignFinger(fingerKey) {
@@ -1682,6 +1789,7 @@ export function AddOrEditPatientPage() {
                   ref={uploadInputRef}
                   accept="image/*"
                   className="hidden"
+                  multiple
                   type="file"
                   onChange={handleOriginUploadChange}
                 />
@@ -1708,12 +1816,55 @@ export function AddOrEditPatientPage() {
               <div className="relative min-h-0 flex-1 overflow-auto rounded-sm border border-white/10">
                 {originUploadStatus.type === "uploading" || originUploadStatus.type === "refreshing" ? (
                   <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">
-                    <div className="rounded-sm border border-white/10 bg-[#2f2f2f]/95 px-4 py-3 text-center text-xs text-white shadow-lg">
+                    <div className="w-[90%] max-w-[320px] rounded-sm border border-white/10 bg-[#2f2f2f]/95 px-4 py-3 text-xs text-white shadow-lg">
                       <div className="flex items-center justify-center gap-2 font-semibold">
                         <LoaderCircle className="size-4 animate-spin text-primary" />
-                        {originUploadStatus.type === "uploading" ? "업로드 중" : "목록 반영 중"}
+                        {originUploadStatus.type === "uploading"
+                          ? `업로드 중 (${multiUploadState.completedCount}/${multiUploadState.totalCount})`
+                          : "목록 반영 중"}
                       </div>
-                      <div className="mt-2 text-white/70">{originUploadStatus.message}</div>
+                      {multiUploadState.isActive && multiUploadState.files.length > 0 ? (
+                        <div className="mt-3 max-h-[180px] space-y-2 overflow-auto pr-1">
+                          {multiUploadState.files.map((fileEntry) => (
+                            <div key={fileEntry.name} className="space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="max-w-[180px] truncate text-[10px] text-white/80" title={fileEntry.name}>
+                                  {fileEntry.name}
+                                </span>
+                                <span className="shrink-0 text-[10px]">
+                                  {fileEntry.status === "success" ? (
+                                    <span className="flex items-center gap-1 text-green-400">
+                                      <CheckCircle2 className="size-3" /> 완료
+                                    </span>
+                                  ) : fileEntry.status === "error" ? (
+                                    <span className="flex items-center gap-1 text-red-400">
+                                      <AlertCircle className="size-3" /> 실패
+                                    </span>
+                                  ) : fileEntry.status === "uploading" ? (
+                                    <span className="text-primary">{fileEntry.progress}%</span>
+                                  ) : (
+                                    <span className="text-white/40">대기</span>
+                                  )}
+                                </span>
+                              </div>
+                              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                                <div
+                                  className={
+                                    fileEntry.status === "error"
+                                      ? "h-full rounded-full bg-red-500 transition-all duration-300"
+                                      : fileEntry.status === "success"
+                                        ? "h-full rounded-full bg-green-500 transition-all duration-300"
+                                        : "h-full rounded-full bg-primary transition-all duration-300"
+                                  }
+                                  style={{ width: `${fileEntry.status === "error" ? 100 : fileEntry.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-center text-white/70">{originUploadStatus.message}</div>
+                      )}
                     </div>
                   </div>
                 ) : null}

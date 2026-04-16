@@ -2,6 +2,7 @@
 
 import {
   WorkspaceActionLink,
+  WorkspaceActionButton,
   WorkspacePage,
   WorkspacePageHeader,
   WorkspacePanel,
@@ -18,12 +19,12 @@ import {
   formatGender,
   mapPreviewItems,
 } from "@utils";
-import { getJson, postJson } from "@utils/request";
+import { getJson, postForm, postJson } from "@utils/request";
 import useConfirmDialog from "@utils/useConfirmDialog";
 import { useRouter } from "next/navigation";
 import { Loader2, Search, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";  
+// import CloseIcon from '@mui/icons-material/Close';
 const STUDY_ROWS = 20;
 const studyTableColumns = [
   "No",
@@ -53,7 +54,9 @@ function mapStudyRow(item) {
     patientId: formatEmpty(item.stl_patient_id),
     patientName: formatEmpty(item.stl_patient_name),
     gender: formatGender(item.stl_patient_gender),
+    genderRaw: item.stl_patient_gender ?? "",
     birthday: formatDate(item.stl_patient_birthdate),
+    birthdayRaw: item.stl_patient_birthdate ?? "",
     importedAt: formatDateTime(item.stl_patient_recentdate),
     studyDate: formatDate(item.stl_patient_studydate),
     tags: formatEmpty(item.stl_patient_tag),
@@ -87,6 +90,14 @@ export default function AppHomePage() {
   const [isLoadingSeries, setIsLoadingSeries] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isDeletingPatient, setIsDeletingPatient] = useState(false);
+  const [isEditPatientOpen, setIsEditPatientOpen] = useState(false);
+  const [isSavingPatient, setIsSavingPatient] = useState(false);
+  const [editPatientForm, setEditPatientForm] = useState({
+    patientId: "",
+    patientName: "",
+    patientGender: "",
+    patientBirthdate: "",
+  });
   const [deletingSeriesId, setDeletingSeriesId] = useState(null);
   const [studyRefreshKey, setStudyRefreshKey] = useState(0);
   const [seriesRefreshKey, setSeriesRefreshKey] = useState(0);
@@ -207,6 +218,13 @@ export default function AppHomePage() {
   }, [selectedSeries, selectedStudy]);
 
   function handleStudySelect(study) {
+    if(selectedStudy == study){
+      setSelectedStudy(null);
+      setSelectedSeries(null);
+      setPreviewItems({});
+      setPreviewError("");
+      return;
+    }
     setSelectedStudy(study);
     setSelectedSeries(null);
     setPreviewItems({});
@@ -382,6 +400,63 @@ export default function AppHomePage() {
     );
   }
 
+  function handleOpenEditPatient() {
+    if (!selectedStudy?.id) {
+      showAlert({
+        title: "환자 선택",
+        text: "수정할 환자를 먼저 선택해주세요.",
+      });
+      return;
+    }
+
+    setEditPatientForm({
+      patientId: selectedStudy.patientId ?? "",
+      patientName: selectedStudy.patientName ?? "",
+      patientGender: selectedStudy.genderRaw ?? "",
+      patientBirthdate: selectedStudy.birthdayRaw ?? "",
+    });
+    setIsEditPatientOpen(true);
+  }
+
+  function handleEditPatientChange(field, value) {
+    setEditPatientForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
+
+  async function handleSubmitEditPatient(event) {
+    event.preventDefault();
+    if (!selectedStudy?.id) {
+      return;
+    }
+
+    setIsSavingPatient(true);
+    try {
+      await postForm("/api/resource/viewer/patient/modify", {
+        stl_seq: selectedStudy.id,
+        patient_id: editPatientForm.patientId,
+        patient_name: editPatientForm.patientName,
+        patient_gender: editPatientForm.patientGender,
+        patient_birth: editPatientForm.patientBirthdate || null,
+      });
+
+      setIsEditPatientOpen(false);
+      setStudyRefreshKey((prev) => prev + 1);
+      showAlert({
+        title: "수정 완료",
+        text: "환자 정보가 업데이트되었습니다.",
+      });
+    } catch (error) {
+      showAlert({
+        title: "수정 실패",
+        text: error?.message ?? "환자 정보를 수정하지 못했습니다.",
+      });
+    } finally {
+      setIsSavingPatient(false);
+    }
+  }
+
   return (
     <WorkspacePage>
       <WorkspacePageHeader
@@ -415,7 +490,22 @@ export default function AppHomePage() {
           {/* study 목록 */}
           <WorkspacePanel
             title="Study List"
-            action={<WorkspaceActionLink href="/app/add" variant="secondary" >+ Add</WorkspaceActionLink>}
+            action={
+              <div className="flex items-center gap-2">
+                {selectedStudy && (
+                  <WorkspaceActionButton
+                    variant="secondary"
+                    disabled={!selectedStudy}
+                    onClick={handleOpenEditPatient}
+                  >
+                  수정
+                </WorkspaceActionButton>
+                )}
+                <WorkspaceActionLink href="/app/add" variant="secondary">
+                  추가
+                </WorkspaceActionLink>
+              </div>
+            }
             contentClassName="flex min-h-0 flex-1 flex-col"
             footer={
               <WorkspacePagination
@@ -502,6 +592,97 @@ export default function AppHomePage() {
             </div>
           </WorkspacePanel>
         </div>
+        {isEditPatientOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-lg rounded-[1.8rem] border border-white/10 bg-[#454545] p-10 text-white shadow-[0.5rem_0.5rem_1rem_rgba(0,0,0,0.16)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="h-7 w-1 rounded-full bg-[#2bcbae]" aria-hidden="true" />
+                  <h3 className="text-[1.5rem] font-bold leading-[3rem]">환자 정보 수정</h3>
+                </div>
+                <button
+                  className="text-sm text-white/60 hover:text-white"
+                  type="button"
+                  onClick={() => setIsEditPatientOpen(false)}
+                >
+                  X
+                </button>
+              </div>
+              <form className="mt-8 space-y-4" onSubmit={handleSubmitEditPatient}>
+                <div>
+                  <label className="text-xs text-white/60">Patient ID</label>
+                  <Input
+                    className="workspace-input mt-2 w-full"
+                    value={editPatientForm.patientId}
+                    onChange={(event) => handleEditPatientChange("patientId", event.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-white/60">Patient Name</label>
+                  <Input
+                    className="workspace-input mt-2 w-full"
+                    value={editPatientForm.patientName}
+                    onChange={(event) => handleEditPatientChange("patientName", event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs text-white/60">Gender</label>
+                    <select
+                      className="mt-2 h-10 w-full rounded-lg border border-white/30 bg-[#454545] px-3 text-sm text-white hover:border-white"
+                      value={editPatientForm.patientGender}
+                      onChange={(event) => handleEditPatientChange("patientGender", event.target.value)}
+                    >
+                      <option value="" className="bg-gray-700 text-white">
+                        Unknown
+                      </option>
+                      <option value="M" className="bg-gray-700 text-white">
+                        Male
+                      </option>
+                      <option value="F" className="bg-gray-700 text-white">
+                        Female
+                      </option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-white/60">Birthday</label>
+                    <Input
+                      className="workspace-input mt-2 w-full"
+                      type="date"
+                      value={editPatientForm.patientBirthdate}
+                      onChange={(event) => handleEditPatientChange("patientBirthdate", event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    className="h-9 px-4 text-xs text-white hover:bg-[#5e666d]"
+                    type="button"
+                    color="secondary"
+                    onClick={() => setIsEditPatientOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="h-9 px-4 text-xs"
+                    type="submit"
+                    color="primary"
+                    disabled={isSavingPatient}
+                  >
+                    {isSavingPatient ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="size-4 animate-spin" />
+                        Saving...
+                      </span>
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
 
         <div className="grid min-h-0 min-w-0 gap-4 min-[1300px]:grid-rows-[minmax(240px,0.42fr)_minmax(0,0.58fr)]">
           {/* series 목록 */}
@@ -509,24 +690,20 @@ export default function AppHomePage() {
             title="Series List"
             action={
               <div className="flex items-center gap-2">
-                <Button
-                  className="h-8 px-3 text-xs text-white hover:bg-[#5e666d]"
+                <WorkspaceActionButton
+                  variant="secondary"
                   disabled={!selectedSeries}
-                  type="button"
-                  color="secondary"
                   onClick={handleOpenEdit}
                 >
                   Edit Series
-                </Button>
-                <Button
-                  className="h-8 px-3 text-xs text-white"
-                  color="error"
+                </WorkspaceActionButton>
+                <WorkspaceActionButton
+                  variant="danger"
                   disabled={!selectedStudy || isDeletingPatient}
-                  type="button"
                   onClick={handleDeletePatient}
                 >
                   {isDeletingPatient ? "Deleting..." : "Delete Patient"}
-                </Button>
+                </WorkspaceActionButton>
               </div>
             }
             contentClassName="flex min-h-0 flex-1 flex-col"
@@ -645,7 +822,7 @@ export default function AppHomePage() {
                   ? `Series: ${selectedSeries.date}`
                   : "시리즈를 선택하면 preview가 표시됩니다."}
               </span>
-              {selectedSeries ? <span>{selectedSeries.diagnosis}</span> : null}
+              {/* {selectedSeries ? <span>{selectedSeries.diagnosis}</span> : null} */}
             </div>
             <div className="flex min-h-0 flex-1 flex-col gap-4">
               {PREVIEW_SECTIONS.map((section) => (
@@ -715,11 +892,6 @@ export default function AppHomePage() {
             {!isLoadingPreview && previewError ? (
               <div className="mt-3 text-center text-xs text-red-300">
                 {previewError}
-              </div>
-            ) : null}
-            {!selectedSeries && !previewError && !isLoadingPreview ? (
-              <div className="mt-3 text-center text-xs text-white/50">
-                Please select a series.
               </div>
             ) : null}
           </WorkspacePanel>

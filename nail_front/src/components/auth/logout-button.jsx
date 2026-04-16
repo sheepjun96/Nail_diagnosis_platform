@@ -3,6 +3,7 @@
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { postJson } from "@utils";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -16,10 +17,7 @@ export function LogoutButton() {
     setIsSubmitting(true);
 
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      await postJson("/api/auth/logout", {});
     } finally {
       startTransition(() => {
         router.push("/app/login");

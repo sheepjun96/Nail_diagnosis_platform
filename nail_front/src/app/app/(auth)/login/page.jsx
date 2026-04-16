@@ -18,20 +18,20 @@ export default async function LoginPage() {
         <CardTitle className="text-2xl font-semibold text-primary">
           Login
         </CardTitle>
-        <CardDescription>Insight 로그인 세션을 사용해 Nail Platform으로 이동합니다.</CardDescription>
+        <CardDescription>Curaxel 로그인을 통해 Nail Platform으로 이동합니다.</CardDescription>
       </CardHeader>
 
       <CardContent>
         <div className="space-y-5">
           <Alert>
-            <AlertTitle>Redis SSO</AlertTitle>
+            {/* <AlertTitle>Redis SSO</AlertTitle> */}
             <AlertDescription>
-              로그인은 Gachon Insight에서 처리되고, 성공 시 이 화면으로 다시 돌아옵니다.
+              로그인은 Curaxel에서 처리되고, 성공 시 이 화면으로 다시 돌아옵니다.
             </AlertDescription>
           </Alert>
 
           <Button className="w-full" href="/api/auth/login">
-            Insight SSO로 로그인
+            Curaxel에서 로그인
           </Button>
         </div>
       </CardContent>

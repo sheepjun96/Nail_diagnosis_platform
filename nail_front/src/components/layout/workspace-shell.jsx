@@ -99,8 +99,10 @@ function SidebarSection({ title, items, icon: SectionIcon, pathname, defaultOpen
 
 export function WorkspaceShell({ children, member }) {
   const pathname = usePathname();
+  console.log(member);
   const roleLabel = member?.role_name || member?.code || "사용자";
-  const displayName = member?.name || member?.email || "Unknown User";
+  const displayName = member?.name  || "Unknown User";
+  const displayEmail = member?.email || "Unknown Email";
 
   return (
     <div className="flex h-svh overflow-hidden bg-background text-foreground">
@@ -127,13 +129,14 @@ export function WorkspaceShell({ children, member }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
-        <header className="border-b border-white/10 bg-[#303030] px-4 py-3 shadow-sm lg:px-5">
-          <div className="flex items-center justify-end gap-4">
-            <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white">
+        <header className="border-b h-12 flex items-center justify-end border-white/10 bg-[#303030] px-4 py-0 shadow-sm lg:px-5">
+          <div className="flex items-center justify-end gap-2">
+            <div className="flex items-center gap-1 text-sm text-white">
               <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">
                 {roleLabel}
               </span>
               <span>{displayName}</span>
+              <span className="text-xs text-white/70">({displayEmail})</span>
             </div>
             <LogoutButton />
           </div>

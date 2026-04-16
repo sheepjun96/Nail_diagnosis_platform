@@ -58,7 +58,31 @@ export function WorkspaceActionLink({ href, children, variant = "secondary" }) {
     <Link
       href={href}
       className={cn(
-        "inline-flex h-8 shrink-0 items-center rounded-sm px-3 text-xs font-semibold whitespace-nowrap text-white transition-colors",
+        "inline-flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-semibold whitespace-nowrap text-white transition-colors",
+        variant === "danger"
+          ? "bg-destructive hover:bg-destructive/90"
+          : variant === "primary"
+            ? "bg-primary hover:bg-primary/90"
+            : variant === "secondary"
+              ? "bg-secondary hover:bg-secondary/90 text-xs"
+              : variant === "outlined"
+                ? "bg-transparent border border-secondary text-secondary hover:bg-secondary/10"
+                : "bg-[#6c757d] hover:bg-[#5e666d]"
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
+export function WorkspaceActionButton({ onClick, children, variant = "secondary", disabled = false, type = "button" }) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "inline-flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-semibold whitespace-nowrap text-white transition-colors disabled:opacity-50 disabled:pointer-events-none",
         variant === "danger"
           ? "bg-destructive hover:bg-destructive/90"
           : variant === "primary"
@@ -71,6 +95,6 @@ export function WorkspaceActionLink({ href, children, variant = "secondary" }) {
       )}
     >
       {children}
-    </Link>
+    </button>
   );
 }
