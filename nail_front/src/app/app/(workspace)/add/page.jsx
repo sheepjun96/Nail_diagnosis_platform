@@ -1,5 +1,7 @@
 "use client";
 
+import { AccessDeniedView } from "@/components/auth/access-denied-view";
+import { useWorkspaceMember } from "@/components/layout/workspace-shell";
 import { useEffect, useRef, useState } from "react";
 import {
   WorkspacePage,
@@ -444,6 +446,7 @@ function buildImageSlotsFromSeriesDetail(detail) {
 }
 
 export function AddOrEditPatientPage() {
+  const member = useWorkspaceMember();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -453,6 +456,9 @@ export function AddOrEditPatientPage() {
   const editStudySeq = searchParams.get("stl_seq");
   const editSeriesSeq = searchParams.get("srl_seq");
   const isEditMode = pathname.includes("/edit") && Boolean(editStudySeq) && Boolean(editSeriesSeq);
+  const canAccessAddPage = [1, 2, 3].includes(member?.mr_seq);
+  const canAccessEditPage = [1, 2, 3, 4, 5, 6, 9].includes(member?.mr_seq);
+  const canAccessPage = isEditMode ? canAccessEditPage : canAccessAddPage;
 
   const [patientSearchInput, setPatientSearchInput] = useState("");
   const [patientSearchKeyword, setPatientSearchKeyword] = useState("");
@@ -517,6 +523,10 @@ export function AddOrEditPatientPage() {
   }, [originUploadStatus]);
 
   useEffect(() => {
+    if (!canAccessPage) {
+      return;
+    }
+
     if (isEditMode) {
       setPatients([]);
       setPatientTotal(0);
@@ -556,9 +566,13 @@ export function AddOrEditPatientPage() {
     }
 
     loadPatients();
-  }, [isEditMode, patientPage, patientSearchKeyword]);
+  }, [canAccessPage, isEditMode, patientPage, patientSearchKeyword]);
 
   useEffect(() => {
+    if (!canAccessPage) {
+      return;
+    }
+
     if (!isEditMode || !editStudySeq) {
       return;
     }
@@ -608,9 +622,13 @@ export function AddOrEditPatientPage() {
     }
 
     loadEditPatientInfo();
-  }, [editStudySeq, isEditMode]);
+  }, [canAccessPage, editStudySeq, isEditMode]);
 
   useEffect(() => {
+    if (!canAccessPage) {
+      return;
+    }
+
     if (!isEditMode || !editStudySeq || !editSeriesSeq) {
       return;
     }
@@ -646,9 +664,13 @@ export function AddOrEditPatientPage() {
     }
 
     loadEditSeriesDetail();
-  }, [editSeriesSeq, editStudySeq, isEditMode]);
+  }, [canAccessPage, editSeriesSeq, editStudySeq, isEditMode]);
 
   useEffect(() => {
+    if (!canAccessPage) {
+      return;
+    }
+
     async function loadOriginList() {
       const currentUploadStatus = originUploadStatusRef.current;
 
@@ -704,7 +726,7 @@ export function AddOrEditPatientPage() {
     }
 
     loadOriginList();
-  }, [originPage, originReloadKey]);
+  }, [canAccessPage, originPage, originReloadKey]);
 
   function handlePatientSearchSubmit(event) {
     if (isEditMode) {
@@ -1182,6 +1204,10 @@ export function AddOrEditPatientPage() {
   }
 
   async function handleSubmit() {
+    if (!canAccessPage) {
+      return;
+    }
+
     if (!patientForm.patientId || !patientForm.patientName || !patientForm.patientBirthdate) {
       setSubmitError("환자 기본 정보를 모두 입력해주세요.");
       return;
@@ -1621,6 +1647,19 @@ export function AddOrEditPatientPage() {
     ? ALL_FINGERS.find((finger) => finger.key === psarEditor.fingerKey) ?? null
     : null;
   const psarPreviewSrc = psarEditorSlot?.plotSrc || psarEditorSlot?.previewUrl || "";
+
+  if (!canAccessPage) {
+    return (
+      <AccessDeniedView
+        title={isEditMode ? "수정 접근 권한 없음" : "추가 접근 권한 없음"}
+        description={
+          isEditMode
+            ? "이 계정은 Nail 환자 데이터를 수정할 수 없습니다."
+            : "이 계정은 Nail 환자 데이터를 추가할 수 없습니다."
+        }
+      />
+    );
+  }
 
   return (
     <WorkspacePage>

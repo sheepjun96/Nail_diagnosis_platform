@@ -1,5 +1,7 @@
 "use client";
 
+import { AccessDeniedView } from "@/components/auth/access-denied-view";
+import { useWorkspaceMember } from "@/components/layout/workspace-shell";
 import {
   WorkspaceActionLink,
   WorkspaceActionButton,
@@ -75,6 +77,7 @@ function mapSeriesRow(item) {
 }
 
 export default function AppHomePage() {
+  const member = useWorkspaceMember();
   const router = useRouter();
   const { showAlert, showConfirm } = useConfirmDialog();
   const [searchInput, setSearchInput] = useState("");
@@ -105,8 +108,19 @@ export default function AppHomePage() {
   const [seriesError, setSeriesError] = useState("");
   const [previewError, setPreviewError] = useState("");
   const totalPages = Math.max(1, Math.ceil(studyTotal / STUDY_ROWS));
+  const canViewWorklist = [1, 2, 3, 4, 5, 6, 9, 10].includes(member?.mr_seq);
+  const canAddPatient = [1, 2, 3].includes(member?.mr_seq);
+  const canEditPatient = [1, 2, 3, 4, 5, 6, 9].includes(member?.mr_seq);
+  const canEditSeries = [1, 2, 3, 4, 5, 6, 9].includes(member?.mr_seq);
+  const canDeleteSeries = [1, 2, 3, 4].includes(member?.mr_seq);
+  const canDeletePatient = [1, 2].includes(member?.mr_seq);
+  const canOpenViewer = [1, 2, 3, 4, 5, 6, 9, 10].includes(member?.mr_seq);
 
   useEffect(() => {
+    if (!canViewWorklist) {
+      return;
+    }
+
     async function loadStudies() {
       setIsLoadingStudies(true);
       setStudyError("");
@@ -148,9 +162,13 @@ export default function AppHomePage() {
     }
 
     loadStudies();
-  }, [currentPage, searchKeyword, studyRefreshKey]);
+  }, [canViewWorklist, currentPage, searchKeyword, studyRefreshKey]);
 
   useEffect(() => {
+    if (!canViewWorklist) {
+      return;
+    }
+
     if (!selectedStudy?.patientId) {
       return;
     }
@@ -185,9 +203,13 @@ export default function AppHomePage() {
     }
 
     loadSeries();
-  }, [selectedStudy, seriesRefreshKey]);
+  }, [canViewWorklist, selectedStudy, seriesRefreshKey]);
 
   useEffect(() => {
+    if (!canViewWorklist) {
+      return;
+    }
+
     if (!selectedStudy?.id || !selectedSeries?.id) {
       return;
     }
@@ -215,7 +237,7 @@ export default function AppHomePage() {
     }
 
     loadPreview();
-  }, [selectedSeries, selectedStudy]);
+  }, [canViewWorklist, selectedSeries, selectedStudy]);
 
   function handleStudySelect(study) {
     if(selectedStudy == study){
@@ -252,7 +274,7 @@ export default function AppHomePage() {
   async function handleDeleteSeries(event, series) {
     event.stopPropagation();
 
-    if (!selectedStudy?.id || !series?.id || deletingSeriesId) {
+    if (!canDeleteSeries || !selectedStudy?.id || !series?.id || deletingSeriesId) {
       return;
     }
 
@@ -311,7 +333,7 @@ export default function AppHomePage() {
   }
 
   async function handleDeletePatient() {
-    if (!selectedStudy?.id || isDeletingPatient) {
+    if (!canDeletePatient || !selectedStudy?.id || isDeletingPatient) {
       return;
     }
 
@@ -381,7 +403,7 @@ export default function AppHomePage() {
   }
 
   function handleOpenViewer() {
-    if (!selectedStudy?.id || !selectedSeries?.id) {
+    if (!canOpenViewer || !selectedStudy?.id || !selectedSeries?.id) {
       return;
     }
 
@@ -391,7 +413,7 @@ export default function AppHomePage() {
   }
 
   function handleOpenEdit() {
-    if (!selectedStudy?.id || !selectedSeries?.id) {
+    if (!canEditSeries || !selectedStudy?.id || !selectedSeries?.id) {
       return;
     }
 
@@ -401,6 +423,10 @@ export default function AppHomePage() {
   }
 
   function handleOpenEditPatient() {
+    if (!canEditPatient) {
+      return;
+    }
+
     if (!selectedStudy?.id) {
       showAlert({
         title: "환자 선택",
@@ -427,7 +453,7 @@ export default function AppHomePage() {
 
   async function handleSubmitEditPatient(event) {
     event.preventDefault();
-    if (!selectedStudy?.id) {
+    if (!selectedStudy?.id || !canEditPatient) {
       return;
     }
 
@@ -455,6 +481,15 @@ export default function AppHomePage() {
     } finally {
       setIsSavingPatient(false);
     }
+  }
+
+  if (!canViewWorklist) {
+    return (
+      <AccessDeniedView
+        title="워크리스트 접근 권한 없음"
+        description="이 계정은 Nail 워크리스트를 볼 수 없습니다."
+      />
+    );
   }
 
   return (
@@ -492,7 +527,7 @@ export default function AppHomePage() {
             title="Study List"
             action={
               <div className="flex items-center gap-2">
-                {selectedStudy && (
+                {selectedStudy && canEditPatient ? (
                   <WorkspaceActionButton
                     variant="secondary"
                     disabled={!selectedStudy}
@@ -500,10 +535,12 @@ export default function AppHomePage() {
                   >
                   수정
                 </WorkspaceActionButton>
-                )}
+                ) : null}
+                {canAddPatient ? (
                 <WorkspaceActionLink href="/app/add" variant="secondary">
                   추가
                 </WorkspaceActionLink>
+                ) : null}
               </div>
             }
             contentClassName="flex min-h-0 flex-1 flex-col"
@@ -690,20 +727,24 @@ export default function AppHomePage() {
             title="Series List"
             action={
               <div className="flex items-center gap-2">
-                <WorkspaceActionButton
-                  variant="secondary"
-                  disabled={!selectedSeries}
-                  onClick={handleOpenEdit}
-                >
-                  Edit Series
-                </WorkspaceActionButton>
-                <WorkspaceActionButton
-                  variant="danger"
-                  disabled={!selectedStudy || isDeletingPatient}
-                  onClick={handleDeletePatient}
-                >
-                  {isDeletingPatient ? "Deleting..." : "Delete Patient"}
-                </WorkspaceActionButton>
+                {canEditSeries ? (
+                  <WorkspaceActionButton
+                    variant="secondary"
+                    disabled={!selectedSeries}
+                    onClick={handleOpenEdit}
+                  >
+                    Edit Series
+                  </WorkspaceActionButton>
+                ) : null}
+                {canDeletePatient ? (
+                  <WorkspaceActionButton
+                    variant="danger"
+                    disabled={!selectedStudy || isDeletingPatient}
+                    onClick={handleDeletePatient}
+                  >
+                    {isDeletingPatient ? "Deleting..." : "Delete Patient"}
+                  </WorkspaceActionButton>
+                ) : null}
               </div>
             }
             contentClassName="flex min-h-0 flex-1 flex-col"
@@ -781,19 +822,21 @@ export default function AppHomePage() {
                           </td>
                           <td className="whitespace-nowrap">{item.instance}</td>
                           <td className="whitespace-nowrap px-2 text-center">
-                            <button
-                              aria-label="Delete series"
-                              className="inline-flex size-7 items-center justify-center rounded-sm text-red-500 transition hover:bg-destructive/15 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
-                              disabled={Boolean(deletingSeriesId)}
-                              type="button"
-                              onClick={(event) => handleDeleteSeries(event, item)}
-                            >
-                              {deletingSeriesId === item.id ? (
-                                <Loader2 className="size-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="size-4" />
-                              )}
-                            </button>
+                            {canDeleteSeries ? (
+                              <button
+                                aria-label="Delete series"
+                                className="inline-flex size-7 items-center justify-center rounded-sm text-red-500 transition hover:bg-destructive/15 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-40"
+                                disabled={Boolean(deletingSeriesId)}
+                                type="button"
+                                onClick={(event) => handleDeleteSeries(event, item)}
+                              >
+                                {deletingSeriesId === item.id ? (
+                                  <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="size-4" />
+                                )}
+                              </button>
+                            ) : null}
                           </td>
                         </tr>
                       ))
@@ -806,14 +849,16 @@ export default function AppHomePage() {
           {/* preview 섹션 */}
           <WorkspacePanel title="Preview"
           action={
-            <Button
-              className="h-9 bg-primary px-3 text-xs text-white hover:bg-primary/90"
-              disabled={!selectedSeries}
-              type="button"
-              onClick={handleOpenViewer}
-            >
-              Viewer
-            </Button>
+            canOpenViewer ? (
+              <Button
+                className="h-9 bg-primary px-3 text-xs text-white hover:bg-primary/90"
+                disabled={!selectedSeries}
+                type="button"
+                onClick={handleOpenViewer}
+              >
+                Viewer
+              </Button>
+            ) : null
           }
           >
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-white/60">

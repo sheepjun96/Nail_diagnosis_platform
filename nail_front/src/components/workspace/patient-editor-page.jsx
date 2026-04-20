@@ -1,5 +1,7 @@
 "use client";
 
+import { AccessDeniedView } from "@/components/auth/access-denied-view";
+import { useWorkspaceMember } from "@/components/layout/workspace-shell";
 import {
   WorkspacePage,
   WorkspacePageHeader,
@@ -192,11 +194,14 @@ export function PatientEditorPage({
   breadcrumb = "Project > Viewer",
   seriesRouteBase = "/app/viewer",
 }) {
+  const member = useWorkspaceMember();
   const router = useRouter();
   const searchParams = useSearchParams();
   const stlSeq = searchParams.get("stl_seq");
   const selectedSeriesId = searchParams.get("srl_seq");
   const { showConfirm } = useConfirmDialog();
+  const canAccessViewer = [1, 2, 3, 4, 5, 6, 9, 10].includes(member?.mr_seq);
+  const canModifyViewer = [1, 2, 3, 4, 5, 6, 9].includes(member?.mr_seq);
 
   const [patientInfo, setPatientInfo] = useState(null);
   const [patientForm, setPatientForm] = useState({
@@ -243,6 +248,10 @@ export function PatientEditorPage({
   }
 
   useEffect(() => {
+    if (!canAccessViewer) {
+      return;
+    }
+
     if (!stlSeq) {
       return;
     }
@@ -282,9 +291,13 @@ export function PatientEditorPage({
     }
 
     loadPatientInfo();
-  }, [stlSeq]);
+  }, [canAccessViewer, stlSeq]);
 
   useEffect(() => {
+    if (!canAccessViewer) {
+      return;
+    }
+
     if (!stlSeq) {
       return;
     }
@@ -316,9 +329,13 @@ export function PatientEditorPage({
     }
 
     loadSeriesList();
-  }, [seriesSearchKeyword, stlSeq]);
+  }, [canAccessViewer, seriesSearchKeyword, stlSeq]);
 
   useEffect(() => {
+    if (!canAccessViewer) {
+      return;
+    }
+
     if (!stlSeq || !selectedSeriesId) {
       setPreviewItems({});
       setNoteText("");
@@ -362,7 +379,7 @@ export function PatientEditorPage({
     }
 
     loadSeriesDetail();
-  }, [selectedSeriesId, stlSeq]);
+  }, [canAccessViewer, selectedSeriesId, stlSeq]);
 
   useEffect(() => {
     setSelectedProgressFingerKey("");
@@ -372,6 +389,10 @@ export function PatientEditorPage({
   }, [stlSeq, patientInfo?.patient_id]);
 
   useEffect(() => {
+    if (!canAccessViewer) {
+      return;
+    }
+
     if (!selectedProgressFingerKey || !patientInfo?.patient_id || !stlSeq || progressionHistory !== null) {
       return;
     }
@@ -416,7 +437,7 @@ export function PatientEditorPage({
     }
 
     loadProgressionHistory();
-  }, [patientInfo?.patient_id, progressionHistory, selectedProgressFingerKey, stlSeq]);
+  }, [canAccessViewer, patientInfo?.patient_id, progressionHistory, selectedProgressFingerKey, stlSeq]);
 
   useEffect(() => {
     setExpandedProgressNotes({});
@@ -439,7 +460,7 @@ export function PatientEditorPage({
   }
 
   async function handleSavePatient() {
-    if (!stlSeq) {
+    if (!stlSeq || !canModifyViewer) {
       return;
     }
 
@@ -487,7 +508,7 @@ export function PatientEditorPage({
   }
 
   async function handleSaveNote() {
-    if (!stlSeq || !selectedSeriesId) {
+    if (!stlSeq || !selectedSeriesId || !canModifyViewer) {
       return;
     }
 
@@ -574,6 +595,15 @@ export function PatientEditorPage({
     });
   }
 
+  if (!canAccessViewer) {
+    return (
+      <AccessDeniedView
+        title="뷰어 접근 권한 없음"
+        description="이 계정은 Nail 뷰어에 접근할 수 없습니다."
+      />
+    );
+  }
+
   return (
     <WorkspacePage>
       <WorkspacePageHeader
@@ -602,7 +632,7 @@ export function PatientEditorPage({
           footer={
             <Button
               className="w-full bg-[#6c757d] text-white hover:bg-[#5e666d]"
-              disabled={!stlSeq || isSavingPatient}
+              disabled={!stlSeq || isSavingPatient || !canModifyViewer}
               type="button"
               color="secondary"
               onClick={handleSavePatient}
@@ -633,6 +663,7 @@ export function PatientEditorPage({
                   ID
                 </label>
                 <Input
+                  disabled={!canModifyViewer}
                   value={patientForm.patientId}
                   onChange={(event) =>
                     handlePatientFormChange("patientId", event.target.value)
@@ -644,6 +675,7 @@ export function PatientEditorPage({
                   Name
                 </label>
                 <Input
+                  disabled={!canModifyViewer}
                   value={patientForm.patientName}
                   onChange={(event) =>
                     handlePatientFormChange("patientName", event.target.value)
@@ -656,6 +688,7 @@ export function PatientEditorPage({
                 </label>
                 <select
                   className="workspace-input flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs outline-none"
+                  disabled={!canModifyViewer}
                   value={patientForm.patientGender}
                   onChange={(event) =>
                     handlePatientFormChange("patientGender", event.target.value)
@@ -670,6 +703,7 @@ export function PatientEditorPage({
                   Birthday
                 </label>
                 <Input
+                  disabled={!canModifyViewer}
                   type="date"
                   value={patientForm.patientBirthdate}
                   onChange={(event) =>
@@ -768,7 +802,7 @@ export function PatientEditorPage({
           footer={
             <Button
               className="w-full bg-[#6c757d] text-white hover:bg-[#5e666d]"
-              disabled={!selectedSeriesId || isSavingNote}
+              disabled={!selectedSeriesId || isSavingNote || !canModifyViewer}
               type="button"
               color="secondary"
               onClick={handleSaveNote}
@@ -863,6 +897,7 @@ export function PatientEditorPage({
             <div className="text-sm font-semibold text-white">Patient Note</div>
             <textarea
               className="workspace-input min-h-[12rem] w-full resize-y rounded-md border px-3 py-2 text-sm outline-none"
+              readOnly={!canModifyViewer}
               value={noteText}
               onChange={(event) => setNoteText(event.target.value)}
             />

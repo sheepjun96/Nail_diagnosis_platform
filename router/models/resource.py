@@ -8,6 +8,7 @@ import mimetypes
 from config import CONFIG_DIR
 from typing import List, Optional
 import aiomysql
+from auth import ensure_role
 from db import get_conn
 from router.services.resource import get_study_list, get_study_List_patientId, add_study, add_seires, get_series_list, get_series_detail, update_series_data
 from router.services.resource import get_image_origin_list, get_image_origin_detail, update_study_recentdate
@@ -17,6 +18,12 @@ from router.services.resource_viewer import update_study_patient
 router = APIRouter(prefix="/resource", tags=["resource"])
 SAVE_NAIL_DIR = CONFIG_DIR["nail"]
 SAVE_EXTRA_DIR = CONFIG_DIR["extra"]
+
+WORKLIST_VIEW_ROLES = [1, 2, 3, 4, 5, 6, 9, 10]
+ADD_PATIENT_ROLES = [1, 2, 3]
+EDIT_ROLES = [1, 2, 3, 4, 5, 6, 9]
+DELETE_SERIES_ROLES = [1, 2, 3, 4]
+DELETE_PATIENT_ROLES = [1, 2]
 
 
 async def apply_uploaded_extras(data: dict, file_map: dict):
@@ -73,6 +80,8 @@ async def study_list(
     rows: int = Query(20, ge=1, description="페이지당 row 수"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "study list")
+
     result = await get_study_list(
         conn=conn,
         project_seq=project_seq,
@@ -102,6 +111,8 @@ async def image_origin_list(
     rows: int = Query(20, ge=1, description="페이지당 row 수"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image origin list")
+
     result = await get_image_origin_list(
         conn=conn,
         image_type = image_type,
@@ -126,6 +137,8 @@ async def image_origin_detail(
     filename: Optional[str] = Query(None, description="파일이름 검색어"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image origin detail")
+
     result = await get_image_origin_detail(
         conn=conn,
         filename = filename,
@@ -140,11 +153,14 @@ async def image_origin_detail(
 
 @router.get("/image/dump")
 async def image_origin_detail(
+    request: Request,
     filename: str = Query(..., description="filename"),
     filetype: int = Query(..., description="filetype"),
     width: Optional[int] = Query(None, description="width (px)"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image dump")
+
     safe_name = os.path.basename(filename)
 
     if filetype == 0: base_dir = CONFIG_DIR["nail"]
@@ -185,6 +201,8 @@ async def image_extra(
     filetype: int = Query(2, description="filetype (default 2)"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image extra")
+
     return await image_origin_detail(
         request=request,
         filename=filename,
@@ -208,6 +226,8 @@ async def add_patient(
     patient_r_p: List[UploadFile] = File([]),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, ADD_PATIENT_ROLES, "add patient")
+
     data = json.loads(body)
 
     file_map = {
@@ -311,6 +331,8 @@ async def modify_series(
     patient_r_p: List[UploadFile] = File([]),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, EDIT_ROLES, "modify series")
+
     data = json.loads(body)
 
     file_map = {
@@ -376,6 +398,8 @@ async def series_list(
     conn: aiomysql.Connection = Depends(get_conn),
 ):
     # patient_id 를 받아서 해당 환자의 series_list 를 반환
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "series list")
+
     result = await get_series_list(
         conn=conn,
         patient_id=patient_id,
@@ -395,6 +419,8 @@ async def series_detail(
     srl_seq: int = Query(..., description="series_list.srl_seq"),
     conn: aiomysql.Connection = Depends(get_conn),
 ):
+    ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "series detail")
+
     result = await get_series_detail(
         conn=conn,
         stl_seq=stl_seq,
@@ -409,9 +435,12 @@ async def series_detail(
 
 @router.post("/series/delete")
 async def delete_series_api(
+    request: Request,
     body: dict,
     conn: aiomysql.Connection = Depends(get_conn)
 ):
+    ensure_role(request.state.member, DELETE_SERIES_ROLES, "delete series")
+
     srl_seq = body.get("srl_seq")
     stl_seq = body.get("stl_seq")
     success = await delete_series_data(conn, srl_seq, stl_seq)
@@ -419,9 +448,12 @@ async def delete_series_api(
 
 @router.post("/patient/delete_empty")
 async def delete_empty_patient_api(
+    request: Request,
     body: dict,
     conn: aiomysql.Connection = Depends(get_conn)
 ):
+    ensure_role(request.state.member, DELETE_PATIENT_ROLES, "delete patient")
+
     stl_seq = body.get("stl_seq")
     result = await delete_study_if_empty(conn, stl_seq)
     return result

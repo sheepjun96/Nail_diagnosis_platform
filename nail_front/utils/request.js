@@ -74,8 +74,8 @@ export async function requestJson(path, options = {}) {
 
   if (!response.ok) {
     const error = new Error(
-      typeof data === "object" && data?.message
-        ? data.message
+      typeof data === "object" && (data?.message || data?.detail)
+        ? data.message || data.detail
         : `Request failed with status ${response.status}`
     );
 

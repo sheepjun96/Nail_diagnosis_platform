@@ -2,41 +2,65 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { createContext, useContext, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/auth/logout-button";
 import {
   ChevronDown,
-  FilePenLine,
   Folder,
-  ImageIcon,
   LayoutDashboard,
   Settings,
   Stethoscope,
   UserRound,
 } from "lucide-react";
 
-const navigationSections = [
-  {
-    title: "프로젝트",
-    icon: Folder,
-    defaultOpen: true,
-    items: [
-      { href: "/app", label: "Main Project", icon: LayoutDashboard },
-      // { href: "/app/add", label: "Add Patient", icon: Stethoscope },
-      // { href: "/app/edit", label: "Edit Patient", icon: FilePenLine },
-      // { href: "/app/viewer", label: "Viewer", icon: ImageIcon },
-    ],
-  },
-  {
-    title: "설정",
-    icon: Settings,
-    items: [
-      { href: "/app/login", label: "회원 관리", icon: UserRound },
-      // { href: "/app/image", label: "이미지 상세", icon: ImageIcon },
-    ],
-  },
-];
+const WORKSPACE_MEMBER_CONTEXT = createContext(null);
+const WORKLIST_ROLES = [1, 2, 3, 4, 5, 6, 9, 10];
+const ADD_ROLES = [1, 2, 3];
+
+function hasRole(member, allowedRoles) {
+  return allowedRoles.includes(member?.mr_seq);
+}
+
+function getNavigationSections(member) {
+  const projectItems = [];
+
+  if (hasRole(member, WORKLIST_ROLES)) {
+    projectItems.push({
+      href: "/app",
+      label: "Main Project",
+      icon: LayoutDashboard,
+    });
+  }
+
+  // if (hasRole(member, ADD_ROLES)) {
+  //   projectItems.push({
+  //     href: "/app/add",
+  //     label: "Add Patient",
+  //     icon: Stethoscope,
+  //   });
+  // }
+
+  return [
+    {
+      title: "프로젝트",
+      icon: Folder,
+      defaultOpen: true,
+      items: projectItems,
+    },
+    {
+      title: "설정",
+      icon: Settings,
+      items: [
+        {
+          href: "/app/login",
+          label: "회원 관리",
+          icon: UserRound,
+        },
+      ],
+    },
+  ];
+}
 
 function SidebarSection({ title, items, icon: SectionIcon, pathname, defaultOpen = false }) {
   const hasActiveItem = items.some(
@@ -49,6 +73,10 @@ function SidebarSection({ title, items, icon: SectionIcon, pathname, defaultOpen
       setIsOpen(true);
     }
   }, [hasActiveItem]);
+
+  if (!items.length) {
+    return null;
+  }
 
   return (
     <section className="space-y-2">
@@ -97,53 +125,61 @@ function SidebarSection({ title, items, icon: SectionIcon, pathname, defaultOpen
   );
 }
 
+export function useWorkspaceMember() {
+  return useContext(WORKSPACE_MEMBER_CONTEXT);
+}
+
 export function WorkspaceShell({ children, member }) {
   const pathname = usePathname();
-  console.log(member);
   const roleLabel = member?.role_name || member?.code || "사용자";
-  const displayName = member?.name  || "Unknown User";
+  const displayName = member?.name || "Unknown User";
   const displayEmail = member?.email || "Unknown Email";
+  const navigationSections = getNavigationSections(member);
 
   return (
-    <div className="flex h-svh overflow-hidden bg-background text-foreground">
-      <aside className="hidden w-[17.5rem] shrink-0 border-r border-white/10 bg-sidebar lg:flex lg:flex-col">
-        <Link
-          href="/app"
-          className="flex min-h-28 items-center justify-center border-b border-white/10 px-5 text-center"
-        >
-          <Image src="/img/ic-logo.svg" alt="logo image" width={240} height={69} priority />
-        </Link>
+    <WORKSPACE_MEMBER_CONTEXT.Provider value={member}>
+      <div className="flex h-svh overflow-hidden bg-background text-foreground">
+        <aside className="hidden w-[17.5rem] shrink-0 border-r border-white/10 bg-sidebar lg:flex lg:flex-col">
+          <Link
+            href="/app"
+            className="flex min-h-28 items-center justify-center border-b border-white/10 px-5 text-center"
+          >
+            <Image src="/img/ic-logo.svg" alt="logo image" width={240} height={69} priority />
+          </Link>
 
-        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto py-6">
-          {navigationSections.map((section) => (
-            <SidebarSection
-              key={section.title}
-              title={section.title}
-              items={section.items}
-              icon={section.icon}
-              pathname={pathname}
-              defaultOpen={section.defaultOpen}
-            />
-          ))}
-        </div>
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
-        <header className="border-b h-12 flex items-center justify-end border-white/10 bg-[#303030] px-4 py-0 shadow-sm lg:px-5">
-          <div className="flex items-center justify-end gap-2">
-            <div className="flex items-center gap-1 text-sm text-white">
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">
-                {roleLabel}
-              </span>
-              <span>{displayName}</span>
-              <span className="text-xs text-white/70">({displayEmail})</span>
-            </div>
-            <LogoutButton />
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto py-6">
+            {navigationSections.map((section) => (
+              <SidebarSection
+                key={section.title}
+                title={section.title}
+                items={section.items}
+                icon={section.icon}
+                pathname={pathname}
+                defaultOpen={section.defaultOpen}
+              />
+            ))}
           </div>
-        </header>
+        </aside>
 
-        <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 lg:p-6">{children}</main>
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
+          <header className="border-b h-12 flex items-center justify-end border-white/10 bg-[#303030] px-4 py-0 shadow-sm lg:px-5">
+            <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center gap-1 text-sm text-white">
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-xs text-white/70">
+                  {roleLabel}
+                </span>
+                <span>{displayName}</span>
+                <span className="text-xs text-white/70">({displayEmail})</span>
+              </div>
+              <LogoutButton />
+            </div>
+          </header>
+
+          <main className="flex min-h-0 flex-1 flex-col overflow-hidden p-4 lg:p-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </WORKSPACE_MEMBER_CONTEXT.Provider>
   );
 }

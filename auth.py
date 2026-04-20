@@ -1,5 +1,6 @@
 import json
 import os
+from collections.abc import Iterable
 from typing import Any, Optional
 from urllib.parse import urlencode
 
@@ -207,6 +208,17 @@ async def get_optional_member(request: Request) -> Optional[dict[str, Any]]:
 # 로그인 필수
 async def require_login(request: Request) -> dict[str, Any]:
     return await get_authenticated_member(request)
+
+# 권한 확인
+def ensure_role(member: dict[str, Any], allowed_roles: Iterable[int], action: str) -> None:
+    mr_seq = member.get("mr_seq")
+    allowed_role_set = {int(role) for role in allowed_roles}
+
+    if mr_seq not in allowed_role_set:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="해당 기능에 대한 권한이 없습니다.",
+        )
 
 # 인증 쿠키 삭제
 def clear_auth_cookies(response) -> None:
