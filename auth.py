@@ -15,8 +15,8 @@ TOKEN_PREFIX = "tokenCode_"
 LOGIN_INFO_PREFIX = "loginInfo_"
 SSO_TICKET_PREFIX = "ssoTicket_"
 SSO_SERVICE = "nail"
-APP_HOME_PATH = "/app"
-APP_LOGIN_PATH = "/app/login"
+APP_HOME_PATH = os.getenv("NAIL_APP_BASE_PATH", "/v2/app").rstrip("/") or "/v2/app"
+APP_LOGIN_PATH = f"{APP_HOME_PATH}/login"
 
 GACHON_AUTH_DB_CONFIG = {
     "host": os.getenv("GACHON_AUTH_DB_HOST", "10.2.52.209"),

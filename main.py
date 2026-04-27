@@ -9,7 +9,7 @@ from typing import Optional
 import json, os, shutil, pymysql
 from pathlib import Path
 
-from auth import close_auth_resources, init_auth_resources, require_login
+from auth import APP_HOME_PATH, close_auth_resources, init_auth_resources, require_login
 from config import CONFIG_DIR, ensure_directories
 from db import init_db, close_db
 
@@ -234,7 +234,7 @@ async def upload_hand_image(pid: int, appt_date: str, image_type: str = Form(...
 
 @app.get("/", include_in_schema=False)
 async def root_redirect():
-    return RedirectResponse(url="/app", status_code=302)
+    return RedirectResponse(url=APP_HOME_PATH, status_code=302)
 
 
 

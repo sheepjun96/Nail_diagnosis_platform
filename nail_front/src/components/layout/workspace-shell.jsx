@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { withBasePath } from "@utils/routes";
 import {
   ChevronDown,
   Folder,
@@ -144,7 +145,7 @@ export function WorkspaceShell({ children, member }) {
             href="/app"
             className="flex min-h-28 items-center justify-center border-b border-white/10 px-5 text-center"
           >
-            <Image src="/img/ic-logo.svg" alt="logo image" width={240} height={69} priority />
+            <Image src={withBasePath("/img/ic-logo.svg")} alt="logo image" width={240} height={69} priority />
           </Link>
 
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto py-6">

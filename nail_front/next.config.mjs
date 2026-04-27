@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
+const configuredBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/v2";
+const basePath =
+  configuredBasePath === "/" ? "" : configuredBasePath.replace(/\/$/, "");
+
 const nextConfig = {
+  ...(basePath ? { basePath } : {}),
   distDir: ".next-build",
   async rewrites() {
     const apiTarget = (

@@ -21,6 +21,7 @@ import {
   getJson,
   parseNailField,
   postForm,
+  withBasePath,
 } from "@utils";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -1179,7 +1180,7 @@ export function AddOrEditPatientPage() {
     url.searchParams.delete("width");
 
     window.open(
-      `/app/image${url.search}`,
+      withBasePath(`/app/image${url.search}`),
       "_blank",
       "width=900,height=900,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes"
     );

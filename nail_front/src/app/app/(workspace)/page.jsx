@@ -20,6 +20,7 @@ import {
   formatEmpty,
   formatGender,
   mapPreviewItems,
+  withBasePath,
 } from "@utils";
 import { getJson, postForm, postJson } from "@utils/request";
 import useConfirmDialog from "@utils/useConfirmDialog";
@@ -396,7 +397,7 @@ export default function AppHomePage() {
     url.searchParams.delete("width");
 
     window.open(
-      `/app/image${url.search}`,
+      withBasePath(`/app/image${url.search}`),
       "_blank",
       "width=900,height=900,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes"
     );
