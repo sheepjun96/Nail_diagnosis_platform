@@ -5,10 +5,13 @@ const INTERNAL_API_BASE_URL = (
   process.env.INTERNAL_API_BASE_URL ?? "http://127.0.0.1:8000/api"
 ).replace(/\/$/, "");
 
+const AUTH_COOKIE_NAMES = new Set(["access_token", "refresh_token"]);
+
 function buildCookieHeader() {
   const cookieStore = cookies();
   return cookieStore
     .getAll()
+    .filter(({ name }) => AUTH_COOKIE_NAMES.has(name))
     .map(({ name, value }) => `${name}=${value}`)
     .join("; ");
 }
