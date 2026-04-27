@@ -134,7 +134,7 @@ async def receive_patient_data(request: Request):
     else:
         dates = data[pid_str].get("appt_date", [])
         if patient.appt_date and patient.appt_date in dates:
-            return {"status": "success", "redirect_url": f"https://127.0.0.1:8000/viewer/{pid_str}/{patient.appt_date}"}
+            return {"status": "success", "redirect_url": f"https://127.0.0.1:8001/viewer/{pid_str}/{patient.appt_date}"}
     
     # 4) MySQL 데이터베이스 연결 및 DOB, sex 조회
     conn = None
@@ -174,7 +174,7 @@ async def receive_patient_data(request: Request):
     
     save_data(data)
 
-    return {"status": "success", "redirect_url": f"https://127.0.0.1:8000/viewer/{pid_str}/{patient.appt_date}"}
+    return {"status": "success", "redirect_url": f"https://127.0.0.1:8001/viewer/{pid_str}/{patient.appt_date}"}
 
 # 진료 시간별 뷰어 시스템
 @app.get("/viewer/{pid}/{appt_date}")
@@ -240,6 +240,6 @@ async def root_redirect():
 
 
 if __name__ == "__main__":
-    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+    # python -m uvicorn main:app --reload --host 127.0.0.1 --port 8001
 
     pass

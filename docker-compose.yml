@@ -10,7 +10,7 @@ services:
       MYSQL_USER: curaxel_user
       MYSQL_PASSWORD: curaxel_pass
     ports:
-      - "127.0.0.1:3307:3306"
+      - "127.0.0.1:3308:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./sql/init_env.sql:/docker-entrypoint-initdb.d/init.sql
@@ -55,8 +55,8 @@ services:
       NODE_ENV: development
       NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/v2}
       NEXT_PUBLIC_API_BASE_URL: /api
-      INTERNAL_API_BASE_URL: http://app:8000/api
-      INTERNAL_API_PROXY_TARGET: http://app:8000/api
+      INTERNAL_API_BASE_URL: http://app:8001/api
+      INTERNAL_API_PROXY_TARGET: http://app:8001/api
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     command: ["npm", "run", "dev", "--", "-p", "3000"]

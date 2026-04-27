@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const INTERNAL_API_BASE_URL = (
-  process.env.INTERNAL_API_BASE_URL ?? "http://127.0.0.1:8000/api"
+  process.env.INTERNAL_API_BASE_URL ?? "http://127.0.0.1:8001/api"
 ).replace(/\/$/, "");
 
 const AUTH_COOKIE_NAMES = new Set(["access_token", "refresh_token"]);
