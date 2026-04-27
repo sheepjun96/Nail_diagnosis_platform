@@ -26,15 +26,15 @@ services:
       DB_USER: curaxel_user
       DB_PASSWORD: curaxel_pass
       DB_NAME: curaxel_skin
-      GACHON_AUTH_DB_HOST: ${GACHON_AUTH_DB_HOST:-host.docker.internal}
+      GACHON_AUTH_DB_HOST: ${GACHON_AUTH_DB_HOST:-10.2.52.209}
       GACHON_AUTH_DB_PORT: ${GACHON_AUTH_DB_PORT:-3306}
       GACHON_AUTH_DB_USER: ${GACHON_AUTH_DB_USER:-}
       GACHON_AUTH_DB_PASSWORD: ${GACHON_AUTH_DB_PASSWORD:-}
       GACHON_AUTH_DB_NAME: ${GACHON_AUTH_DB_NAME:-mis_db}
-      GACHON_REDIS_HOST: ${GACHON_REDIS_HOST:-host.docker.internal}
+      GACHON_REDIS_HOST: ${GACHON_REDIS_HOST:-10.2.52.209}
       GACHON_REDIS_PORT: ${GACHON_REDIS_PORT:-6379}
       GACHON_SESSION_SECRET: ${GACHON_SESSION_SECRET:-}
-      GACHON_BASE_URL: ${GACHON_BASE_URL:-http://localhost:3000}
+      GACHON_BASE_URL: ${GACHON_BASE_URL:-http://10.2.52.209}
       NAIL_APP_BASE_PATH: ${NAIL_APP_BASE_PATH:-/v2/app}
     volumes:
       - ./ai_models:/app/ai_models
