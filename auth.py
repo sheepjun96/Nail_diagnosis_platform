@@ -287,9 +287,18 @@ def build_cookie_options(request: Request, max_age: int) -> dict[str, Any]:
         "path": "/",
     }
 
+def _gachon_sso_base_url() -> str:
+    """Curaxel SSO 베이스 URL. 내부망은 HTTP(80)만 두는 경우가 많아 https로 열면 nginx 502가 날 수 있음."""
+    raw = os.getenv("GACHON_BASE_URL", "http://10.2.52.209").rstrip("/")
+    if os.getenv("GACHON_SSO_FORCE_HTTP", "").lower() in ("1", "true", "yes"):
+        if raw.startswith("https://"):
+            raw = "http://" + raw[len("https://") :]
+    return raw
+
+
 # 가천 SSO 시작 URL 빌드
 def build_gachon_sso_start_url(request: Request) -> str:
-    base_url = os.getenv("GACHON_BASE_URL", "http://10.2.52.209").rstrip("/")
+    base_url = _gachon_sso_base_url()
     public_base_url = os.getenv("NAIL_PUBLIC_BASE_URL", "").rstrip("/")
     callback_url = (
         f"{public_base_url}/api/auth/sso/callback"

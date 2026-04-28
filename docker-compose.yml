@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -35,6 +33,8 @@ services:
       GACHON_REDIS_PORT: ${GACHON_REDIS_PORT:-6379}
       GACHON_SESSION_SECRET: ${GACHON_SESSION_SECRET:-}
       GACHON_BASE_URL: ${GACHON_BASE_URL:-http://10.2.52.209}
+      # 내부 SSO가 HTTP만 제공할 때 .env에 GACHON_SSO_FORCE_HTTP=true (또는 GACHON_BASE_URL을 http:// 로 통일)
+      GACHON_SSO_FORCE_HTTP: ${GACHON_SSO_FORCE_HTTP:-}
       NAIL_APP_BASE_PATH: ${NAIL_APP_BASE_PATH:-/v2/app}
     volumes:
       - ./ai_models:/app/ai_models
