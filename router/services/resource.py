@@ -47,7 +47,7 @@ async def get_study_list(
     # 1) 전체 개수
     count_sql = f"""
         SELECT COUNT(*) AS total
-        FROM curaxel_skin.study_list
+        FROM study_list
         WHERE {where_sql}
     """
 
@@ -64,7 +64,7 @@ async def get_study_list(
             stl_patient_recentdate,
             stl_patient_status,
             stl_patient_tag
-        FROM curaxel_skin.study_list
+        FROM study_list
         WHERE {where_sql}
         ORDER BY {order_by}
         LIMIT %s OFFSET %s
@@ -114,7 +114,7 @@ async def get_image_origin_list(
         rows = 20
     offset = (page - 1) * rows
 
-    
+
     where_clauses = ["(uf_del_yn = 'N')"]
     params: List[Any] = []
 
@@ -134,14 +134,14 @@ async def get_image_origin_list(
         FROM upload_file
         WHERE {where_sql}
     """
-    
+
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(count_sql, params)
         count_row = await cur.fetchone()
         total = count_row["total"] if count_row else 0
 
     list_sql = f"""
-        SELECT 
+        SELECT
             uf_seq,
             uf_upload_write,
             uf_upload_date,
@@ -155,7 +155,7 @@ async def get_image_origin_list(
         LIMIT %s OFFSET %s
     """
     list_params = params + [rows, offset]
-    
+
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(list_sql, list_params)
         items = await cur.fetchall()
@@ -174,13 +174,13 @@ async def get_image_origin_detail(
     page: int = 1,
     rows: int = 20,
 ) -> Dict[str, Any]:
-    
+
     params: List[Any] = []
     where_sql = "( uf_memo_2 LIKE %s OR uf_uri LIKE %s )"
     like = f"{filename}" if filename else "%"
     params.extend([like, like])
     detail_sql = f"""
-        SELECT 
+        SELECT
             uf_seq,
             uf_upload_write,
             uf_upload_date,
@@ -194,7 +194,7 @@ async def get_image_origin_detail(
         WHERE {where_sql}
         ORDER BY uf_filetype ASC
     """
-    
+
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(detail_sql, params)
         items = await cur.fetchall()
@@ -206,19 +206,20 @@ async def get_image_origin_detail(
 
 async def get_study_List_patientId(
     conn: aiomysql.Connection,
-    patient_id: Optional[str] = None
+    patient_id: Optional[str] = None,
+    project_seq: int = 1,
 ) -> Dict[str, Any]:
     select_study_sql = """
         SELECT stl_seq
         FROM study_list
-        WHERE stl_patient_id = %s
+        WHERE stl_patient_id = %s AND project_seq = %s
         ORDER BY stl_patient_recentdate DESC
         LIMIT 1
     """
     async with conn.cursor(aiomysql.DictCursor) as cur:
-        await cur.execute(select_study_sql, [patient_id])
+        await cur.execute(select_study_sql, [patient_id, project_seq])
         items = await cur.fetchone()
-    
+
     stl_seq = items["stl_seq"] if items else None
     return {
         "stl": stl_seq,   # 실제 데이터 목록
@@ -256,7 +257,7 @@ async def add_study(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(insert_study_sql, insert_value)
         stl_seq = cur.lastrowid
-    await conn.commit()
+
     return {
         "stl_seq": stl_seq,
     }
@@ -275,7 +276,6 @@ async def update_study_recentdate(
     """
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(update_sql, (recent_dt, stl_seq))
-    await conn.commit()
 
 async def add_seires(
     conn: aiomysql.Connection,
@@ -284,7 +284,7 @@ async def add_seires(
     series_note: str,
     nail_data: Dict[str, Any],
 ) -> Dict[str, Any]:
-    
+
     def nail_json(key: str) -> str:
         # 없으면 {} 을 기본으로
         return json.dumps(nail_data.get(key, {}), ensure_ascii=False)
@@ -323,7 +323,7 @@ async def add_seires(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(insert_series_sql, insert_value)
         srl_seq = cur.lastrowid
-    await conn.commit()
+
     return {
         "srl_seq": srl_seq,
     }
@@ -376,7 +376,6 @@ async def update_series_data(
 
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(update_series_sql, update_value)
-        await conn.commit()
 
     return {
         "srl_seq": srl_seq,
@@ -387,7 +386,7 @@ async def add_file_origin(
     upload_type: str,
     upload_uri: str,
 ) -> Dict[str, Any]:
-    
+
     uf_upload_write = upload_type
     uf_upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     uf_uri = upload_uri
@@ -397,8 +396,8 @@ async def add_file_origin(
     uf_memo_3 = ""
     uf_memo_4 = ""
     uf_del_yn = "N"
-    
-   
+
+
     insert_sql = """
         INSERT INTO upload_file
         (uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_memo_3, uf_memo_4, uf_del_yn)
@@ -419,7 +418,7 @@ async def add_file_origin(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(insert_sql, insert_value)
         insert_seq = cur.lastrowid
-    await conn.commit()
+
     return {
         "insert_seq": insert_seq,
     }
@@ -434,7 +433,7 @@ async def add_file_crop(
     ai_info : str,
     finger_index : str,
 ) -> Dict[str, Any]:
-    
+
     uf_upload_write = upload_type
     uf_upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     uf_uri = upload_uri
@@ -444,8 +443,8 @@ async def add_file_crop(
     uf_memo_3 = crop_info
     uf_memo_4 = ai_info
     uf_del_yn = "N"
-    
-   
+
+
     insert_sql = """
         INSERT INTO upload_file
         (uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_memo_3, uf_memo_4, uf_del_yn)
@@ -466,7 +465,7 @@ async def add_file_crop(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(insert_sql, insert_value)
         insert_seq = cur.lastrowid
-    await conn.commit()
+
     return {
         "insert_seq": insert_seq,
     }
@@ -481,7 +480,7 @@ async def add_file_extra(
     finger_index : str,
     upload_filetype : int,
 ) -> Dict[str, Any]:
-    
+
     uf_upload_write = upload_type
     uf_upload_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     uf_uri = upload_uri
@@ -491,8 +490,8 @@ async def add_file_extra(
     uf_memo_3 = crop_info
     uf_memo_4 = ""
     uf_del_yn = "N"
-    
-   
+
+
     insert_sql = """
         INSERT INTO upload_file
         (uf_upload_write, uf_upload_date, uf_uri, uf_filetype, uf_memo_1, uf_memo_2, uf_memo_3, uf_memo_4, uf_del_yn)
@@ -513,7 +512,7 @@ async def add_file_extra(
     async with conn.cursor(aiomysql.DictCursor) as cur:
         await cur.execute(insert_sql, insert_value)
         insert_seq = cur.lastrowid
-    await conn.commit()
+
     return {
         "insert_seq": insert_seq,
     }
@@ -521,12 +520,16 @@ async def add_file_extra(
 async def get_series_list(
     conn: aiomysql.Connection,
     patient_id: str,
+    stl_seq: Optional[int] = None,
 ) -> Dict:
     async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
-        await cur.execute(
-            "SELECT stl_seq FROM curaxel_skin.study_list WHERE stl_patient_id = %s",
-            (patient_id,),
-        )
+        if stl_seq is not None:
+            await cur.execute("SELECT stl_seq FROM study_list WHERE stl_seq = %s AND stl_patient_id = %s", (stl_seq, patient_id))
+        else:
+            await cur.execute(
+                "SELECT stl_seq FROM study_list WHERE stl_patient_id = %s ORDER BY stl_patient_recentdate DESC LIMIT 1",
+                (patient_id,),
+            )
         row = await cur.fetchone()
         if not row:
             return {"code": 200, "message": "OK", "context": []}
@@ -538,7 +541,7 @@ async def get_series_list(
             SELECT srl_seq, stl_seq, srl_patient_seriesdate, srl_patient_note,
                    srl_patient_l_t, srl_patient_l_i, srl_patient_l_m, srl_patient_l_R, srl_patient_l_p,
                    srl_patient_r_t, srl_patient_r_i, srl_patient_r_m, srl_patient_r_R, srl_patient_r_p
-            FROM curaxel_skin.series_list
+            FROM series_list
             WHERE stl_seq = %s
             ORDER BY srl_patient_seriesdate DESC
             """,
@@ -552,7 +555,7 @@ async def get_series_list(
                 "srl_patient_l_t", "srl_patient_l_i", "srl_patient_l_m", "srl_patient_l_R", "srl_patient_l_p",
                 "srl_patient_r_t", "srl_patient_r_i", "srl_patient_r_m", "srl_patient_r_R", "srl_patient_r_p"
             ]
-            
+
             instance_cnt = 0
             diagnosis_set = set()
 
@@ -562,7 +565,7 @@ async def get_series_list(
                 try:
                     j = json.loads(val)
                     if j.get("origin"): instance_cnt += 1
-                    
+
                     ai_str = j.get("ai")
                     if ai_str:
                         ai_obj = json.loads(ai_str) if isinstance(ai_str, str) else ai_str
@@ -604,7 +607,7 @@ async def get_series_detail(
                 srl_patient_r_m,
                 srl_patient_r_R,
                 srl_patient_r_p
-            FROM curaxel_skin.series_list
+            FROM series_list
             WHERE stl_seq = %s
               AND srl_seq = %s
             LIMIT 1
@@ -623,11 +626,10 @@ async def delete_series_data(conn: aiomysql.Connection, srl_seq: int, stl_seq: i
         async with conn.cursor() as cur:
             sql = "DELETE FROM series_list WHERE srl_seq = %s AND stl_seq = %s"
             await cur.execute(sql, (srl_seq, stl_seq))
-            await conn.commit()
+
             return True
-    except Exception as e:
-        print(f"Error deleting series: {e}")
-        return False
+    except Exception:
+        raise
 
 async def delete_study_if_empty(conn: aiomysql.Connection, stl_seq: int):
     try:
@@ -641,8 +643,7 @@ async def delete_study_if_empty(conn: aiomysql.Connection, stl_seq: int):
 
             del_sql = "DELETE FROM study_list WHERE stl_seq = %s"
             await cur.execute(del_sql, (stl_seq,))
-            await conn.commit()
+
             return {"ok": True}
-    except Exception as e:
-        print(f"Error deleting patient: {e}")
-        return {"ok": False, "msg": "Database error occurred."}
+    except Exception:
+        raise

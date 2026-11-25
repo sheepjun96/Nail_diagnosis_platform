@@ -99,7 +99,7 @@ const PSAR_BED_OPTIONS = [
   "oil drop discoloration",
   "nail bed hyperkeratosis",
 ];
-const AI_OPTIONS = ["Melanoma", "Normal Nail", "Onychomycosis", "Psoriasis"];
+const AI_OPTIONS = ["Normal", "melanonychia", "nail psoriasis", "onychomycosis"];
 
 function createEmptyPsar() {
   return {
@@ -170,26 +170,29 @@ function parseAiResult(aiRaw) {
 
 function normalizeAiClass(className) {
   if (!className) {
-    return "Normal Nail";
+    return "";
   }
 
   const map = {
-    Healthy_Nail: "Normal Nail",
+    Healthy_Nail: "Normal",
+    "Normal Nail": "Normal",
+    Onychomycosis: "onychomycosis",
+    Psoriasis: "nail psoriasis",
     Acral_Lentiginous_Melanoma: "Melanoma",
-    psoriasis: "Psoriasis",
+    psoriasis: "nail psoriasis",
   };
 
   return map[className] || className;
 }
 
-function getAiEditorState(aiRaw) {
+function getAiEditorState(aiRaw, classNames = AI_OPTIONS) {
   const aiResult = parseAiResult(aiRaw);
   const normalizedClass = normalizeAiClass(aiResult?.predicted_class);
   const probability = Number(aiResult?.probability);
   const normalizedProbability = Number.isFinite(probability)
     ? Math.round(probability * 10000) / 100
-    : 100;
-  const isStandard = AI_OPTIONS.includes(normalizedClass);
+    : 0;
+  const isStandard = classNames.includes(normalizedClass);
 
   return {
     aiResult,
@@ -202,10 +205,11 @@ function getAiEditorState(aiRaw) {
 
 function isPsoriasisSlot(slot) {
   const { predictedClass } = getAiEditorState(slot?.aiRaw);
-  return predictedClass === "Psoriasis" || hasPsarSelections(slot?.psar);
+  return predictedClass === "nail psoriasis" || hasPsarSelections(slot?.psar);
 }
 
 function formatAiSummary(aiRaw) {
+  if (!parseAiResult(aiRaw)) return "분석 결과 없음";
   const { predictedClass, probabilityPercent } = getAiEditorState(aiRaw);
   return `${predictedClass} (${probabilityPercent.toFixed(2)}%)`;
 }
@@ -480,6 +484,9 @@ export function AddOrEditPatientPage() {
   const [cropCandidates, setCropCandidates] = useState({});
   const [isLoadingOrigins, setIsLoadingOrigins] = useState(false);
   const [isUploadingOrigin, setIsUploadingOrigin] = useState(false);
+  const [captureType, setCaptureType] = useState("auto");
+  const [uploadReviewWarning, setUploadReviewWarning] = useState("");
+  const [aiClassNames, setAiClassNames] = useState(AI_OPTIONS);
   const [originError, setOriginError] = useState("");
   const [originUploadStatus, setOriginUploadStatus] = useState({
     type: "idle",
@@ -524,16 +531,24 @@ export function AddOrEditPatientPage() {
   }, [originUploadStatus]);
 
   useEffect(() => {
+    if (!canAccessPage) return;
+    let active = true;
+    getJson("/api/config/models")
+      .then((data) => {
+        if (active && Array.isArray(data?.classes) && data.classes.length) {
+          setAiClassNames(data.classes);
+        }
+      })
+      .catch((error) => console.error("Failed to load model classes", error));
+    return () => { active = false; };
+  }, [canAccessPage]);
+
+  useEffect(() => {
     if (!canAccessPage) {
       return;
     }
 
-    if (isEditMode) {
-      setPatients([]);
-      setPatientTotal(0);
-      setPatientError("");
-      return;
-    }
+    if (isEditMode) return;
 
     async function loadPatients() {
       setIsLoadingPatients(true);
@@ -809,11 +824,12 @@ export function AddOrEditPatientPage() {
     }
   }
 
-  function uploadSingleFileWithProgress(file, apiBaseUrl) {
+  function uploadSingleFileWithProgress(file) {
     return new Promise((resolve, reject) => {
       const formData = new FormData();
       formData.append("type", "gcubme");
       formData.append("file", file);
+      formData.append("capture_type", captureType);
 
       const xhr = new XMLHttpRequest();
       xhr.open("POST", buildApiUrl("/api/upload"), true);
@@ -865,6 +881,7 @@ export function AddOrEditPatientPage() {
     }));
 
     setIsUploadingOrigin(true);
+    setUploadReviewWarning("");
     setOriginError("");
     setMultiUploadState({
       isActive: true,
@@ -896,6 +913,9 @@ export function AddOrEditPatientPage() {
 
       try {
         const data = await uploadSingleFileWithProgress(file);
+        if (data?.warnings?.length) {
+          setUploadReviewWarning("검출된 손톱 수가 촬영 종류와 맞지 않습니다. 촬영 종류를 확인하거나 다시 촬영해 주세요.");
+        }
         lastUploadedFilename = data?.filename ?? file.name;
         successCount++;
 
@@ -1129,7 +1149,7 @@ export function AddOrEditPatientPage() {
   function handleAiClassChange(fingerKey, nextValue) {
     setImageSlots((current) => {
       const slot = current[fingerKey] ?? createEmptySlot();
-      const currentAi = getAiEditorState(slot.aiRaw);
+      const currentAi = getAiEditorState(slot.aiRaw, aiClassNames);
       const predictedClass =
         nextValue === "Custom"
           ? currentAi.customClass || currentAi.predictedClass
@@ -1151,7 +1171,7 @@ export function AddOrEditPatientPage() {
   function handleAiCustomClassChange(fingerKey, nextValue) {
     setImageSlots((current) => {
       const slot = current[fingerKey] ?? createEmptySlot();
-      const currentAi = getAiEditorState(slot.aiRaw);
+      const currentAi = getAiEditorState(slot.aiRaw, aiClassNames);
 
       return {
         ...current,
@@ -1317,7 +1337,7 @@ export function AddOrEditPatientPage() {
         <tr>
           {fingers.map((finger) => {
             const slot = imageSlots[finger.key];
-            const aiState = getAiEditorState(slot.aiRaw);
+            const aiState = getAiEditorState(slot.aiRaw, aiClassNames);
             const hasImage = Boolean(slot.previewUrl);
 
             return (
@@ -1333,7 +1353,7 @@ export function AddOrEditPatientPage() {
                       value={aiState.isStandard ? aiState.predictedClass : "Custom"}
                       onChange={(event) => handleAiClassChange(finger.key, event.target.value)}
                     >
-                      {AI_OPTIONS.map((option) => (
+                      {aiClassNames.map((option) => (
                         <option key={`${finger.key}-${option}`} value={option}>
                           {option}
                         </option>
@@ -1827,12 +1847,33 @@ export function AddOrEditPatientPage() {
                 </div>
                 <input
                   ref={uploadInputRef}
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp"
                   className="hidden"
                   multiple
                   type="file"
                   onChange={handleOriginUploadChange}
                 />
+                <label className="flex items-center gap-2 text-xs text-white/70">
+                  촬영 종류
+                  <select
+                    className="h-8 rounded border border-white/20 bg-card px-2 text-white"
+                    value={captureType}
+                    disabled={isOriginBusy}
+                    onChange={(event) => {
+                      setCaptureType(event.target.value);
+                      setUploadReviewWarning("");
+                    }}
+                  >
+                    <option value="auto">자동 (양손 2개/8개)</option>
+                    <option value="thumbs">양손 엄지</option>
+                    <option value="fingers">양손 나머지 손가락</option>
+                    <option value="left_thumb">왼손 엄지</option>
+                    <option value="right_thumb">오른손 엄지</option>
+                    <option value="left_fingers">왼손 나머지 손가락</option>
+                    <option value="right_fingers">오른손 나머지 손가락</option>
+                  </select>
+                </label>
+                {uploadReviewWarning ? <span role="status" className="text-xs text-amber-300">{uploadReviewWarning}</span> : null}
                 <Button
                   className="h-8 px-3 text-xs"
                   disabled={isOriginBusy}

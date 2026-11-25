@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { withBasePath } from "@utils/routes";
 import {
@@ -69,11 +69,6 @@ function SidebarSection({ title, items, icon: SectionIcon, pathname, defaultOpen
   );
   const [isOpen, setIsOpen] = useState(defaultOpen || hasActiveItem);
 
-  useEffect(() => {
-    if (hasActiveItem) {
-      setIsOpen(true);
-    }
-  }, [hasActiveItem]);
 
   if (!items.length) {
     return null;
@@ -151,7 +146,7 @@ export function WorkspaceShell({ children, member }) {
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto py-6">
             {navigationSections.map((section) => (
               <SidebarSection
-                key={section.title}
+                key={`${section.title}:${pathname}`}
                 title={section.title}
                 items={section.items}
                 icon={section.icon}

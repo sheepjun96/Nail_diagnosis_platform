@@ -1,16 +1,31 @@
-# Python-generated files
+# Local configuration, model weights and patient data
+.env
+.env.*
+!.env-sample
+!.env.example
+ai_models/
+MedSigLIP/
+data/
+backups/
+patient_data.json
+static/patient_images/
+# Python and local verification tools
+.venv/
+.tools/
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
 build/
 dist/
 wheels/
-*.egg-info
 *.zip
-.idea
-
-# Next.js / Node
+.idea/
+# Frontend generated artifacts
 node_modules/
 .next/
+.next-build/
 out/
 coverage/
 *.tsbuildinfo
@@ -19,11 +34,3 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 next-env.d.ts
-
-# Virtual environments
-.venv
-MedSigLIP
-.env
-
-# Local AI model weights
-ai_models/

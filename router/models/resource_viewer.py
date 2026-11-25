@@ -18,9 +18,9 @@ VIEWER_EDIT_ROLES = [1, 2, 3, 4, 5, 6, 9]
 async def viewer_info(
     request: Request,
     stl_seq: int = Query(..., description="study_list.stl_seq"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
-    
+
     ensure_role(request.state.member, VIEWER_ROLES, "viewer info")
 
     result = await get_viewer_info(conn=conn, stl_seq=stl_seq)
@@ -39,7 +39,7 @@ async def viewer_patient_modify(
     patient_name: str = Form(...),
     patient_gender: str = Form(...),
     patient_birth: Optional[str] = Form(None),  # "YYYY-MM-DD"
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, VIEWER_EDIT_ROLES, "viewer patient modify")
 
@@ -62,7 +62,7 @@ async def viewer_series_note(
     request: Request,
     stl_seq: int = Query(...),
     srl_seq: int = Query(...),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, VIEWER_ROLES, "viewer series note")
 
@@ -75,7 +75,7 @@ async def update_viewer_series_note(
     stl_seq: int = Form(...),
     srl_seq: int = Form(...),
     note: str = Form(...),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, VIEWER_EDIT_ROLES, "viewer update series note")
 
@@ -87,7 +87,7 @@ async def api_get_series_list(
     request: Request,
     stl_seq: int = Query(...),
     search: str = Query(""),
-    conn: aiomysql.Connection = Depends(get_conn)
+    conn: aiomysql.Connection = Depends(get_conn, scope="function")
 ):
     ensure_role(request.state.member, VIEWER_ROLES, "viewer series list")
 

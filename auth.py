@@ -1,5 +1,6 @@
 import json
 import os
+import hmac
 from collections.abc import Iterable
 from typing import Any, Optional
 from urllib.parse import urlencode
@@ -8,6 +9,8 @@ import aiomysql
 import jwt
 from fastapi import HTTPException, Request, status
 from redis.asyncio import Redis
+from redis.exceptions import RedisError
+from config import settings
 
 AUTH_COOKIE_MAX_AGE = 60 * 60 * 12
 REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60
@@ -15,7 +18,7 @@ TOKEN_PREFIX = "tokenCode_"
 LOGIN_INFO_PREFIX = "loginInfo_"
 SSO_TICKET_PREFIX = "ssoTicket_"
 SSO_SERVICE = "nail"
-APP_HOME_PATH = os.getenv("NAIL_APP_BASE_PATH", "/v2/app").rstrip("/") or "/v2/app"
+APP_HOME_PATH = settings.app_base_path
 APP_LOGIN_PATH = f"{APP_HOME_PATH}/login"
 
 GACHON_AUTH_DB_CONFIG = {
@@ -24,10 +27,12 @@ GACHON_AUTH_DB_CONFIG = {
     "user": os.getenv("GACHON_AUTH_DB_USER", ""),
     "password": os.getenv("GACHON_AUTH_DB_PASSWORD", ""),
     "db": os.getenv("GACHON_AUTH_DB_NAME", "mis_db"),
-    "minsize": 1,
+    "minsize": 0,
     "maxsize": 5,
     "autocommit": True,
     "charset": "utf8mb4",
+    "connect_timeout": 5,
+    "pool_recycle": 1800,
 }
 
 # 인증 설정 확인
@@ -42,6 +47,8 @@ def _auth_is_configured() -> bool:
 
 # 쿠키 보안 설정
 def _cookie_secure(request: Request) -> bool:
+    if os.getenv("NAIL_PUBLIC_BASE_URL", "").startswith("https://"):
+        return True
     forwarded_proto = request.headers.get("x-forwarded-proto", request.url.scheme)
     scheme = forwarded_proto.split(",")[0].strip()
     return scheme == "https"
@@ -80,6 +87,10 @@ async def init_auth_resources(app) -> None:
     app.state.gachon_redis = Redis(
         host=os.getenv("GACHON_REDIS_HOST", "10.2.52.209"),
         port=int(os.getenv("GACHON_REDIS_PORT", "6379")),
+        password=os.getenv("GACHON_REDIS_PASSWORD") or None,
+        db=int(os.getenv("GACHON_REDIS_DB", "0")),
+        socket_connect_timeout=3,
+        socket_timeout=5,
         decode_responses=True,
     )
 
@@ -123,10 +134,13 @@ async def _get_member_by_seq(request: Request, m_seq: int) -> Optional[dict[str,
         LIMIT 1
     """
 
-    async with pool.acquire() as conn:
-        async with conn.cursor(aiomysql.DictCursor) as cur:
-            await cur.execute(query, (m_seq,))
-            return await cur.fetchone()
+    try:
+        async with pool.acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cur:
+                await cur.execute(query, (m_seq,))
+                return await cur.fetchone()
+    except (OSError, aiomysql.Error) as exc:
+        raise _auth_error("Shared authentication database is unavailable.", 503) from exc
 
 # 캐시된 토큰 디코딩
 async def _decode_cached_token(
@@ -138,7 +152,10 @@ async def _decode_cached_token(
         return None
 
     redis_client = _get_redis(request)
-    cached_token = await redis_client.get(f"{TOKEN_PREFIX}{token_type}_{token_code}")
+    try:
+        cached_token = await redis_client.get(f"{TOKEN_PREFIX}{token_type}_{token_code}")
+    except RedisError as exc:
+        raise _auth_error("Shared authentication service is unavailable.", 503) from exc
     if not cached_token:
         return None
 
@@ -255,14 +272,18 @@ async def clear_shared_session(request: Request, member: Optional[dict[str, Any]
 async def consume_sso_ticket(request: Request, ticket: str) -> Optional[dict[str, Any]]:
     if not ticket:
         return None
-    
+
     redis_client = _get_optional_redis(request)
     if redis_client is None:
         return None
 
     ticket_key = f"{SSO_TICKET_PREFIX}{SSO_SERVICE}_{ticket}"
-    ticket_payload = await redis_client.get(ticket_key)
-    await redis_client.delete(ticket_key)
+    try:
+        ticket_payload = await redis_client.eval(
+            "local v=redis.call('GET',KEYS[1]); redis.call('DEL',KEYS[1]); return v", 1, ticket_key
+        )
+    except RedisError as exc:
+        raise _auth_error("Shared authentication service is unavailable.", 503) from exc
 
     if not ticket_payload:
         return None
@@ -312,3 +333,16 @@ def build_gachon_sso_start_url(request: Request) -> str:
         }
     )
     return f"{base_url}/api/v2/sso/start?{query}"
+
+
+async def require_upload_access(request: Request) -> dict[str, Any]:
+    """Browsers use SSO; capture devices use an explicitly provisioned upload key."""
+    expected = os.getenv("NAIL_UPLOAD_API_KEY", "")
+    supplied = request.headers.get("x-upload-token", "")
+    if supplied:
+        if not expected or not hmac.compare_digest(supplied, expected):
+            raise _auth_error("Invalid camera upload token.")
+        return {"identity": "camera", "kind": "camera"}
+    member = await get_authenticated_member(request)
+    ensure_role(member, [1, 2, 3], "upload image")
+    return {"identity": f"member:{member['m_seq']}", "kind": "member", "member": member}

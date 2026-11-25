@@ -26,7 +26,7 @@ import { getJson, postForm, postJson } from "@utils/request";
 import useConfirmDialog from "@utils/useConfirmDialog";
 import { useRouter } from "next/navigation";
 import { Loader2, Search, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";  
+import { useEffect, useState } from "react";
 // import CloseIcon from '@mui/icons-material/Close';
 const STUDY_ROWS = 20;
 const studyTableColumns = [
@@ -174,10 +174,6 @@ export default function AppHomePage() {
       return;
     }
 
-    setSelectedSeries(null);
-    setPreviewItems({});
-    setPreviewError("");
-
     async function loadSeries() {
       setIsLoadingSeries(true);
       setSeriesError("");
@@ -186,6 +182,7 @@ export default function AppHomePage() {
         const data = await getJson("/api/resource/series/list", {
           query: {
             patient_id: selectedStudy.patientId,
+            stl_seq: selectedStudy.id,
           },
         });
 

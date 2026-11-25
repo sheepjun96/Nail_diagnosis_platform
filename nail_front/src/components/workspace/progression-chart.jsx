@@ -62,17 +62,17 @@ export function ProgressionChart({ rows }) {
   const visibleLabelStep = chronologicalRows.length > 6 ? Math.ceil(chronologicalRows.length / 6) : 1;
 
   const aiPoints = chronologicalRows.map((row, index) => {
-    if (row.aiSeverityScore === null || row.aiSeverityScore === undefined) {
+    if (row.aiConfidence === null || row.aiConfidence === undefined) {
       return null;
     }
 
     const x = MARGIN.left + xStep * index;
-    const y = MARGIN.top + PLOT_HEIGHT * (1 - clamp(row.aiSeverityScore, 0, 100) / 100);
+    const y = MARGIN.top + PLOT_HEIGHT * (1 - clamp(row.aiConfidence, 0, 100) / 100);
 
     return {
       x,
       y,
-      value: row.aiSeverityScore,
+      value: row.aiConfidence,
       label: row.dateLabel,
       diagnosisLabel: row.diagnosisLabel,
     };
@@ -102,7 +102,7 @@ export function ProgressionChart({ rows }) {
       <div className="flex flex-wrap items-center gap-4 text-xs text-white/65">
         <span className="inline-flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[#e74a3b]" />
-          AI score (%)
+          AI confidence (%)
         </span>
         <span className="inline-flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[#4e73df]" />
@@ -209,7 +209,7 @@ export function ProgressionChart({ rows }) {
             >
               <title>
                 {`${point.label}\n${point.diagnosisLabel || "No diagnosis"}\n${formatTooltip(
-                  "AI score",
+                  "AI confidence",
                   point.value,
                   "%"
                 )}`}

@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3007",
+    "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@emotion/react": "^11.10.5",
@@ -15,18 +15,18 @@
     "@mui/material": "^7.0.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
-    "moment": "^2.30.1",
-    "next": "14.2.33",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "moment": "^2.31.0",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "rsuite": "^5.83.1",
     "sweetalert2": "^11.26.24",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.33",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.6",
     "tailwindcss": "^4"
   }
 }

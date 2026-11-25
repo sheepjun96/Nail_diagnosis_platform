@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from auth import (
@@ -15,6 +15,7 @@ from auth import (
     consume_sso_ticket,
     get_authenticated_member,
     get_optional_member,
+    _auth_is_configured,
 )
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
@@ -22,7 +23,14 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.get("/login")
 async def auth_login(request: Request):
+    if not _auth_is_configured():
+        raise HTTPException(503, "Gachon SSO has not been configured for this deployment.")
     return RedirectResponse(build_gachon_sso_start_url(request), status_code=302)
+
+
+@router.get("/config")
+async def auth_config():
+    return {"mode": "gachon_sso", "configured": _auth_is_configured()}
 
 
 @router.get("/sso/callback", name="auth_sso_callback")

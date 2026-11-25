@@ -1,9 +1,13 @@
+import { fileURLToPath } from "node:url";
+
 /** @type {import('next').NextConfig} */
 const configuredBasePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "/v2";
 const basePath =
   configuredBasePath === "/" ? "" : configuredBasePath.replace(/\/$/, "");
 
 const nextConfig = {
+  output: "standalone",
+  turbopack: { root: fileURLToPath(new URL(".", import.meta.url)) },
   ...(basePath ? { basePath } : {}),
   distDir: ".next-build",
   async rewrites() {

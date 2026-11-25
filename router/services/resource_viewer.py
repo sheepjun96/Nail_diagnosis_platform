@@ -22,7 +22,7 @@ async def get_viewer_info(
                 stl_patient_gender,
                 stl_patient_birthdate,
                 stl_patient_recentdate
-            FROM curaxel_skin.study_list
+            FROM study_list
             WHERE stl_seq = %s
             """,
             (stl_seq,),
@@ -35,7 +35,7 @@ async def get_viewer_info(
         await cur.execute(
             """
             SELECT COUNT(*) AS cnt
-            FROM curaxel_skin.series_list
+            FROM series_list
             WHERE stl_seq = %s
             """,
             (stl_seq,),
@@ -65,7 +65,7 @@ async def update_study_patient(
     patient_birthdate: Optional[str],
 ) -> Dict[str, Any]:
     update_sql = """
-        UPDATE curaxel_skin.study_list
+        UPDATE study_list
         SET
             stl_patient_id = %s,
             stl_patient_name = %s,
@@ -83,7 +83,6 @@ async def update_study_patient(
 
     async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
         await cur.execute(update_sql, params)
-        await conn.commit()
 
     return {"code": 200, "message": "OK"}
 
@@ -96,7 +95,7 @@ async def get_series_note(
         await cur.execute(
             """
             SELECT srl_patient_note
-            FROM curaxel_skin.series_list
+            FROM series_list
             WHERE stl_seq = %s AND srl_seq = %s
             """,
             (stl_seq, srl_seq)
@@ -112,24 +111,24 @@ async def update_series_note(
     srl_seq: int,
     note: str
 ) -> Dict[str, Any]:
-    
+
     MAX_LENGTH = 1000
 
     if len(note) > MAX_LENGTH:
         return {"code": 400, "message": f"Note is too long. Maximum length is {MAX_LENGTH} characters."}
-    
+
     async with conn.cursor() as cur:
         await cur.execute(
             """
-            UPDATE curaxel_skin.series_list
+            UPDATE series_list
             SET srl_patient_note = %s
             WHERE stl_seq = %s AND srl_seq = %s
             """,
             (note, stl_seq, srl_seq)
         )
-        await conn.commit()
+
         return {"code": 200, "message": "Note updated"}
-    
+
 async def get_filtered_series_list(
     conn: aiomysql.Connection,
     stl_seq: int,
@@ -138,10 +137,10 @@ async def get_filtered_series_list(
     async with conn.cursor(aiomysql.cursors.DictCursor) as cur:
         await cur.execute(
             """
-            SELECT srl_seq, stl_seq, srl_patient_seriesdate, 
+            SELECT srl_seq, stl_seq, srl_patient_seriesdate,
                    srl_patient_l_t, srl_patient_l_i, srl_patient_l_m, srl_patient_l_R, srl_patient_l_p,
                    srl_patient_r_t, srl_patient_r_i, srl_patient_r_m, srl_patient_r_R, srl_patient_r_p
-            FROM curaxel_skin.series_list
+            FROM series_list
             WHERE stl_seq = %s
             ORDER BY srl_patient_seriesdate DESC
             """,
@@ -164,10 +163,10 @@ async def get_filtered_series_list(
                 if not val: continue
                 try:
                     j = json.loads(val)
-                    
+
                     if j.get("origin"):
                         instance_cnt += 1
-                    
+
                     ai_str = j.get("ai")
                     if ai_str:
                         ai_obj = json.loads(ai_str) if isinstance(ai_str, str) else ai_str
@@ -178,7 +177,7 @@ async def get_filtered_series_list(
                     continue
 
             diagnosis_result = ", ".join(list(diagnosis_set)) if diagnosis_set else "-"
-            
+
             if not search_query or search_query.lower() in diagnosis_result.lower():
                 series_items.append({
                     "no": idx,

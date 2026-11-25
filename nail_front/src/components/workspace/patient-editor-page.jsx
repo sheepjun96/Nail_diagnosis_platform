@@ -90,7 +90,7 @@ function getAiMeta(nail) {
     return {
       diagnosisLabel: "No diagnosis",
       probability: null,
-      severityScore: null,
+      confidence: null,
     };
   }
 
@@ -101,7 +101,7 @@ function getAiMeta(nail) {
       return {
         diagnosisLabel: "No diagnosis",
         probability: null,
-        severityScore: null,
+        confidence: null,
       };
     }
 
@@ -109,23 +109,19 @@ function getAiMeta(nail) {
     const normalizedProbability = Number.isFinite(probability)
       ? Math.round(probability * 10000) / 100
       : null;
-    let severityScore = normalizedProbability;
-
-    if (aiObject.predicted_class === "Normal Nail" && normalizedProbability !== null) {
-      severityScore = Math.round((100 - normalizedProbability) * 100) / 100;
-    }
+    const confidence = normalizedProbability;
 
     return {
       diagnosisLabel: aiObject.predicted_class || "No diagnosis",
       probability: normalizedProbability,
-      severityScore,
+      confidence,
     };
   } catch (error) {
     console.error("Failed to parse ai payload", error);
     return {
       diagnosisLabel: "No diagnosis",
       probability: null,
-      severityScore: null,
+      confidence: null,
     };
   }
 }
@@ -183,14 +179,19 @@ function buildProgressionRow(seriesItem, fingerKey) {
       aiMeta.probability !== null
         ? `${aiMeta.diagnosisLabel} (${aiMeta.probability.toFixed(2)}%)`
         : aiMeta.diagnosisLabel,
-    aiSeverityScore: aiMeta.severityScore,
+    aiConfidence: aiMeta.confidence,
     napsiMatrix: psarMeta.matrix,
     napsiBed: psarMeta.bed,
     napsiTotal: psarMeta.total,
   };
 }
 
-export function PatientEditorPage({
+export function PatientEditorPage(props) {
+  const params = useSearchParams();
+  return <PatientEditorContent key={`${params.get("stl_seq")}:${params.get("srl_seq")}`} {...props} />;
+}
+
+function PatientEditorContent({
   title = "Viewer",
   breadcrumb = "Project > Viewer",
   seriesRouteBase = "/app/viewer",
@@ -337,13 +338,7 @@ export function PatientEditorPage({
       return;
     }
 
-    if (!stlSeq || !selectedSeriesId) {
-      setPreviewItems({});
-      setNoteText("");
-      setPreviewError("");
-      setNoteError("");
-      return;
-    }
+    if (!stlSeq || !selectedSeriesId) return;
 
     async function loadSeriesDetail() {
       setIsLoadingPreview(true);
@@ -382,12 +377,6 @@ export function PatientEditorPage({
     loadSeriesDetail();
   }, [canAccessViewer, selectedSeriesId, stlSeq]);
 
-  useEffect(() => {
-    setSelectedProgressFingerKey("");
-    setProgressionHistory(null);
-    setProgressionError("");
-    setBrokenProgressImages({});
-  }, [stlSeq, patientInfo?.patient_id]);
 
   useEffect(() => {
     if (!canAccessViewer) {
@@ -406,6 +395,7 @@ export function PatientEditorPage({
         const listData = await getJson("/api/resource/series/list", {
           query: {
             patient_id: patientInfo.patient_id,
+            stl_seq: stlSeq,
           },
         });
 
@@ -428,6 +418,7 @@ export function PatientEditorPage({
         );
 
         setProgressionHistory(nextHistory);
+        setBrokenProgressImages({});
       } catch (error) {
         console.error("Failed to load progression history", error);
         setProgressionHistory([]);
@@ -440,13 +431,7 @@ export function PatientEditorPage({
     loadProgressionHistory();
   }, [canAccessViewer, patientInfo?.patient_id, progressionHistory, selectedProgressFingerKey, stlSeq]);
 
-  useEffect(() => {
-    setExpandedProgressNotes({});
-  }, [selectedProgressFingerKey]);
 
-  useEffect(() => {
-    setBrokenProgressImages({});
-  }, [selectedProgressFingerKey, progressionHistory]);
 
   function handleSeriesSearchSubmit(event) {
     event.preventDefault();
@@ -621,7 +606,7 @@ export function PatientEditorPage({
               <ArrowLeft className="size-4" />
               Back
             </Button>
-            
+
           </div>
         }
       />
@@ -880,7 +865,11 @@ export function PatientEditorPage({
                                   : "h-6 w-full rounded bg-[#6c757d] text-[12px] font-semibold text-white transition-colors hover:bg-[#5e666d]"
                               }
                               type="button"
-                              onClick={() => setSelectedProgressFingerKey(finger.key)}
+                              onClick={() => {
+                                setSelectedProgressFingerKey(finger.key);
+                                setExpandedProgressNotes({});
+                                setBrokenProgressImages({});
+                              }}
                             >
                               {isSelected ? "Selected" : "Progress"}
                             </button>
@@ -1032,7 +1021,7 @@ export function PatientEditorPage({
                                   <td className="!px-1 !py-1 text-left align-middle">
                                     <div className="leading-4 text-white">{row.diagnosisText}</div>
                                     <div className="text-[12px] leading-4 text-white/60">
-                                      AI score: {row.aiSeverityScore !== null ? `${row.aiSeverityScore.toFixed(2)} %` : "-"}
+                                      AI confidence: {row.aiConfidence !== null ? `${row.aiConfidence.toFixed(2)} %` : "-"}
                                     </div>
                                     <div className="text-[12px] leading-4 text-white/60">
                                       NAPSI Matrix: {row.napsiMatrix} / Bed: {row.napsiBed} / Total: {row.napsiTotal}

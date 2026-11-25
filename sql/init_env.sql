@@ -1,7 +1,6 @@
-USE curaxel_skin;
 
 
-CREATE TABLE `project_list` (
+CREATE TABLE IF NOT EXISTS `project_list` (
 	`project_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',
 	`pl_write_seq` int NOT NULL COMMENT 'member number',
     `pl_write_date` datetime NOT NULL COMMENT 'write date',
@@ -11,9 +10,8 @@ CREATE TABLE `project_list` (
      PRIMARY KEY (`project_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-select * from project_list;
 
-CREATE TABLE `study_list` (
+CREATE TABLE IF NOT EXISTS `study_list` (
 	`stl_seq` int NOT NULL AUTO_INCREMENT COMMENT 'study id',
 	`project_seq` int NOT NULL COMMENT 'FK: project number',
     `stl_patient_id` varchar(100) NOT NULL COMMENT 'patient id',
@@ -27,9 +25,8 @@ CREATE TABLE `study_list` (
      PRIMARY KEY (`stl_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-select * from study_list;
 
-CREATE TABLE `series_list` (
+CREATE TABLE IF NOT EXISTS `series_list` (
 	`srl_seq` int NOT NULL AUTO_INCREMENT COMMENT 'series id',
     `stl_seq` int NOT NULL COMMENT 'study id',
     `srl_patient_seriesdate` datetime COMMENT 'patient series date',
@@ -47,10 +44,8 @@ CREATE TABLE `series_list` (
      PRIMARY KEY (`srl_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-select * from series_list;
-/* delete from series_list where srl_seq=13; */
 
-CREATE TABLE `platform_env` (
+CREATE TABLE IF NOT EXISTS `platform_env` (
 	`env_seq` int NOT NULL AUTO_INCREMENT COMMENT 'env id',
     `env_type` int NOT NULL COMMENT 'env type',
     `env_watch_uri` varchar(300) COMMENT 'env_watch_uri',
@@ -58,7 +53,7 @@ CREATE TABLE `platform_env` (
      PRIMARY KEY (`env_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `notice_alarm` (
+CREATE TABLE IF NOT EXISTS `notice_alarm` (
 	`na_seq` int NOT NULL AUTO_INCREMENT COMMENT 'env id',
     `na_type` int NOT NULL COMMENT 'env type',
     `na_date` datetime COMMENT 'alarm date',
@@ -71,7 +66,7 @@ CREATE TABLE `notice_alarm` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-CREATE TABLE `upload_file` (
+CREATE TABLE IF NOT EXISTS `upload_file` (
 	`uf_seq` int NOT NULL AUTO_INCREMENT COMMENT 'upload file id',
     `uf_upload_write` varchar(50) COMMENT 'upload file write/org(type)',
     `uf_upload_date` datetime COMMENT 'alarm date',
@@ -84,5 +79,3 @@ CREATE TABLE `upload_file` (
 	`uf_del_yn` char(1) DEFAULT 'N',
      PRIMARY KEY (`uf_seq`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-select * from upload_file;

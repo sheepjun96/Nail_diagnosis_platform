@@ -10,6 +10,8 @@ from typing import List, Optional
 import aiomysql
 from auth import ensure_role
 from db import get_conn
+from router.schemas import parse_patient_payload
+from services.storage import save_uploaded_image, storage_path
 from router.services.resource import get_study_list, get_study_List_patientId, add_study, add_seires, get_series_list, get_series_detail, update_series_data
 from router.services.resource import get_image_origin_list, get_image_origin_detail, update_study_recentdate
 from router.services.resource import delete_series_data, delete_study_if_empty
@@ -26,40 +28,21 @@ DELETE_SERIES_ROLES = [1, 2, 3, 4]
 DELETE_PATIENT_ROLES = [1, 2]
 
 
-async def apply_uploaded_extras(data: dict, file_map: dict):
+async def apply_uploaded_extras(data: dict, file_map: dict, saved_paths=None):
     nail_dict = data.get("nail", {})
-
-    def build_extra_url(filename: str) -> str:
-        return f"/api/resource/image/dump?filename={filename}&filetype=2"
-
     for nail_key, files in file_map.items():
         if not files:
             continue
-
-        saved_urls: list[str] = []
-
+        saved_urls = []
         for upload in files:
             if not upload.filename:
                 continue
-
-            _, ext = os.path.splitext(upload.filename)
-            if not ext:
-                ext = ".png"
-            cvt_filename = f"extra_{upload.filename}"
-            safe_filename = f"{cvt_filename}"
-            save_path = os.path.join(SAVE_EXTRA_DIR, safe_filename)
-
-            content = await upload.read()
-            with open(save_path, "wb") as f:
-                f.write(content)
-
-            saved_urls.append(build_extra_url(safe_filename))
-
-        if nail_key not in nail_dict:
-            nail_dict[nail_key] = {}
-
-        nail_dict[nail_key]["extra"] = saved_urls
-
+            path = await save_uploaded_image(upload, SAVE_EXTRA_DIR, prefix="extra")
+            if saved_paths is not None:
+                saved_paths.append(path)
+            saved_urls.append(f"/api/resource/image/dump?filename={path.name}&filetype=2")
+        if saved_urls:
+            nail_dict.setdefault(nail_key, {})["extra"] = saved_urls
     data["nail"] = nail_dict
     return data
 
@@ -77,8 +60,8 @@ async def study_list(
     search: Optional[str] = Query(None, description="이름/이메일 검색어"),
     filter: str = Query("name_asc", description="patientid_asc, patientid_desc, patientname_asc, patientname_desc, imported_asc, imported_desc, study_asc, study_desc"),
     page: int = Query(1, ge=1, description="현재 페이지 (1부터 시작)"),
-    rows: int = Query(20, ge=1, description="페이지당 row 수"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    rows: int = Query(20, ge=1, le=200, description="페이지당 row 수"),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "study list")
 
@@ -92,10 +75,10 @@ async def study_list(
     )
 
     return {
-        "code" : 200, 
+        "code" : 200,
         "state": "ok",
         "context" : result["items"],
-        "total": result["total"], 
+        "total": result["total"],
         "page": result["page"],
         "rows": result["rows"],
     }
@@ -109,7 +92,7 @@ async def image_origin_list(
     filter: str = Query("filename_asc", description="filename_asc, filename_desc, create_asc, create_desc"),
     page: int = Query(1, ge=1, description="현재 페이지 (1부터 시작)"),
     rows: int = Query(20, ge=1, description="페이지당 row 수"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image origin list")
 
@@ -123,10 +106,10 @@ async def image_origin_list(
     )
 
     return {
-        "code" : 200, 
+        "code" : 200,
         "state": "ok",
         "context" : result["items"],
-        "total": result["total"], 
+        "total": result["total"],
         "page": result["page"],
         "rows": result["rows"],
     }
@@ -135,7 +118,7 @@ async def image_origin_list(
 async def image_origin_detail(
     request: Request,
     filename: Optional[str] = Query(None, description="파일이름 검색어"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image origin detail")
 
@@ -145,7 +128,7 @@ async def image_origin_detail(
     )
 
     return {
-        "code" : 200, 
+        "code" : 200,
         "state": "ok",
         "context" : result["items"],
         "base" : "/api/resource/image/dump"
@@ -155,19 +138,19 @@ async def image_origin_detail(
 async def image_origin_detail(
     request: Request,
     filename: str = Query(..., description="filename"),
-    filetype: int = Query(..., description="filetype"),
-    width: Optional[int] = Query(None, description="width (px)"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    filetype: int = Query(..., ge=0, le=4, description="filetype"),
+    width: Optional[int] = Query(None, ge=16, le=4096, description="width (px)"),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image dump")
 
-    safe_name = os.path.basename(filename)
+    safe_name = filename
 
     if filetype == 0: base_dir = CONFIG_DIR["nail"]
     elif filetype == 1: base_dir = CONFIG_DIR["crop"]
     else: base_dir = CONFIG_DIR["extra"]
 
-    file_path = os.path.join(base_dir, safe_name)
+    file_path = str(storage_path(base_dir, safe_name, must_exist=True))
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image not found")
@@ -180,13 +163,13 @@ async def image_origin_detail(
                 img = ImageOps.exif_transpose(img)
 
             img.thumbnail((width, width), Image.Resampling.LANCZOS)
-            
+
             buf = io.BytesIO()
             ext = os.path.splitext(safe_name)[1].lower()
             img_format = "PNG" if ext == ".png" else "JPEG"
             img.save(buf, format=img_format, quality=80)
             buf.seek(0)
-            
+
             return StreamingResponse(buf, media_type=f"image/{img_format.lower()}")
         except Exception as e:
             print(f"Resizing Error: {e}")
@@ -199,7 +182,7 @@ async def image_extra(
     request: Request,
     filename: str = Query(..., description="filename"),
     filetype: int = Query(2, description="filetype (default 2)"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "image extra")
 
@@ -224,11 +207,11 @@ async def add_patient(
     patient_r_m: List[UploadFile] = File([]),
     patient_r_r: List[UploadFile] = File([]),
     patient_r_p: List[UploadFile] = File([]),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, ADD_PATIENT_ROLES, "add patient")
 
-    data = json.loads(body)
+    data = parse_patient_payload(body)
 
     file_map = {
         "patient_l_t": patient_l_t,
@@ -243,7 +226,7 @@ async def add_patient(
         "patient_r_p": patient_r_p,
     }
 
-    data = await apply_uploaded_extras(data, file_map)
+    data = await apply_uploaded_extras(data, file_map, request.state.saved_uploads)
 
     add_type = data.get("addType", "new")  # "exist" 또는 그 외
     project_seq = data.get("projectSeq", 1)
@@ -256,7 +239,7 @@ async def add_patient(
 
     stl_seq = None
     if add_type == "exist":
-        exist_result = await get_study_List_patientId(patient_id=patient_id, conn=conn)
+        exist_result = await get_study_List_patientId(patient_id=patient_id, project_seq=project_seq, conn=conn)
         print("exist_result", exist_result)
         stl_seq = exist_result["stl"]
         if not stl_seq:
@@ -266,7 +249,7 @@ async def add_patient(
                 patient_name=patient_name,
                 patient_gender=patient_gender,
                 patient_birth=patient_birth,
-                patient_visit=patient_visit, 
+                patient_visit=patient_visit,
                 conn=conn
             )
             stl_seq = add_result["stl_seq"]
@@ -277,14 +260,14 @@ async def add_patient(
             patient_name=patient_name,
             patient_gender=patient_gender,
             patient_birth=patient_birth,
-            patient_visit=patient_visit, 
+            patient_visit=patient_visit,
             conn=conn
         )
         stl_seq = add_result["stl_seq"]
-    
+
     if not stl_seq:
         raise HTTPException(status_code=404, detail="Study not exist")
-    
+
     series_note = data.get("patientNote", "")
     series_dt = patient_visit
     nail_data = data.get("nail", {})
@@ -300,7 +283,7 @@ async def add_patient(
 
     if not srl_seq:
         raise HTTPException(status_code=404, detail="Series not exist")
-    
+
     await update_study_recentdate(
         conn=conn,
         stl_seq=stl_seq,
@@ -310,8 +293,8 @@ async def add_patient(
     return {
         "ok": True,
         "data": {
-            stl_seq : stl_seq,
-            srl_seq : srl_seq
+            "stl_seq": stl_seq,
+            "srl_seq": srl_seq
         },
     }
 
@@ -329,11 +312,11 @@ async def modify_series(
     patient_r_m: List[UploadFile] = File([]),
     patient_r_r: List[UploadFile] = File([]),
     patient_r_p: List[UploadFile] = File([]),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, EDIT_ROLES, "modify series")
 
-    data = json.loads(body)
+    data = parse_patient_payload(body)
 
     file_map = {
         "patient_l_t": patient_l_t,
@@ -348,7 +331,7 @@ async def modify_series(
         "patient_r_p": patient_r_p,
     }
 
-    data = await apply_uploaded_extras(data, file_map)
+    data = await apply_uploaded_extras(data, file_map, request.state.saved_uploads)
 
     stl_seq = data.get("stl_seq")
     srl_seq = data.get("srl_seq")
@@ -363,6 +346,10 @@ async def modify_series(
     patient_visit = data.get("patientVisit") or None
     series_note = data.get("patientNote", "")
     nail_data = data.get("nail", {})
+
+    existing_series = await get_series_detail(conn, stl_seq, srl_seq)
+    if not existing_series.get("context"):
+        raise HTTPException(404, "Series not found.")
 
     await update_study_patient(
         conn=conn,
@@ -395,7 +382,8 @@ async def modify_series(
 async def series_list(
     request: Request,
     patient_id: str = Query(..., description="환자 Patient ID"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    stl_seq: Optional[int] = Query(None, ge=1),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     # patient_id 를 받아서 해당 환자의 series_list 를 반환
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "series list")
@@ -403,6 +391,7 @@ async def series_list(
     result = await get_series_list(
         conn=conn,
         patient_id=patient_id,
+        stl_seq=stl_seq,
     )
 
     return {
@@ -417,7 +406,7 @@ async def series_detail(
     request: Request,
     stl_seq: int = Query(..., description="study_list.stl_seq"),
     srl_seq: int = Query(..., description="series_list.srl_seq"),
-    conn: aiomysql.Connection = Depends(get_conn),
+    conn: aiomysql.Connection = Depends(get_conn, scope="function"),
 ):
     ensure_role(request.state.member, WORKLIST_VIEW_ROLES, "series detail")
 
@@ -437,7 +426,7 @@ async def series_detail(
 async def delete_series_api(
     request: Request,
     body: dict,
-    conn: aiomysql.Connection = Depends(get_conn)
+    conn: aiomysql.Connection = Depends(get_conn, scope="function")
 ):
     ensure_role(request.state.member, DELETE_SERIES_ROLES, "delete series")
 
@@ -450,7 +439,7 @@ async def delete_series_api(
 async def delete_empty_patient_api(
     request: Request,
     body: dict,
-    conn: aiomysql.Connection = Depends(get_conn)
+    conn: aiomysql.Connection = Depends(get_conn, scope="function")
 ):
     ensure_role(request.state.member, DELETE_PATIENT_ROLES, "delete patient")
 

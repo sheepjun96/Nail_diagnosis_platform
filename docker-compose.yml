@@ -1,86 +1,229 @@
+x-service: &service
+  restart: unless-stopped
+  init: true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-api-environment: &api-environment
+  DB_HOST: db
+  DB_PORT: "3306"
+  DB_NAME: ${DB_NAME:-curaxel_skin}
+  DB_USER: ${DB_USER:-curaxel_user}
+  DB_PASSWORD: ${DB_PASSWORD:?Run python run_platform.py to initialize .env}
+  REDIS_URL: redis://:${REDIS_PASSWORD:?Redis password is required}@redis:6379/0
+  NAIL_IMAGE_ROOT: /curaxel_images
+  NAIL_CONFIG_FILE: /app/platform_config.json
+  NAIL_INTERNAL_API_TOKEN: ${NAIL_INTERNAL_API_TOKEN:?Internal API token is required}
+  NAIL_AI_BASE_URL: http://ai:8002
+  NAIL_AI_TIMEOUT: ${NAIL_AI_TIMEOUT:-600}
+  NAIL_APP_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/v2}/app
+  NAIL_PUBLIC_BASE_URL: ${NAIL_PUBLIC_BASE_URL:-http://localhost:3007}
+  NAIL_UPLOAD_API_KEY: ${NAIL_UPLOAD_API_KEY:-}
+  NAIL_ENABLE_DOCS: ${NAIL_ENABLE_DOCS:-false}
+  GACHON_AUTH_DB_HOST: ${GACHON_AUTH_DB_HOST:-10.2.52.209}
+  GACHON_AUTH_DB_PORT: ${GACHON_AUTH_DB_PORT:-3306}
+  GACHON_AUTH_DB_USER: ${GACHON_AUTH_DB_USER:-}
+  GACHON_AUTH_DB_PASSWORD: ${GACHON_AUTH_DB_PASSWORD:-}
+  GACHON_AUTH_DB_NAME: ${GACHON_AUTH_DB_NAME:-mis_db}
+  GACHON_REDIS_HOST: ${GACHON_REDIS_HOST:-10.2.52.209}
+  GACHON_REDIS_PORT: ${GACHON_REDIS_PORT:-6379}
+  GACHON_REDIS_DB: ${GACHON_REDIS_DB:-0}
+  GACHON_REDIS_PASSWORD: ${GACHON_REDIS_PASSWORD:-}
+  GACHON_SESSION_SECRET: ${GACHON_SESSION_SECRET:-}
+  GACHON_BASE_URL: ${GACHON_BASE_URL:-http://10.2.52.209}
+  GACHON_SSO_FORCE_HTTP: ${GACHON_SSO_FORCE_HTTP:-false}
+
 services:
-  db:
-    image: mysql:8.0
-    restart: always
+  storage-init:
+    build:
+      context: .
+      target: api
+    image: nail-platform-api:local
+    user: "0:0"
+    command: ["python", "-m", "services.init_storage"]
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: curaxel_skin
-      MYSQL_USER: curaxel_user
-      MYSQL_PASSWORD: curaxel_pass
-    ports:
-      - "127.0.0.1:3308:3306"
+      NAIL_IMAGE_ROOT: /curaxel_images
+    volumes:
+      - curaxel_images:/curaxel_images
+    network_mode: none
+    restart: "no"
+
+  db:
+    <<: *service
+    image: ${MYSQL_IMAGE:-mysql:8.4}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MySQL root password is required}
+      MYSQL_DATABASE: ${DB_NAME:-curaxel_skin}
+      MYSQL_USER: ${DB_USER:-curaxel_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Seoul
     volumes:
       - db_data:/var/lib/mysql
-      - ./sql/init_env.sql:/docker-entrypoint-initdb.d/init.sql
+    networks: [data]
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql -h 127.0.0.1 -u \"$$MYSQL_USER\" -D \"$$MYSQL_DATABASE\" -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    mem_limit: 2g
+    stop_grace_period: 60s
 
-  app:
-    build: .
-    restart: always
-    env_file:
-      - .env
+  redis:
+    <<: *service
+    image: redis:8-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --appendfsync everysec --maxmemory 256mb --maxmemory-policy noeviction --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - redis_data:/data
+    networks: [data]
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 384m
+
+  migrate:
+    build:
+      context: .
+      target: api
+    image: nail-platform-api:local
+    command: ["python", "-m", "services.migrate"]
     environment:
       DB_HOST: db
-      DB_PORT: 3306
-      DB_USER: curaxel_user
-      DB_PASSWORD: curaxel_pass
-      DB_NAME: curaxel_skin
-      GACHON_AUTH_DB_HOST: ${GACHON_AUTH_DB_HOST:-10.2.52.209}
-      GACHON_AUTH_DB_PORT: ${GACHON_AUTH_DB_PORT:-3306}
-      GACHON_AUTH_DB_USER: ${GACHON_AUTH_DB_USER:-}
-      GACHON_AUTH_DB_PASSWORD: ${GACHON_AUTH_DB_PASSWORD:-}
-      GACHON_AUTH_DB_NAME: ${GACHON_AUTH_DB_NAME:-mis_db}
-      GACHON_REDIS_HOST: ${GACHON_REDIS_HOST:-10.2.52.209}
-      GACHON_REDIS_PORT: ${GACHON_REDIS_PORT:-6379}
-      GACHON_SESSION_SECRET: ${GACHON_SESSION_SECRET:-}
-      GACHON_BASE_URL: ${GACHON_BASE_URL:-http://10.2.52.209}
-      # 내부 SSO가 HTTP만 제공할 때 .env에 GACHON_SSO_FORCE_HTTP=true (또는 GACHON_BASE_URL을 http:// 로 통일)
-      GACHON_SSO_FORCE_HTTP: ${GACHON_SSO_FORCE_HTTP:-}
-      NAIL_APP_BASE_PATH: ${NAIL_APP_BASE_PATH:-/v2/app}
-    volumes:
-      - ./ai_models:/app/ai_models
-      - ./static:/app/static
-      - curaxel_images:/curaxel_images
-      - hf_cache:/root/.cache/huggingface
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-curaxel_skin}
+      DB_USER: ${DB_USER:-curaxel_user}
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks: [data]
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  ai:
+    <<: *service
+    build:
+      context: .
+      target: ai
+    image: nail-platform-ai:local
+    environment:
+      NAIL_IMAGE_ROOT: /curaxel_images
+      NAIL_CONFIG_FILE: /app/platform_config.json
+      NAIL_INTERNAL_API_TOKEN: ${NAIL_INTERNAL_API_TOKEN}
+      NAIL_AI_DEVICE: ${NAIL_AI_DEVICE:-cpu}
+      NAIL_TORCH_THREADS: ${NAIL_TORCH_THREADS:-4}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+    volumes:
+      - ./ai_models:/app/ai_models:ro
+      - ${NAIL_HOST_CONFIG:-./platform_config.json}:/app/platform_config.json:ro
+      - curaxel_images:/curaxel_images
+    networks: [inference, data]
+    depends_on:
+      storage-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
+    mem_limit: ${NAIL_AI_MEMORY:-6g}
+    cpus: ${NAIL_AI_CPUS:-4}
+    stop_grace_period: 45s
+
+  app:
+    <<: *service
+    build:
+      context: .
+      target: api
+    image: nail-platform-api:local
+    environment: *api-environment
+    volumes:
+      - ${NAIL_HOST_CONFIG:-./platform_config.json}:/app/platform_config.json:ro
+      - curaxel_images:/curaxel_images
+    networks: [web, data, inference]
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      ai:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health/ready', timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 10
+    mem_limit: 1g
 
   frontend:
+    <<: *service
     build:
       context: ./nail_front
-      dockerfile: Dockerfile
-    restart: always
+      target: runner
+      args:
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/v2}
+        NEXT_PUBLIC_API_BASE_URL: /api
+        INTERNAL_API_PROXY_TARGET: http://app:8001/api
+    image: nail-platform-frontend:local
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-/v2}
-      NEXT_PUBLIC_API_BASE_URL: /api
       INTERNAL_API_BASE_URL: http://app:8001/api
-      INTERNAL_API_PROXY_TARGET: http://app:8001/api
-      CHOKIDAR_USEPOLLING: "true"
-      WATCHPACK_POLLING: "true"
-    command: ["npm", "run", "dev", "--", "-p", "3000"]
-    volumes:
-      - ./nail_front:/app
-      - nail_front_node_modules:/app/node_modules
+    networks: [web]
     depends_on:
-      - app
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000'+(process.env.NEXT_PUBLIC_BASE_PATH||'')+'/app/login').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    mem_limit: 1g
 
   nginx:
-    image: nginx:alpine
-    restart: always
+    <<: *service
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
+    image: nail-platform-nginx:local
     ports:
-      - "${NAIL_HTTP_PORT:-3007}:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./static:/app/static
-      - curaxel_images:/curaxel_images
+      - "${NAIL_BIND_HOST:-127.0.0.1}:${NAIL_HTTP_PORT:-3007}:80"
+    networks: [web]
     depends_on:
-      - app
-      - frontend
-    
+      app:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+    read_only: true
+    tmpfs: [/tmp, /var/cache/nginx, /var/run]
+    mem_limit: 128m
+
+networks:
+  web:
+  data:
+    internal: true
+  inference:
+    internal: true
+
+# Keep the existing volume keys. The launcher guards against unplanned 8.0 upgrades.
 volumes:
   db_data:
+  redis_data:
   curaxel_images:
-  hf_cache:
-  nail_front_node_modules:

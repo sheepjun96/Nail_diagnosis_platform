@@ -1,106 +1,68 @@
-import cv2
+"""YOLO detection runs only inside the AI image."""
+from pathlib import Path
+
 import numpy as np
 from PIL import Image, ImageOps
 from ultralytics import YOLO
-import matplotlib.pyplot as plt
-import os
-from io import BytesIO
+
+from config import CONFIG_DIR, settings
+from services.fingers import finger_names
+
 
 class NailDetect:
-    def __init__(self, model_path="ai_models/yolov12.pt"):
-        self.model = YOLO(model_path)
-    
-    def load_image(self, img_bytes):
-        img = Image.open(img_bytes)
-        img = ImageOps.exif_transpose(img)
-        return img.convert("RGB")
+    def __init__(self, model_path=None, device=None):
+        path = Path(model_path or settings.detector_path)
+        if not path.is_file():
+            raise FileNotFoundError(f"Nail detector not found: {path}")
+        self.model = YOLO(str(path))
+        self.device = device
 
-    def crop_bbox(self, img, box, margin_factor=1.5):
-        img_array = np.array(img)
-        h_img, w_img = img_array.shape[:2]
-        x1, y1, x2, y2 = box
-        
-        bw = x2 - x1
-        bh = y2 - y1
-        cx, cy = (x1 + x2) / 2, (y1 + y2) / 2
+    @staticmethod
+    def load_image(image_path):
+        with Image.open(image_path) as source:
+            return ImageOps.exif_transpose(source).convert("RGB")
 
-        side_length = max(bw, bh) * margin_factor
-        
-        nx1 = int(cx - side_length / 2)
-        ny1 = int(cy - side_length / 2)
-        nx2 = int(cx + side_length / 2)
-        ny2 = int(cy + side_length / 2)
-        
-        if nx1 < 0:
-            shift = -nx1
-            nx1 += shift
-            nx2 += shift
-        if ny1 < 0:
-            shift = -ny1
-            ny1 += shift
-            ny2 += shift
-        if nx2 > w_img:
-            shift = nx2 - w_img
-            nx1 -= shift
-            nx2 -= shift
-        if ny2 > h_img:
-            shift = ny2 - h_img
-            ny1 -= shift
-            ny2 -= shift
-            
-        nx1 = max(0, nx1)
-        ny1 = max(0, ny1)
-        nx2 = min(w_img, nx2)
-        ny2 = min(h_img, ny2)
+    def crop_bbox(self, image, box, margin_factor=None):
+        margin_factor = margin_factor or settings.detector.get("crop_margin", 1.5)
+        x1, y1, x2, y2 = map(float, box)
+        side = min(max(x2 - x1, y2 - y1) * margin_factor, image.width, image.height)
+        left = max(0, min(int((x1 + x2 - side) / 2), image.width - int(side)))
+        top = max(0, min(int((y1 + y2 - side) / 2), image.height - int(side)))
+        coords = [left, top, min(image.width, left + int(side)), min(image.height, top + int(side))]
+        return np.asarray(image.crop(coords)), coords
 
-        cropped = img_array[ny1:ny2, nx1:nx2]
-        return cropped, [nx1, ny1, nx2, ny2]
-
-    def detect_and_crop(self, image_path, save_dir="/curaxel_images/img/crop/"):
-        img = self.load_image(image_path)
-        results = self.model.predict(source=img, conf=0.25)
-        
+    def detect_and_crop(self, image_path, save_dir=None, capture_type="auto"):
+        image = self.load_image(image_path)
+        results = self.model.predict(
+            source=image, conf=float(settings.detector.get("confidence", 0.25)),
+            device=self.device, verbose=False,
+        )
         boxes = results[0].boxes.xyxy.cpu().numpy()
-        
-        if len(boxes) == 0:
-            return []
+        confidences = results[0].boxes.conf.cpu().numpy()
+        names, complete = finger_names(len(boxes), capture_type)
+        output_dir = Path(save_dir or CONFIG_DIR["crop"])
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output = []
+        for index, box_index in enumerate(np.argsort(boxes[:, 0])):
+            cropped, coords = self.crop_bbox(image, boxes[box_index])
+            if not cropped.size:
+                continue
+            name = names[index]
+            destination = output_dir / f"{name}_{Path(image_path).name}"
+            Image.fromarray(cropped).save(destination, format="PNG")
+            output.append({
+                "finger_name": name,
+                "cropped_nail_path": destination.as_posix(),
+                "crop_info": coords,
+                "nail_index": index,
+                "detection_confidence": float(confidences[box_index]),
+                "assignment_complete": complete,
+            })
+        return output
 
-        if len(boxes) == 2:
-            finger_names = ["left_thumb", "right_thumb"]
-        else:
-            finger_names = [
-                "left_pinky", "left_ring", "left_middle", "left_index",
-                "right_index", "right_middle", "right_ring", "right_pinky"
-            ]
 
-        sorted_indices = np.argsort(boxes[:, 0])
-        base_filename = os.path.basename(image_path)
-        output_list = []
-
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-
-        for i, idx in enumerate(sorted_indices):
-            if i >= len(finger_names): break
-            
-            finger_name = finger_names[i]
-            cropped, crop_info = self.crop_bbox(img, boxes[idx])
-            
-            if cropped is not None:
-                filename_cropped = f"{finger_name}_{base_filename}"
-                save_path = os.path.join(save_dir, filename_cropped)
-                Image.fromarray(cropped).save(save_path)
-
-                output_list.append({
-                    "finger_name": finger_name,
-                    "cropped_nail_path": save_path.replace("\\", "/"),
-                    "crop_info": crop_info, # [x1, y1, x2, y2]
-                    "nail_index": i
-                })
-        return output_list
-
-async def nail_detect_process(model, image_path: str, save_dir: str = "/curaxel_images/img/crop/"):
-    if model is not None:   
-        return model.detect_and_crop(image_path=image_path, save_dir=save_dir)
-    nail_detector = NailDetect(model_path="ai_models/yolov12.pt")
-    return nail_detector.detect_and_crop(image_path=image_path, save_dir=save_dir)
+async def nail_detect_process(model, image_path, save_dir=None, capture_type="auto"):
+    import asyncio
+    if model is None:
+        raise RuntimeError("Use the initialized AI service model; per-request loading is disabled.")
+    return await asyncio.to_thread(model.detect_and_crop, image_path, save_dir, capture_type)
